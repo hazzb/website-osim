@@ -11,9 +11,10 @@ import ProgramKerja from './pages/ProgramKerja';
 import VisiMisi from './pages/VisiMisi';
 import LoginPage from './pages/LoginPage';
 
-// --- IMPOR BARU ---
-import ProtectedRoute from './components/ProtectedRoute'; // 1. Impor si Penjaga
-import DashboardAdmin from './pages/DashboardAdmin'; // 2. Impor Lobi Admin
+// Impor Admin
+import ProtectedRoute from './components/ProtectedRoute'; 
+import DashboardAdmin from './pages/DashboardAdmin';
+import KelolaAnggota from './pages/KelolaAnggota'; // <-- 1. IMPOR HALAMAN BARU
 
 function App() {
   const appStyle = {
@@ -32,20 +33,14 @@ function App() {
           <Route path="/program-kerja" element={<ProgramKerja />} />
           <Route path="/visi-misi" element={<VisiMisi />} />
           <Route path="/login" element={<LoginPage />} />
-
+          
           {/* --- Rute Admin yang Diproteksi --- */}
-          {/* Ini adalah cara kerjanya:
-            React Router akan mencocokkan <ProtectedRoute /> dulu.
-            Si penjaga (ProtectedRoute) akan cek login.
-            Jika lolos, dia akan render <Outlet />, 
-            yang kemudian akan diisi oleh <DashboardAdmin />.
-          */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-            {/* Nanti, semua halaman admin lain kita taruh di sini:
-              <Route path="/admin/edit-anggota" element={<EditAnggota />} />
-              <Route path="/admin/edit-progja" element={<EditProgja />} />
-            */}
+            
+            {/* 2. TAMBAHKAN RUTE BARU DI SINI */}
+            <Route path="/admin/kelola-anggota" element={<KelolaAnggota />} />
+            
           </Route>
 
         </Routes>
