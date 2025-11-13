@@ -1,96 +1,53 @@
 // src/pages/DaftarAnggota.jsx
-// --- VERSI FINAL (Setelah Refactor Periode dan Perbaikan Typo) ---
 
-import React, { useState, useEffect } from 'react'; // <-- KESALAHAN TYPO SUDAH DIPERBAIKI
-import { supabase } from '../supabaseClient';
-import KartuAnggota from '../components/KartuAnggota';
+import React, { useState, useEffect } from 'react';
+// Pastikan jalur ini benar (naik satu level dari 'pages' ke 'src/')
+import { supabase } from '../supabaseClient'; 
 
-function DaftarAnggota() {
+export default function DaftarAnggotaPage() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // State baru untuk menyimpan nama periode aktif (untuk judul)
-  const [periodeAktif, setPeriodeAktif] = useState(''); 
-
   useEffect(() => {
-    // --- FUNGSI BARU YANG JAUH LEBIH BAIK ---
-    async function getAnggotaAktif() {
-      setLoading(true);
-      
-      try {
-        // Ini adalah kueri "pintar" kita:
-        const { data, error } = await supabase
-          .from('anggota')
-          // 1. Ambil semua kolom anggota, DAN...
-          .select(`
-            *, 
-            periode_jabatan!inner (
-              tahun_mulai, 
-              tahun_selesai, 
-              nama_kabinet
-            )
-          `)
-          // 2. ...HANYA jika 'is_active' di tabel 'periode_jabatan' adalah true
-          .eq('periode_jabatan.is_active', true)
-          // 3. Urutkan berdasarkan nama
-          .order('nama', { ascending: true }); 
+    const fetchAnggota = async () => {
+      // Panggil VIEW anggota_detail_view di sini
+      const { data, error } = await supabase
+        .from('anggota_detail_view') // <<< Menggunakan VIEW anggota Anda
+        .select('*')
+        .order('nama', { ascending: true }); // Urutkan berdasarkan nama
 
-        if (error) throw error; // Jika ada error (misal: RLS), lempar
-
-        setAnggotaList(data || []);
-
-        // --- Atur Judul Halaman Secara Dinamis ---
-        // Jika kita dapat data, ambil info periode dari anggota pertama
-        if (data && data.length > 0) {
-          const p = data[0].periode_jabatan; // Info periode yang ter-JOIN
-          const namaKabinet = p.nama_kabinet ? `(${p.nama_kabinet})` : '';
-          setPeriodeAktif(
-            `Periode ${p.tahun_mulai}/${p.tahun_selesai} ${namaKabinet}`
-          );
-        } else {
-          // Jika tidak ada anggota di periode aktif
-          setPeriodeAktif("Periode Belum Ditetapkan");
-        }
-
-      } catch (error) {
-        console.error("Error fetching anggota aktif (Publik): ", error);
-        setPeriodeAktif("Gagal memuat data");
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error("Error fetching anggota:", error);
+        setError(error.message);
+        setAnggotaList([]);
+      } else {
+        // Data yang Anda dapatkan sudah memiliki kolom 'nama_divisi'
+        setAnggotaList(data);
       }
-    }
+      setLoading(false);
+    };
 
-    getAnggotaAktif();
-  }, []); // [] = Hanya berjalan sekali saat halaman dimuat
+    fetchAnggota();
+  }, []);
 
-  if (loading) {
-    return <p>Loading data anggota...</p>;
-  }
+  if (loading) return <h2>Memuat Daftar Anggota...</h2>;
+  if (error) return <div>Terjadi kesalahan saat memuat data: {error}</div>;
 
   return (
-    <div>
-      {/* Judul sekarang dinamis berdasarkan periode 'is_active' */}
-      <h2>Daftar Anggota OSIM</h2>
-      <h3 style={{ borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-        {periodeAktif}
-      </h3>
-      
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {anggotaList.length > 0 ? (
-          anggotaList.map((anggota) => (
-            <KartuAnggota
-              key={anggota.id}
-              nama={anggota.nama}
-              jabatan={anggota.jabatan}
-              fotoUrl={anggota.foto_url}
-            />
-          ))
-        ) : (
-          <p>Belum ada anggota yang ditambahkan untuk periode ini.</p>
-        )}
-      </div>
+    <div className="daftar-anggota-container">
+      <h1>Daftar Anggota OSIM</h1>
+      {anggotaList.map((anggota) => (
+        // Anda mungkin sudah menggunakan komponen KartuAnggota.jsx di sini
+        <div key={anggota.id} className="anggota-card">
+          <img src={anggota.foto_url} alt={anggota.nama} style={{ width: '100px', height: '100px' }} />
+          <h3>{anggota.nama}</h3>
+          <p>Divisi: <strong>{anggota.nama_divisi}</strong></p> {/* <<< Kolom baru yang sudah di-JOIN */}
+          <p>Jabatan: {anggota.jabatan_di_divisi}</p>
+          <p>IG: @{anggota.instagram_username}</p>
+        </div>
+        // Jika Anda menggunakan KartuAnggota.jsx, Anda bisa passing data ini ke sana.
+      ))}
     </div>
   );
 }
-
-export default DaftarAnggota;
