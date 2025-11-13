@@ -47,6 +47,11 @@ function DashboardAdmin() {
             Kelola Konten Visi & Misi
           </Link>
         </li>
+        <li>
+        <Link to="/admin/pengaturan" style={{...linkStyle, color: '#dc3545'}}>
+          Pengaturan Website
+        </Link>
+      </li>
       </ul>
     </div>
   );

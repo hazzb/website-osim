@@ -1,61 +1,69 @@
 // src/pages/ProgramKerja.jsx
-// --- VERSI BARU (Papan Kanban Trello) ---
+// --- VERSI SEDERHANA (TANPA MASTER SWITCH) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import ProgramKerjaCard from '../components/ProgramKerjaCard'; // <-- Impor Kartu baru kita
+import ProgramKerjaCard from '../components/ProgramKerjaCard';
 
 function ProgramKerja() {
-  // Kita perlu 3 state terpisah untuk 3 kolom
   const [rencanaList, setRencanaList] = useState([]);
   const [agendaList, setAgendaList] = useState([]);
   const [arsipList, setArsipList] = useState([]);
   
+  // State untuk menyimpan pengaturan (mulai dari null)
+  const [pengaturan, setPengaturan] = useState(null); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchAllProgramKerja() {
+    async function fetchPageData() {
       setLoading(true);
       try {
-        // Kita akan menjalankan 3 kueri secara paralel untuk efisiensi
+        // --- LANGKAH 1: Ambil Pengaturan (hanya 3 tombol) ---
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('pengaturan')
+          .select('tampilkan_kolom_rencana, tampilkan_kolom_akan_datang, tampilkan_kolom_selesai')
+          .eq('id', 1)
+          .single();
+
+        if (settingsError) throw settingsError;
+        setPengaturan(settingsData); // Simpan pengaturan di state
+
+        // --- LANGKAH 2: Buat daftar 'fetch' secara dinamis ---
+        const fetchesToRun = [];
+
+        if (settingsData.tampilkan_kolom_rencana) {
+          fetchesToRun.push(
+            supabase.from('program_kerja').select('*')
+              .eq('status', 'Rencana').order('divisi', { ascending: true })
+          );
+        } else {
+          fetchesToRun.push(Promise.resolve({ data: [] })); 
+        }
+
+        if (settingsData.tampilkan_kolom_akan_datang) {
+          fetchesToRun.push(
+            supabase.from('program_kerja').select('*')
+              .eq('status', 'Akan Datang').order('tanggal', { ascending: true })
+          );
+        } else {
+          fetchesToRun.push(Promise.resolve({ data: [] })); 
+        }
         
-        // 1. Ambil "Rencana" (status = 'Rencana')
-        const fetchRencana = supabase
-          .from('program_kerja')
-          .select('*')
-          .eq('status', 'Rencana')
-          .order('divisi', { ascending: true });
-          
-        // 2. Ambil "Akan Datang" (status = 'Akan Datang')
-        const fetchAgenda = supabase
-          .from('program_kerja')
-          .select('*')
-          .eq('status', 'Akan Datang')
-          .order('tanggal', { ascending: true }); // Acara terdekat di atas
-          
-        // 3. Ambil "Selesai" (status = 'Selesai')
-        const fetchArsip = supabase
-          .from('program_kerja')
-          .select('*')
-          .eq('status', 'Selesai')
-          .order('tanggal', { ascending: false }); // Acara terbaru di atas
+        if (settingsData.tampilkan_kolom_selesai) {
+          fetchesToRun.push(
+            supabase.from('program_kerja').select('*')
+              .eq('status', 'Selesai').order('tanggal', { ascending: false })
+          );
+        } else {
+          fetchesToRun.push(Promise.resolve({ data: [] })); 
+        }
 
-        // Jalankan semua kueri sekaligus
-        const [rencanaResult, agendaResult, arsipResult] = await Promise.all([
-          fetchRencana,
-          fetchAgenda,
-          fetchArsip
-        ]);
+        // Jalankan semua kueri
+        const [rencanaResult, agendaResult, arsipResult] = await Promise.all(fetchesToRun);
 
-        // Set state untuk setiap kolom
         if (rencanaResult.data) setRencanaList(rencanaResult.data);
         if (agendaResult.data) setAgendaList(agendaResult.data);
         if (arsipResult.data) setArsipList(arsipResult.data);
-        
-        // Lempar error jika salah satu kueri gagal
-        if (rencanaResult.error) throw rencanaResult.error;
-        if (agendaResult.error) throw agendaResult.error;
-        if (arsipResult.error) throw arsipResult.error;
 
       } catch (error) {
         console.error("Error fetching program kerja:", error);
@@ -64,46 +72,31 @@ function ProgramKerja() {
       }
     }
 
-    fetchAllProgramKerja();
+    fetchPageData();
   }, []); // [] = Hanya berjalan sekali saat halaman dimuat
 
-  // --- Styling untuk Papan Kanban ---
-  const boardStyle = {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: '20px', // Jarak antar kolom
-    padding: '20px 0',
-    // 'flexWrap' untuk responsivitas di HP
-    flexWrap: 'wrap' 
-  };
-
-  const columnStyle = {
-    flex: 1, // Setiap kolom mengambil ruang yang sama
-    minWidth: '300px', // Lebar minimum sebelum 'wrap'
-    backgroundColor: '#f4f5f7', // Warna latar Trello
-    borderRadius: '8px',
-    padding: '8px'
-  };
-
-  const columnTitleStyle = {
-    padding: '10px 16px',
-    margin: '0',
-    fontSize: '1.2em',
-    fontWeight: 'bold',
-    color: '#172B4D' // Warna teks Trello
-  };
-
-  const cardContainerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px'
-  };
+  // --- Styling (Tidak ada perubahan) ---
+  const boardStyle = { display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', gap: '20px', padding: '20px 0', flexWrap: 'wrap', overflowX: 'auto' };
+  const columnStyle = { flex: 1, minWidth: '300px', backgroundColor: '#f4f5f7', borderRadius: '8px', padding: '8px' };
+  const columnTitleStyle = { padding: '10px 16px', margin: '0', fontSize: '1.2em', fontWeight: 'bold', color: '#172B4D' };
+  const cardContainerStyle = { display: 'flex', flexDirection: 'column', gap: '8px' };
 
   if (loading) {
     return <p>Memuat papan program kerja...</p>;
   }
 
+  // Cek jika KETIGA tombol dimatikan, tampilkan pesan 'Segera Hadir'
+  // Ini adalah pengganti 'Master Switch' Anda
+  if (pengaturan && !pengaturan.tampilkan_kolom_rencana && !pengaturan.tampilkan_kolom_akan_datang && !pengaturan.tampilkan_kolom_selesai) {
+    return (
+      <div>
+        <h2>Program Kerja</h2>
+        <p>Program kerja untuk periode ini akan segera diumumkan.</p>
+      </div>
+    );
+  }
+
+  // Jika setidaknya satu tombol nyala, tampilkan Papan Kanban
   return (
     <div>
       <h2>Papan Program Kerja OSIM</h2>
@@ -111,47 +104,53 @@ function ProgramKerja() {
       
       <div style={boardStyle}>
         
-        {/* === KOLOM 1: RENCANA === */}
-        <div style={columnStyle}>
-          <h3 style={columnTitleStyle}>Rencana</h3>
-          <div style={cardContainerStyle}>
-            {rencanaList.length > 0 ? (
-              rencanaList.map(program => (
-                <ProgramKerjaCard key={program.id} program={program} />
-              ))
-            ) : (
-              <p style={{ padding: '16px', color: '#666' }}>Tidak ada program yang sedang direncanakan.</p>
-            )}
+        {/* Kolom "Rencana" (HANYA jika diizinkan) */}
+        {pengaturan?.tampilkan_kolom_rencana && (
+          <div style={columnStyle}>
+            <h3 style={columnTitleStyle}>Rencana</h3>
+            <div style={cardContainerStyle}>
+              {rencanaList.length > 0 ? (
+                rencanaList.map(program => (
+                  <ProgramKerjaCard key={program.id} program={program} />
+                ))
+              ) : (
+                <p style={{ padding: '16px', color: '#666' }}>Tidak ada program yang sedang direncanakan.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         
-        {/* === KOLOM 2: AKAN DATANG === */}
-        <div style={columnStyle}>
-          <h3 style={columnTitleStyle}>Akan Datang</h3>
-          <div style={cardContainerStyle}>
-            {agendaList.length > 0 ? (
-              agendaList.map(program => (
-                <ProgramKerjaCard key={program.id} program={program} />
-              ))
-            ) : (
-              <p style={{ padding: '16px', color: '#666' }}>Tidak ada agenda terdekat.</p>
-            )}
+        {/* Kolom "Akan Datang" (HANYA jika diizinkan) */}
+        {pengaturan?.tampilkan_kolom_akan_datang && (
+          <div style={columnStyle}>
+            <h3 style={columnTitleStyle}>Akan Datang</h3>
+            <div style={cardContainerStyle}>
+              {agendaList.length > 0 ? (
+                agendaList.map(program => (
+                  <ProgramKerjaCard key={program.id} program={program} />
+                ))
+              ) : (
+                <p style={{ padding: '16px', color: '#666' }}>Tidak ada agenda terdekat.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* === KOLOM 3: SELESAI === */}
-        <div style={columnStyle}>
-          <h3 style={columnTitleStyle}>Selesai</h3>
-          <div style={cardContainerStyle}>
-            {arsipList.length > 0 ? (
-              arsipList.map(program => (
-                <ProgramKerjaCard key={program.id} program={program} />
-              ))
-            ) : (
-              <p style={{ padding: '16px', color: '#666' }}>Belum ada program yang diarsipkan.</p>
-            )}
+        {/* Kolom "Selesai" (HANYA jika diizinkan) */}
+        {pengaturan?.tampilkan_kolom_selesai && (
+          <div style={columnStyle}>
+            <h3 style={columnTitleStyle}>Selesai</h3>
+            <div style={cardContainerStyle}>
+              {arsipList.length > 0 ? (
+                arsipList.map(program => (
+                  <ProgramKerjaCard key={program.id} program={program} />
+                ))
+              ) : (
+                <p style={{ padding: '16px', color: '#666' }}>Belum ada program yang diarsipkan.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
     </div>

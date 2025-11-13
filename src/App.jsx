@@ -20,11 +20,15 @@ import TambahAnggota from './pages/TambahAnggota';
 import EditAnggota from './pages/EditAnggota';
 // Rute Visi Misi
 import EditVisiMisi from './pages/EditVisiMisi';
-
-// --- 1. IMPOR HALAMAN BARU ---
+// Rute Program Kerja
 import KelolaProgramKerja from './pages/KelolaProgramKerja';
 import TambahProgramKerja from './pages/TambahProgramKerja';
 import EditProgramKerja from './pages/EditProgramKerja';
+
+// --- INI ADALAH PERBAIKANNYA ---
+// Kita perlu mengimpor halaman 'Pengaturan' sebelum bisa menggunakannya
+import Pengaturan from './pages/Pengaturan'; 
+// ---------------------------------
 
 
 function App() {
@@ -57,10 +61,14 @@ function App() {
             {/* Rute Visi Misi */}
             <Route path="/admin/edit-visi-misi" element={<EditVisiMisi />} />
 
-            {/* --- 2. TAMBAHKAN RUTE BARU DI SINI --- */}
+            {/* Rute Program Kerja */}
             <Route path="/admin/kelola-program-kerja" element={<KelolaProgramKerja />} />
             <Route path="/admin/program-kerja/tambah" element={<TambahProgramKerja />} />
             <Route path="/admin/program-kerja/edit/:id" element={<EditProgramKerja />} />
+            
+            {/* --- Rute Pengaturan Anda --- */}
+            {/* Baris ini yang menyebabkan error karena 'Pengaturan' belum diimpor */}
+            <Route path="/admin/pengaturan" element={<Pengaturan />} />
 
           </Route>
 
