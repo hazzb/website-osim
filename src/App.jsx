@@ -11,6 +11,8 @@ import DaftarAnggota from './pages/DaftarAnggota';
 import ProgramKerja from './pages/ProgramKerja';
 import VisiMisi from './pages/VisiMisi';
 
+import LoginPage from './pages/LoginPage';
+
 function App() {
   // 'App' sekarang bertugas sebagai 'Layout' utama
   const appStyle = {
@@ -40,6 +42,8 @@ function App() {
           <Route path="/anggota" element={<DaftarAnggota />} />
           <Route path="/program-kerja" element={<ProgramKerja />} />
           <Route path="/visi-misi" element={<VisiMisi />} />
+
+          <Route path="/login" element={<LoginPage />} />
 
           {/* Kita akan menambahkan rute /visi-misi, /program-kerja, dll. di sini */}
         </Routes>
