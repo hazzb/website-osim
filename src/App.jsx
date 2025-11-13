@@ -24,6 +24,7 @@ import EditVisiMisi from './pages/EditVisiMisi';
 // --- 1. IMPOR HALAMAN BARU ---
 import KelolaProgramKerja from './pages/KelolaProgramKerja';
 import TambahProgramKerja from './pages/TambahProgramKerja';
+import EditProgramKerja from './pages/EditProgramKerja';
 
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
             {/* --- 2. TAMBAHKAN RUTE BARU DI SINI --- */}
             <Route path="/admin/kelola-program-kerja" element={<KelolaProgramKerja />} />
             <Route path="/admin/program-kerja/tambah" element={<TambahProgramKerja />} />
+            <Route path="/admin/program-kerja/edit/:id" element={<EditProgramKerja />} />
 
           </Route>
 
