@@ -1,56 +1,76 @@
 // src/components/Navbar.jsx
+// --- Versi dengan Link Dashboard ---
 
-// 'Link' adalah pengganti tag <a> di React Router.
-// Ini mencegah halaman me-reload penuh.
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
-  
-  // --- Definisi Styling (CSS-in-JS) ---
+  const { session, profile, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // Style dasar untuk navigasi (digunakan di dalam container)
+  const handleLogout = async () => {
+    try {
+      await logout(); 
+      navigate('/'); 
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  // --- Styling (Tidak berubah) ---
   const navStyle = {
     backgroundColor: '#f0f0f0',
     padding: '10px',
     marginBottom: '20px',
     borderBottom: '1px solid #ccc'
   };
-
-  // Style untuk link navigasi standar (kiri)
   const linkStyle = {
     marginRight: '15px',
     textDecoration: 'none',
     color: '#333',
     fontWeight: 'bold'
   };
-
-  // 1. Container Utama (pembungkus)
-  // Menggunakan Flexbox untuk membagi link menjadi grup kiri dan kanan
   const navContainerStyle = {
     display: 'flex',
-    justifyContent: 'space-between', // PENTING: Mendorong grup ke ujung
+    justifyContent: 'space-between',
     alignItems: 'center',
-    ...navStyle // Mengambil style dasar (background, padding, dll)
+    ...navStyle
   };
-
-  // 2. Style khusus untuk link Admin (kanan)
-  // Mengambil style dasar (margin, decoration, dll) lalu menimpa/menambah
+  const logoutButtonStyle = {
+    ...linkStyle,
+    color: '#dc3545',
+    cursor: 'pointer',
+    fontWeight: 'normal',
+    marginRight: '0', // Hapus margin kanan
+    marginLeft: '10px', // Tambah margin kiri
+    border: 'none',
+    background: 'none',
+    fontFamily: 'inherit',
+    fontSize: 'inherit'
+  };
+  const adminInfoStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: '0'
+  };
   const adminLinkStyle = {
-    ...linkStyle, // Mewarisi style dari linkStyle
-    color: '#007bff', // Warna biru agar beda
+    ...linkStyle,
+    color: '#007bff',
     border: '1px solid #007bff',
     padding: '5px 10px',
     borderRadius: '5px',
-    marginRight: '0' // Tidak perlu margin kanan di item terakhir
+    marginRight: '0'
+  };
+  // Style baru untuk link dashboard, kita pakai ulang 'adminLinkStyle'
+  const dashboardLinkStyle = {
+    ...adminLinkStyle,
+    marginRight: '10px' // Beri jarak ke tombol logout
   };
 
-  // --- JSX (Struktur HTML) ---
-  
+
   return (
-    // Kita gunakan <div> pembungkus baru dengan style 'flex'
     <div style={navContainerStyle}>
-      
       {/* Grup Link Kiri (Navigasi Publik) */}
       <div>
         <Link to="/" style={linkStyle}>
@@ -67,11 +87,31 @@ function Navbar() {
         </Link>
       </div>
 
-      {/* Grup Link Kanan (Navigasi Admin) */}
-      <div>
-        <Link to="/login" style={adminLinkStyle}>
-          Login Admin
-        </Link>
+      {/* Grup Link Kanan (Cek Kondisi) */}
+      <div style={adminInfoStyle}>
+        
+        {session ? (
+          // Jika ADA Sesi (sudah login):
+          <>
+            <span style={{ marginRight: '10px', color: '#555' }}>
+              Halo, {profile ? profile.nama_lengkap : session.user.email}
+            </span>
+            
+            {/* --- LINK BARU KITA --- */}
+            <Link to="/admin/dashboard" style={dashboardLinkStyle}>
+              Dashboard
+            </Link>
+
+            <button onClick={handleLogout} style={logoutButtonStyle}>
+              Logout
+            </button>
+          </>
+        ) : (
+          // Jika TIDAK ADA Sesi (belum login):
+          <Link to="/login" style={adminLinkStyle}>
+            Login Admin
+          </Link>
+        )}
       </div>
     </div>
   );

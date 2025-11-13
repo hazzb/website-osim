@@ -1,10 +1,17 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+// src/main.jsx (KODE PERBAIKAN)
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+
+// Kita tetap mengimpor dan menggunakan AuthProvider (Versi Debug)
+import { AuthProvider } from './context/AuthContext.jsx' 
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  // Hapus Tag <React.StrictMode> dari sini
+  <AuthProvider>
     <App />
-  </StrictMode>,
+  </AuthProvider>
+  // Hapus Tag </React.StrictMode> dari sini
 )
