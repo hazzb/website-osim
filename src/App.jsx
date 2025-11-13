@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import Beranda from './pages/Beranda';
 import DaftarAnggota from './pages/DaftarAnggota';
 import ProgramKerja from './pages/ProgramKerja';
+import VisiMisi from './pages/VisiMisi';
 
 function App() {
   // 'App' sekarang bertugas sebagai 'Layout' utama
@@ -38,6 +39,7 @@ function App() {
           <Route path="/" element={<Beranda />} />
           <Route path="/anggota" element={<DaftarAnggota />} />
           <Route path="/program-kerja" element={<ProgramKerja />} />
+          <Route path="/visi-misi" element={<VisiMisi />} />
 
           {/* Kita akan menambahkan rute /visi-misi, /program-kerja, dll. di sini */}
         </Routes>

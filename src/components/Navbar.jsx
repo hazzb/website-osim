@@ -32,6 +32,9 @@ function Navbar() {
       <Link to="/program-kerja" style={linkStyle}>
         Program Kerja
       </Link>
+      <Link to="/visi-misi" style={linkStyle}>
+        Visi & Misi
+      </Link>
 
       {/* Kita akan tambahkan link Visi Misi, dll. di sini nanti */}
     </nav>
