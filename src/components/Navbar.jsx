@@ -29,6 +29,10 @@ function Navbar() {
       <Link to="/anggota" style={linkStyle}>
         Daftar Anggota
       </Link>
+      <Link to="/program-kerja" style={linkStyle}>
+        Program Kerja
+      </Link>
+
       {/* Kita akan tambahkan link Visi Misi, dll. di sini nanti */}
     </nav>
   );
