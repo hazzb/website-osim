@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute'; 
 import DashboardAdmin from './pages/DashboardAdmin';
 import KelolaAnggota from './pages/KelolaAnggota'; // <-- 1. IMPOR HALAMAN BARU
+import TambahAnggota from './pages/TambahAnggota';
 
 function App() {
   const appStyle = {
@@ -41,6 +42,7 @@ function App() {
             {/* 2. TAMBAHKAN RUTE BARU DI SINI */}
             <Route path="/admin/kelola-anggota" element={<KelolaAnggota />} />
             
+            <Route path="/admin/anggota/tambah" element={<TambahAnggota />} />
           </Route>
 
         </Routes>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient'; // Pastikan path ini benar
 import { Link } from 'react-router-dom'; // Untuk link "Tambah" nanti
 
+
 function KelolaAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,11 +90,11 @@ function KelolaAnggota() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Kelola Anggota OSIM</h2>
         {/* Kita akan buat halaman 'tambah' nanti */}
-        {/* <Link to="/admin/anggota/tambah">
+        <Link to="/admin/anggota/tambah">
           <button style={{...buttonStyle, backgroundColor: '#28a745', color: 'white'}}>
             + Tambah Anggota Baru
           </button>
-        </Link> */}
+        </Link>
       </div>
 
       <table style={tableStyle}>
