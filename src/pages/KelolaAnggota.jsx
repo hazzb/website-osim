@@ -1,9 +1,8 @@
 // src/pages/KelolaAnggota.jsx
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient'; // Pastikan path ini benar
-import { Link } from 'react-router-dom'; // Untuk link "Tambah" nanti
-
+import { supabase } from '../supabaseClient';
+import { Link } from 'react-router-dom'; // Pastikan Link diimpor
 
 function KelolaAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
@@ -36,11 +35,10 @@ function KelolaAnggota() {
     }
 
     try {
-      // Ini adalah perintah 'write' pertama kita ke Supabase!
       const { error } = await supabase
         .from('anggota')
         .delete()
-        .eq('id', anggotaId); // Hapus baris yang ID-nya cocok
+        .eq('id', anggotaId); 
 
       if (error) throw error;
 
@@ -72,7 +70,9 @@ function KelolaAnggota() {
   const buttonStyle = {
     marginRight: '5px',
     padding: '5px 10px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    border: '1px solid #ccc',
+    backgroundColor: '#f0f0f0'
   };
   const deleteButtonStyle = {
     ...buttonStyle,
@@ -89,9 +89,8 @@ function KelolaAnggota() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Kelola Anggota OSIM</h2>
-        {/* Kita akan buat halaman 'tambah' nanti */}
         <Link to="/admin/anggota/tambah">
-          <button style={{...buttonStyle, backgroundColor: '#28a745', color: 'white'}}>
+          <button style={{...buttonStyle, backgroundColor: '#28a745', color: 'white', border: 'none'}}>
             + Tambah Anggota Baru
           </button>
         </Link>
@@ -113,7 +112,13 @@ function KelolaAnggota() {
               <td style={thTdStyle}>{anggota.jabatan}</td>
               <td style={thTdStyle}>{anggota.instagram_username}</td>
               <td style={thTdStyle}>
-                {/* <button style={buttonStyle}>Edit</button> */}
+                
+                {/* --- PERUBAHAN UTAMA ADA DI SINI --- */}
+                {/* Tombol 'Edit' sekarang menjadi Link dinamis ke rute baru */}
+                <Link to={`/admin/anggota/edit/${anggota.id}`}>
+                  <button style={buttonStyle}>Edit</button>
+                </Link>
+                
                 <button 
                   style={deleteButtonStyle}
                   onClick={() => handleDelete(anggota.id, anggota.nama)}

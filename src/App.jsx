@@ -14,8 +14,9 @@ import LoginPage from './pages/LoginPage';
 // Impor Admin
 import ProtectedRoute from './components/ProtectedRoute'; 
 import DashboardAdmin from './pages/DashboardAdmin';
-import KelolaAnggota from './pages/KelolaAnggota'; // <-- 1. IMPOR HALAMAN BARU
+import KelolaAnggota from './pages/KelolaAnggota';
 import TambahAnggota from './pages/TambahAnggota';
+import EditAnggota from './pages/EditAnggota'; // <-- 1. IMPOR HALAMAN EDIT
 
 function App() {
   const appStyle = {
@@ -38,11 +39,12 @@ function App() {
           {/* --- Rute Admin yang Diproteksi --- */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-            
-            {/* 2. TAMBAHKAN RUTE BARU DI SINI */}
             <Route path="/admin/kelola-anggota" element={<KelolaAnggota />} />
-            
             <Route path="/admin/anggota/tambah" element={<TambahAnggota />} />
+            
+            {/* 2. RUTE DINAMIS BARU UNTUK EDIT */}
+            <Route path="/admin/anggota/edit/:id" element={<EditAnggota />} />
+            
           </Route>
 
         </Routes>
