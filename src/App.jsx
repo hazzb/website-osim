@@ -16,7 +16,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardAdmin from './pages/DashboardAdmin';
 import KelolaAnggota from './pages/KelolaAnggota';
 import TambahAnggota from './pages/TambahAnggota';
-import EditAnggota from './pages/EditAnggota'; // <-- 1. IMPOR HALAMAN EDIT
+import EditAnggota from './pages/EditAnggota';
+import EditVisiMisi from './pages/EditVisiMisi'; // <-- 1. IMPOR HALAMAN EDIT
 
 function App() {
   const appStyle = {
@@ -44,6 +45,7 @@ function App() {
             
             {/* 2. RUTE DINAMIS BARU UNTUK EDIT */}
             <Route path="/admin/anggota/edit/:id" element={<EditAnggota />} />
+            <Route path="/admin/edit-visi-misi" element={<EditVisiMisi />} />
             
           </Route>
 

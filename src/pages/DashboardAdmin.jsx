@@ -42,8 +42,13 @@ function DashboardAdmin() {
           <span style={{ color: '#888' }}>(Segera) Kelola Program Kerja</span>
         </li>
         <li>
-          <span style={{ color: '#888' }}>(Segera) Kelola Konten Halaman</span>
+          <Link to="/admin/edit-visi-misi" style={linkStyle}>
+            Kelola Konten Visi & Misi
+          </Link>
         </li>
+        <li>
+          <span style={{ color: '#888' }}>(Segera) Kelola Program Kerja</span>
+        </li> 
       </ul>
     </div>
   );
