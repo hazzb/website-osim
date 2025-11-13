@@ -2,12 +2,11 @@
 
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom'; // <-- 1. IMPOR LINK
+import { Link } from 'react-router-dom';
 
 function DashboardAdmin() {
   const { profile } = useAuth(); 
 
-  // Style untuk link di dalam list
   const linkStyle = {
     textDecoration: 'none',
     color: '#007bff',
@@ -31,24 +30,23 @@ function DashboardAdmin() {
 
       <p>Dari sini, Anda bisa mengelola data website:</p>
       
-      {/* 2. UBAH DAFTAR INI MENJADI LINK */}
       <ul style={listStyle}>
         <li>
           <Link to="/admin/kelola-anggota" style={linkStyle}>
             Kelola Daftar Anggota
           </Link>
         </li>
+        {/* INI PERUBAHANNYA */}
         <li>
-          <span style={{ color: '#888' }}>(Segera) Kelola Program Kerja</span>
+          <Link to="/admin/kelola-program-kerja" style={linkStyle}>
+            Kelola Program Kerja
+          </Link>
         </li>
         <li>
           <Link to="/admin/edit-visi-misi" style={linkStyle}>
             Kelola Konten Visi & Misi
           </Link>
         </li>
-        <li>
-          <span style={{ color: '#888' }}>(Segera) Kelola Program Kerja</span>
-        </li> 
       </ul>
     </div>
   );

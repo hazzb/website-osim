@@ -14,10 +14,17 @@ import LoginPage from './pages/LoginPage';
 // Impor Admin
 import ProtectedRoute from './components/ProtectedRoute'; 
 import DashboardAdmin from './pages/DashboardAdmin';
+// Rute Anggota
 import KelolaAnggota from './pages/KelolaAnggota';
 import TambahAnggota from './pages/TambahAnggota';
 import EditAnggota from './pages/EditAnggota';
-import EditVisiMisi from './pages/EditVisiMisi'; // <-- 1. IMPOR HALAMAN EDIT
+// Rute Visi Misi
+import EditVisiMisi from './pages/EditVisiMisi';
+
+// --- 1. IMPOR HALAMAN BARU ---
+import KelolaProgramKerja from './pages/KelolaProgramKerja';
+import TambahProgramKerja from './pages/TambahProgramKerja';
+
 
 function App() {
   const appStyle = {
@@ -40,13 +47,19 @@ function App() {
           {/* --- Rute Admin yang Diproteksi --- */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+            
+            {/* Rute Anggota */}
             <Route path="/admin/kelola-anggota" element={<KelolaAnggota />} />
             <Route path="/admin/anggota/tambah" element={<TambahAnggota />} />
-            
-            {/* 2. RUTE DINAMIS BARU UNTUK EDIT */}
             <Route path="/admin/anggota/edit/:id" element={<EditAnggota />} />
-            <Route path="/admin/edit-visi-misi" element={<EditVisiMisi />} />
             
+            {/* Rute Visi Misi */}
+            <Route path="/admin/edit-visi-misi" element={<EditVisiMisi />} />
+
+            {/* --- 2. TAMBAHKAN RUTE BARU DI SINI --- */}
+            <Route path="/admin/kelola-program-kerja" element={<KelolaProgramKerja />} />
+            <Route path="/admin/program-kerja/tambah" element={<TambahProgramKerja />} />
+
           </Route>
 
         </Routes>
