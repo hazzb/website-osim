@@ -1,109 +1,130 @@
 // src/pages/TambahAnggota.jsx
-// --- VERSI 4.0 (Dropdown Jabatan dari Database) ---
+// --- VERSI 4.2 (Logika URL Diperbaiki + Debug) ---
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // <-- 1. Impor useMemo
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
-
-// --- BAGIAN INI DIHAPUS ---
-// const JABATAN_PENGURUS_INTI = [...] (DIHAPUS)
-// const JABATAN_DIVISI_BIASA = [...] (DIHAPUS)
-// ----------------------------
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function TambahAnggota() {
   const navigate = useNavigate();
+  const { search } = useLocation(); // <-- 2. Dapatkan string URL
 
-  // State untuk form (tidak berubah)
+  // --- 3. Logika BARU untuk membaca URL (Lebih Stabil) ---
+  const queryParams = useMemo(() => new URLSearchParams(search), [search]);
+  
+  const urlPeriodeId = queryParams.get('periode_id');
+  const urlDivisiId = queryParams.get('divisi_id');
+  
+  // --- 4. DEBUG LOG ---
+  console.log("--- FORM TAMBAH ANGGOTA DIMUAT ---");
+  console.log("URL Search String:", search);
+  console.log("Ditemukan Periode ID dari URL:", urlPeriodeId);
+  console.log("Ditemukan Divisi ID dari URL:", urlDivisiId);
+  // --------------------
+
+  // State form
   const [nama, setNama] = useState('');
   const [fotoUrl, setFotoUrl] = useState('https://placehold.co/400x400/png');
   const [motto, setMotto] = useState('');
   const [instagram, setInstagram] = useState('');
   
-  // State Dropdown (tidak berubah)
+  // State Dropdown (diisi dari URL)
   const [periodeList, setPeriodeList] = useState([]);
-  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
+  const [selectedPeriodeId, setSelectedPeriodeId] = useState(urlPeriodeId || '');
   const [divisiList, setDivisiList] = useState([]);
-  const [selectedDivisiId, setSelectedDivisiId] = useState('');
+  const [selectedDivisiId, setSelectedDivisiId] = useState(urlDivisiId || '');
   
-  // --- PERUBAHAN STATE JABATAN ---
-  const [allJabatanList, setAllJabatanList] = useState([]); // Menyimpan SEMUA jabatan dari DB
-  const [jabatanOptions, setJabatanOptions] = useState([]); // Opsi dropdown yang sudah difilter
+  // State Jabatan
+  const [allJabatanList, setAllJabatanList] = useState([]);
+  const [jabatanOptions, setJabatanOptions] = useState([]);
   const [selectedJabatan, setSelectedJabatan] = useState('');
-  // ---------------------------------
 
-  // State UI (ditambah loadingJabatan)
+  // State UI
   const [loadingPeriode, setLoadingPeriode] = useState(true);
   const [loadingDivisi, setLoadingDivisi] = useState(false);
-  const [loadingJabatan, setLoadingJabatan] = useState(true); // <-- BARU
+  const [loadingJabatan, setLoadingJabatan] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // --- EFEK 1: Ambil daftar PERIODE dan JABATAN saat halaman dimuat ---
+  // --- EFEK 1: Ambil PERIODE dan JABATAN ---
   useEffect(() => {
+    console.log("EFEK 1: Memuat Periode & Jabatan...");
     async function loadInitialData() {
-      // Set semua loading
       setLoadingPeriode(true);
       setLoadingJabatan(true);
-      
       try {
-        // Ambil Periode (paralel)
         const fetchPeriode = supabase
           .from('periode_jabatan')
           .select('id, nama_kabinet, tahun_mulai, tahun_selesai, is_active')
           .order('tahun_mulai', { ascending: false });
-        
-        // Ambil Jabatan (paralel)
         const fetchJabatan = supabase
-          .from('master_jabatan') // <-- MENGAMBIL DARI TABEL BARU
+          .from('master_jabatan')
           .select('nama_jabatan, tipe_jabatan');
-
-        // Jalankan kedua fetch
+        
         const [periodeResult, jabatanResult] = await Promise.all([
           fetchPeriode, 
           fetchJabatan
         ]);
 
-        // Proses Periode
         if (periodeResult.error) throw periodeResult.error;
         const periodes = periodeResult.data || [];
         setPeriodeList(periodes);
         
-        const activePeriode = periodes.find(p => p.is_active);
-        if (activePeriode) {
-          setSelectedPeriodeId(activePeriode.id);
-        } else if (periodes.length > 0) {
-          setSelectedPeriodeId(periodes[0].id);
+        // Logika Pengisian Periode
+        if (!urlPeriodeId) {
+          console.log("EFEK 1: Tidak ada URL Periode ID, mencari yang aktif...");
+          const activePeriode = periodes.find(p => p.is_active);
+          if (activePeriode) {
+            setSelectedPeriodeId(activePeriode.id);
+          } else if (periodes.length > 0) {
+            setSelectedPeriodeId(periodes[0].id);
+          }
+        } else {
+          console.log("EFEK 1: URL Periode ID ditemukan, mengatur state ke:", urlPeriodeId);
+          setSelectedPeriodeId(urlPeriodeId); // Pastikan state di-set
         }
-        setLoadingPeriode(false);
-
-        // Proses Jabatan
+        
         if (jabatanResult.error) throw jabatanResult.error;
-        setAllJabatanList(jabatanResult.data || []); // <-- Simpan semua jabatan
-        setLoadingJabatan(false);
+        setAllJabatanList(jabatanResult.data || []);
         
       } catch (error) {
-        alert("Gagal memuat data awal (periode/jabatan): " + error.message);
+        alert("Gagal memuat data awal: " + error.message);
+      } finally {
         setLoadingPeriode(false);
         setLoadingJabatan(false);
       }
     }
     loadInitialData();
-  }, []); // [] = Hanya berjalan sekali
+  }, [urlPeriodeId]); // Dependensi sudah benar
 
-  // --- EFEK 2: Ambil daftar DIVISI (Tidak berubah) ---
+  // --- EFEK 2: Ambil DIVISI berdasarkan Periode ---
   useEffect(() => {
     if (!selectedPeriodeId) {
-      setDivisiList([]);
-      setSelectedDivisiId('');
+      console.log("EFEK 2: Dilewati (Periode ID belum ada)");
       return;
     }
+    console.log("EFEK 2: Memuat Divisi untuk Periode ID:", selectedPeriodeId);
+
     async function fetchDivisi() {
       setLoadingDivisi(true);
-      setDivisiList([]);
-      setSelectedDivisiId('');
+      if (!urlDivisiId) {
+        setDivisiList([]);
+        setSelectedDivisiId('');
+      }
       try {
-        const { data, error } = await supabase.from('divisi').select('id, nama_divisi').eq('periode_id', selectedPeriodeId).order('nama_divisi', { ascending: true });
+        const { data, error } = await supabase
+          .from('divisi')
+          .select('id, nama_divisi')
+          .eq('periode_id', selectedPeriodeId)
+          .order('nama_divisi', { ascending: true });
+          
         if (error) throw error;
         setDivisiList(data || []);
+        
+        if (urlDivisiId) {
+          console.log("EFEK 2: URL Divisi ID ditemukan, mengatur state ke:", urlDivisiId);
+          setSelectedDivisiId(urlDivisiId);
+        }
+        
       } catch (error) {
         alert("Gagal memuat daftar divisi: " + error.message);
       } finally {
@@ -111,39 +132,43 @@ function TambahAnggota() {
       }
     }
     fetchDivisi();
-  }, [selectedPeriodeId]);
+  }, [selectedPeriodeId, urlDivisiId]); // Dependensi sudah benar
 
-  // --- EFEK 3 (DIPERBARUI): Atur Opsi JABATAN (Menggunakan filter, bukan array) ---
+  // --- EFEK 3: Atur JABATAN berdasarkan Divisi (Tidak berubah) ---
   useEffect(() => {
-    if (!selectedDivisiId) {
+    if (!selectedDivisiId || divisiList.length === 0) {
+      console.log("EFEK 3: Dilewati (Divisi ID atau list belum ada)");
       setJabatanOptions([]);
       setSelectedJabatan('');
       return;
     }
     
-    // Cari nama divisi yang dipilih
+    console.log("EFEK 3: Mencari Jabatan untuk Divisi ID:", selectedDivisiId);
+    
     const divisiTerpilih = divisiList.find(d => d.id == selectedDivisiId);
-
+    
     if (divisiTerpilih) {
-      let tipeYangDicari = '';
-      if (divisiTerpilih.nama_divisi === 'Pengurus Inti') {
-        tipeYangDicari = 'Inti';
-      } else {
-        tipeYangDicari = 'Divisi';
-      }
+      console.log("EFEK 3: Divisi terpilih:", divisiTerpilih.nama_divisi);
+      let tipeYangDicari = (divisiTerpilih.nama_divisi === 'Pengurus Inti') ? 'Inti' : 'Divisi';
       
-      // Filter dari 'allJabatanList' yang baru saja kita fetch
+      const tipeKustom = allJabatanList.find(j => j.tipe_jabatan === divisiTerpilih.nama_divisi);
+      if (tipeKustom) {
+        tipeYangDicari = divisiTerpilih.nama_divisi;
+        console.log("EFEK 3: Tipe kustom ditemukan:", tipeYangDicari);
+      }
+
       const filteredJabatan = allJabatanList
         .filter(j => j.tipe_jabatan === tipeYangDicari)
-        .map(j => j.nama_jabatan); // Kita hanya butuh 'nama_jabatan'
+        .map(j => j.nama_jabatan);
         
+      console.log("EFEK 3: Opsi jabatan ditemukan:", filteredJabatan);
       setJabatanOptions(filteredJabatan);
-      
     } else {
+      console.log("EFEK 3: Divisi terpilih tidak ditemukan di 'divisiList'");
       setJabatanOptions([]);
     }
     setSelectedJabatan(''); 
-  }, [selectedDivisiId, divisiList, allJabatanList]); // 'Trigger' saat divisi ATAU allJabatanList berubah
+  }, [selectedDivisiId, divisiList, allJabatanList]);
 
   // --- FUNGSI SUBMIT (Tidak berubah) ---
   const handleSubmit = async (e) => {
@@ -157,7 +182,7 @@ function TambahAnggota() {
       const { error } = await supabase.from('anggota').insert([{ 
           nama: nama, foto_url: fotoUrl, motto: motto, 
           instagram_username: instagram, 
-          jabatan_di_divisi: selectedJabatan, // Data dari dropdown jabatan
+          jabatan_di_divisi: selectedJabatan,
           divisi_id: selectedDivisiId, 
           periode_id: selectedPeriodeId
       }]);
@@ -179,57 +204,56 @@ function TambahAnggota() {
   const selectStyle = { ...inputStyle, padding: '8px', backgroundColor: '#f9f9f9' };
   const buttonStyle = { padding: '10px 15px', fontSize: '1em', backgroundColor: '#28a745', color: 'white', border: 'none', cursor: 'pointer', marginTop: '10px' };
 
-  // --- RENDER FORM (Dropdown Jabatan di-update) ---
   return (
     <div>
       <h2>Tambah Anggota Baru</h2>
       <form style={formStyle} onSubmit={handleSubmit}>
         
-        {/* Dropdown Periode */}
         <div style={inputGroupStyle}>
           <label style={labelStyle} htmlFor="periode">1. Pilih Periode:</label>
-          {loadingPeriode ? <p>Memuat...</p> : (
-            <select id="periode" style={selectStyle} value={selectedPeriodeId}
-              onChange={(e) => setSelectedPeriodeId(e.target.value)} required >
-              <option value="" disabled>-- Pilih Periode --</option>
-              {periodeList.map(periode => <option key={periode.id} value={periode.id}>{periode.tahun_mulai}/{periode.tahun_selesai} ({periode.nama_kabinet || 'Tanpa Nama'})</option>)}
-            </select>
-          )}
+          <select id="periode" style={selectStyle} 
+            value={selectedPeriodeId}
+            onChange={(e) => setSelectedPeriodeId(e.target.value)} 
+            disabled={loadingPeriode || !!urlPeriodeId} // Kunci jika ID dari URL
+            required 
+          >
+            <option value="" disabled>-- Pilih Periode --</option>
+            {periodeList.map(periode => <option key={periode.id} value={periode.id}>{periode.tahun_mulai}/{periode.tahun_selesai} ({periode.nama_kabinet || 'Tanpa Nama'})</option>)}
+          </select>
+          {urlPeriodeId && <small>Periode diisi otomatis dari pintasan.</small>}
         </div>
         
         <div style={{ display: 'flex', gap: '15px' }}>
-          {/* Dropdown Divisi */}
           <div style={{ ...inputGroupStyle, flex: 1 }}>
             <label style={labelStyle} htmlFor="divisi">2. Pilih Divisi:</label>
-            {loadingDivisi ? <p>Memuat...</p> : (
-              <select id="divisi" style={selectStyle} value={selectedDivisiId}
-                onChange={(e) => setSelectedDivisiId(e.target.value)} required
-                disabled={divisiList.length === 0 || loadingPeriode} >
-                <option value="" disabled>-- Pilih Divisi --</option>
-                {divisiList.map(divisi => <option key={divisi.id} value={divisi.id}>{divisi.nama_divisi}</option>)}
-              </select>
-            )}
+            <select id="divisi" style={selectStyle} 
+              value={selectedDivisiId}
+              onChange={(e) => setSelectedDivisiId(e.target.value)} 
+              disabled={loadingDivisi || divisiList.length === 0 || !!urlDivisiId} // Kunci jika ID dari URL
+              required
+            >
+              <option value="" disabled>-- Pilih Divisi --</option>
+              {divisiList.map(divisi => <option key={divisi.id} value={divisi.id}>{divisi.nama_divisi}</option>)}
+            </select>
+            {urlDivisiId && <small>Divisi diisi otomatis dari pintasan.</small>}
           </div>
           
-          {/* Dropdown Jabatan (Sekarang dari DB) */}
           <div style={{ ...inputGroupStyle, flex: 1 }}>
             <label style={labelStyle} htmlFor="jabatan">3. Pilih Jabatan:</label>
-            {loadingJabatan ? <p>Memuat...</p> : (
-              <select id="jabatan" style={selectStyle} value={selectedJabatan}
-                onChange={(e) => setSelectedJabatan(e.target.value)} required
-                disabled={jabatanOptions.length === 0} >
-                <option value="" disabled>-- Pilih Jabatan --</option>
-                {jabatanOptions.map(jabatan => (
-                  <option key={jabatan} value={jabatan}>
-                    {jabatan}
-                  </option>
-                ))}
-              </select>
-            )}
+            <select id="jabatan" style={selectStyle} value={selectedJabatan}
+              onChange={(e) => setSelectedJabatan(e.target.value)} required
+              disabled={loadingJabatan || jabatanOptions.length === 0} >
+              <option value="" disabled>-- Pilih Jabatan --</option>
+              {jabatanOptions.map(jabatan => (
+                <option key={jabatan} value={jabatan}>
+                  {jabatan}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* ... (Input Nama, Foto, Motto, IG - tidak berubah) ... */}
+        {/* ... (Input Sisa Form - tidak berubah) ... */}
         <div style={inputGroupStyle}><label style={labelStyle} htmlFor="nama">4. Nama Lengkap:</label><input style={inputStyle} type="text" id="nama" value={nama} onChange={(e) => setNama(e.target.value)} required /></div>
         <div style={inputGroupStyle}><label style={labelStyle} htmlFor="fotoUrl">URL Foto:</label><input style={inputStyle} type="text" id="fotoUrl" value={fotoUrl} onChange={(e) => setFotoUrl(e.target.value)} /></div>
         <div style={inputGroupStyle}><label style={labelStyle} htmlFor="motto">Motto (Opsional):</label><input style={inputStyle} type="text" id="motto" value={motto} onChange={(e) => setMotto(e.target.value)} /></div>

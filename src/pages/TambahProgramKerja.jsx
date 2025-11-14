@@ -1,22 +1,35 @@
 // src/pages/TambahProgramKerja.jsx
-// --- VERSI 2.0 (Triple Cascading Dropdowns) ---
+// --- VERSI 2.1 (Bisa membaca 'status' & 'periode_id' dari URL) ---
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+// --- Helper function baru untuk membaca URL ---
+function useQuery() {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
+}
+// ----------------------------------------------
 
 function TambahProgramKerja() {
   const navigate = useNavigate();
+  const query = useQuery(); // <-- Gunakan helper
+
+  // --- Ambil data dari URL, jika ada ---
+  const urlPeriodeId = query.get('periode_id');
+  const urlStatus = query.get('status');
+  // ------------------------------------
 
   // State untuk data form
   const [namaAcara, setNamaAcara] = useState('');
   const [tanggal, setTanggal] = useState('');
-  const [status, setStatus] = useState('Rencana'); // Default ke 'Rencana'
+  const [status, setStatus] = useState(urlStatus || 'Rencana'); // <-- Set default dari URL
   const [deskripsi, setDeskripsi] = useState('');
 
   // State untuk Dropdown 1: Periode
   const [periodeList, setPeriodeList] = useState([]);
-  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
+  const [selectedPeriodeId, setSelectedPeriodeId] = useState(urlPeriodeId || ''); // <-- Set default dari URL
   const [loadingPeriode, setLoadingPeriode] = useState(true);
 
   // State untuk Dropdown 2: Divisi
@@ -32,7 +45,7 @@ function TambahProgramKerja() {
   // State UI
   const [saving, setSaving] = useState(false);
 
-  // --- EFEK 1: Ambil daftar PERIODE saat halaman dimuat ---
+  // --- EFEK 1: Ambil daftar PERIODE ---
   useEffect(() => {
     async function fetchPeriode() {
       setLoadingPeriode(true);
@@ -45,12 +58,14 @@ function TambahProgramKerja() {
         if (error) throw error;
         setPeriodeList(data || []);
         
-        // Otomatis pilih periode yang 'is_active'
-        const activePeriode = data.find(p => p.is_active);
-        if (activePeriode) {
-          setSelectedPeriodeId(activePeriode.id);
-        } else if (data.length > 0) {
-          setSelectedPeriodeId(data[0].id);
+        // Logika pengisian default (HANYA jika tidak ada dari URL)
+        if (!urlPeriodeId) {
+          const activePeriode = data.find(p => p.is_active);
+          if (activePeriode) {
+            setSelectedPeriodeId(activePeriode.id);
+          } else if (data.length > 0) {
+            setSelectedPeriodeId(data[0].id);
+          }
         }
       } catch (error) {
         alert("Gagal memuat daftar periode: " + error.message);
@@ -59,27 +74,23 @@ function TambahProgramKerja() {
       }
     }
     fetchPeriode();
-  }, []); // [] = Hanya berjalan sekali
+  }, [urlPeriodeId]); // 'Trigger' jika URL berubah
 
-  // --- EFEK 2: Ambil daftar DIVISI saat 'selectedPeriodeId' berubah ---
+  // --- EFEK 2: Ambil daftar DIVISI ---
   useEffect(() => {
-    // Reset dropdown di bawahnya
     setDivisiList([]);
     setSelectedDivisiId('');
     setAnggotaList([]);
     setSelectedPjId('');
-
-    if (!selectedPeriodeId) return; // Jangan jalankan jika periode kosong
-
+    if (!selectedPeriodeId) return;
     async function fetchDivisi() {
       setLoadingDivisi(true);
       try {
         const { data, error } = await supabase
           .from('divisi')
           .select('id, nama_divisi')
-          .eq('periode_id', selectedPeriodeId) // <-- KUNCI CASCADING 1
+          .eq('periode_id', selectedPeriodeId)
           .order('nama_divisi', { ascending: true });
-        
         if (error) throw error;
         setDivisiList(data || []);
       } catch (error) {
@@ -89,25 +100,21 @@ function TambahProgramKerja() {
       }
     }
     fetchDivisi();
-  }, [selectedPeriodeId]); // 'Trigger' saat periode berubah
+  }, [selectedPeriodeId]);
 
-  // --- EFEK 3: Ambil daftar ANGGOTA (PJ) saat 'selectedDivisiId' berubah ---
+  // --- EFEK 3: Ambil daftar ANGGOTA (PJ) ---
   useEffect(() => {
-    // Reset dropdown di bawahnya
     setAnggotaList([]);
     setSelectedPjId('');
-
-    if (!selectedDivisiId) return; // Jangan jalankan jika divisi kosong
-
+    if (!selectedDivisiId) return;
     async function fetchAnggota() {
       setLoadingAnggota(true);
       try {
         const { data, error } = await supabase
           .from('anggota')
-          .select('id, nama') // Hanya butuh ID dan Nama
-          .eq('divisi_id', selectedDivisiId) // <-- KUNCI CASCADING 2
+          .select('id, nama')
+          .eq('divisi_id', selectedDivisiId)
           .order('nama', { ascending: true });
-        
         if (error) throw error;
         setAnggotaList(data || []);
       } catch (error) {
@@ -117,9 +124,9 @@ function TambahProgramKerja() {
       }
     }
     fetchAnggota();
-  }, [selectedDivisiId]); // 'Trigger' saat divisi berubah
+  }, [selectedDivisiId]);
 
-  // --- FUNGSI SUBMIT ---
+  // --- FUNGSI SUBMIT (Tidak berubah) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedPeriodeId || !selectedDivisiId || !selectedPjId) {
@@ -130,23 +137,14 @@ function TambahProgramKerja() {
     try {
       const { error } = await supabase
         .from('program_kerja')
-        .insert([
-          { 
-            nama_acara: namaAcara,
-            tanggal: tanggal,
-            status: status,
-            deskripsi: deskripsi,
-            // --- Kunci Relasi (FK) ---
-            periode_id: selectedPeriodeId,
-            divisi_id: selectedDivisiId,
-            penanggung_jawab_id: selectedPjId
-          }
-        ]);
-
+        .insert([{ 
+            nama_acara: namaAcara, tanggal: tanggal, status: status,
+            deskripsi: deskripsi, periode_id: selectedPeriodeId,
+            divisi_id: selectedDivisiId, penanggung_jawab_id: selectedPjId
+        }]);
       if (error) throw error;
       alert('Program kerja baru berhasil ditambahkan!');
       navigate('/admin/kelola-program-kerja');
-
     } catch (error) {
       alert(`Gagal menambahkan program kerja: ${error.message}`);
     } finally {
@@ -175,11 +173,13 @@ function TambahProgramKerja() {
             <select id="periode" style={selectStyle}
               value={selectedPeriodeId}
               onChange={(e) => setSelectedPeriodeId(e.target.value)}
-              disabled={loadingPeriode} required
+              disabled={loadingPeriode || !!urlPeriodeId} // Kunci jika dari URL
+              required
             >
               <option value="" disabled>-- Pilih Periode --</option>
               {periodeList.map(p => <option key={p.id} value={p.id}>{p.tahun_mulai}/{p.tahun_selesai} ({p.nama_kabinet})</option>)}
             </select>
+            {urlPeriodeId && <small>Periode diisi otomatis dari pintasan.</small>}
           </div>
           
           {/* Dropdown 2: Divisi */}
@@ -225,19 +225,24 @@ function TambahProgramKerja() {
               value={tanggal} onChange={(e) => setTanggal(e.target.value)} required />
           </div>
           
-          {/* Dropdown Status */}
+          {/* Dropdown Status (Pintar) */}
           <div style={{ ...inputGroupStyle, flex: 1 }}>
             <label style={labelStyle} htmlFor="status">Status:</label>
             <select id="status" style={selectStyle}
-              value={status} onChange={(e) => setStatus(e.target.value)} required
+              value={status} 
+              onChange={(e) => setStatus(e.target.value)} 
+              disabled={!!urlStatus} // Kunci jika dari URL
+              required
             >
               <option value="Rencana">Rencana</option>
               <option value="Akan Datang">Akan Datang</option>
               <option value="Selesai">Selesai</option>
             </select>
+            {urlStatus && <small>Status diisi otomatis dari pintasan.</small>}
           </div>
         </div>
 
+        {/* ... (Sisa Form) ... */}
         <div style={inputGroupStyle}>
           <label style={labelStyle} htmlFor="deskripsi">Deskripsi (Opsional):</label>
           <textarea style={textareaStyle} id="deskripsi"

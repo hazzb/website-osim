@@ -1,5 +1,5 @@
 // src/App.jsx
-// --- VERSI LENGKAP (Termasuk Rute Kelola Jabatan) ---
+// --- VERSI LENGKAP (Termasuk Rute EditDivisi) ---
 
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -25,6 +25,7 @@ import KelolaPeriode from './pages/KelolaPeriode';
 import TambahPeriode from './pages/TambahPeriode';
 import KelolaDivisi from './pages/KelolaDivisi';
 import TambahDivisi from './pages/TambahDivisi';
+import EditDivisi from './pages/EditDivisi'; // <-- PASTIKAN INI ADA
 import KelolaJabatan from './pages/KelolaJabatan';
 import TambahJabatan from './pages/TambahJabatan';
 import EditJabatan from './pages/EditJabatan';
@@ -34,7 +35,7 @@ import KelolaAnggota from './pages/KelolaAnggota';
 import TambahAnggota from './pages/TambahAnggota';
 import EditAnggota from './pages/EditAnggota';
 
-// Rute Program Kerja (Masih rusak)
+// Rute Program Kerja (Sudah diperbaiki)
 import KelolaProgramKerja from './pages/KelolaProgramKerja';
 import TambahProgramKerja from './pages/TambahProgramKerja';
 import EditProgramKerja from './pages/EditProgramKerja';
@@ -62,15 +63,17 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<DashboardAdmin />} />
             
-            {/* Rute Pengaturan & Konten */}
             <Route path="/admin/edit-visi-misi" element={<EditVisiMisi />} />
             <Route path="/admin/pengaturan" element={<Pengaturan />} />
 
-            {/* Rute Fondasi (Periode, Divisi, Jabatan) */}
+            {/* Rute Fondasi */}
             <Route path="/admin/kelola-periode" element={<KelolaPeriode />} />
             <Route path="/admin/periode/tambah" element={<TambahPeriode />} />
+            
             <Route path="/admin/kelola-divisi" element={<KelolaDivisi />} /> 
             <Route path="/admin/divisi/tambah" element={<TambahDivisi />} />
+            <Route path="/admin/divisi/edit/:id" element={<EditDivisi />} /> {/* <-- INI RUTE YANG HILANG */}
+
             <Route path="/admin/kelola-jabatan" element={<KelolaJabatan />} />
             <Route path="/admin/jabatan/tambah" element={<TambahJabatan />} />
             <Route path="/admin/jabatan/edit/:id" element={<EditJabatan />} />
@@ -80,15 +83,13 @@ function App() {
             <Route path="/admin/anggota/tambah" element={<TambahAnggota />} />
             <Route path="/admin/anggota/edit/:id" element={<EditAnggota />} />
             
-            {/* Rute Program Kerja (Masih perlu perbaikan) */}
+            {/* Rute Program Kerja */}
             <Route path="/admin/kelola-program-kerja" element={<KelolaProgramKerja />} />
             <Route path="/admin/program-kerja/tambah" element={<TambahProgramKerja />} />
             <Route path="/admin/program-kerja/edit/:id" element={<EditProgramKerja />} />
           </Route>
           
-          {/* Rute 'catch-all' */}
           <Route path="*" element={<div><h2>404: Halaman Tidak Ditemukan</h2></div>} />
-
         </Routes>
       </div>
     </BrowserRouter>
