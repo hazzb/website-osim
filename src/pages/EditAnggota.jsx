@@ -1,198 +1,242 @@
 // src/pages/EditAnggota.jsx
+// --- VERSI 2.0 (Fetch, Cascading Dropdowns, dan Update) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate, useParams } from 'react-router-dom'; 
+import { useNavigate, useParams } from 'react-router-dom';
 
 function EditAnggota() {
-  const { id } = useParams(); // Ambil ID anggota dari URL
+  const { id } = useParams(); // Mengambil ID anggota dari URL
   const navigate = useNavigate();
 
-  // --- State untuk Form ---
+  // State untuk data form
   const [nama, setNama] = useState('');
-  const [jabatan, setJabatan] = useState('');
   const [fotoUrl, setFotoUrl] = useState('');
   const [motto, setMotto] = useState('');
   const [instagram, setInstagram] = useState('');
-  
-  // --- State ganda: untuk daftar periode DAN untuk data anggota ---
-  const [periode, setPeriode] = useState(''); // Akan menyimpan ID periode anggota
-  const [periodeList, setPeriodeList] = useState([]); // Akan menyimpan daftar periode
-  
-  // --- State Loading Ganda ---
-  // loading: untuk submit form
-  // pageLoading: untuk mengambil data awal (anggota + daftar periode)
-  const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [jabatanDiDivisi, setJabatanDiDivisi] = useState('');
 
-  // --- useEffect BARU: Mengambil SEMUA data yang dibutuhkan halaman ---
+  // State untuk Cascading Dropdowns
+  const [periodeList, setPeriodeList] = useState([]);
+  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
+  
+  const [divisiList, setDivisiList] = useState([]);
+  const [selectedDivisiId, setSelectedDivisiId] = useState('');
+
+  // State untuk UI
+  const [loading, setLoading] = useState(true); // Loading data awal
+  const [loadingDivisi, setLoadingDivisi] = useState(false); // Loading dropdown divisi
+  const [saving, setSaving] = useState(false);
+
+  // --- EFEK 1: Ambil data anggota & daftar periode saat halaman dimuat ---
   useEffect(() => {
-    async function loadPageData() {
-      setPageLoading(true);
+    async function loadInitialData() {
+      setLoading(true);
       try {
-        // FETCH 1: Ambil daftar periode (untuk mengisi dropdown)
-        const { data: periodesData, error: periodesError } = await supabase
+        // 1. Ambil daftar SEMUA periode untuk dropdown
+        const { data: periodes, error: periodeError } = await supabase
           .from('periode_jabatan')
-          .select('id, tahun_mulai, tahun_selesai, nama_kabinet')
+          .select('id, nama_kabinet, tahun_mulai, tahun_selesai')
           .order('tahun_mulai', { ascending: false });
+        
+        if (periodeError) throw periodeError;
+        setPeriodeList(periodes || []);
 
-        if (periodesError) throw periodesError;
-        setPeriodeList(periodesData || []);
-
-        // FETCH 2: Ambil data anggota yang spesifik (untuk mengisi form)
-        const { data: anggotaData, error: anggotaError } = await supabase
+        // 2. Ambil data SPESIFIK anggota yang akan diedit
+        const { data: anggota, error: anggotaError } = await supabase
           .from('anggota')
-          .select('*') // Ambil semua, termasuk 'periode_id'
-          .eq('id', id)
-          .single(); 
-
+          .select('*')
+          .eq('id', id) // Berdasarkan ID dari URL
+          .single(); // Kita hanya butuh 1 data
+        
         if (anggotaError) throw anggotaError;
-
-        // Isi 'state' form dengan data anggota yang didapat
-        if (anggotaData) {
-          setNama(anggotaData.nama);
-          setJabatan(anggotaData.jabatan);
-          setFotoUrl(anggotaData.foto_url || ''); 
-          setMotto(anggotaData.motto || '');
-          setInstagram(anggotaData.instagram_username || '');
-          
-          // INI KUNCINYA:
-          // Set 'periode' (state) ke 'periode_id' (dari data anggota)
-          // Ini akan otomatis memilih dropdown yang benar
-          setPeriode(anggotaData.periode_id); 
+        if (!anggota) {
+          alert("Data anggota tidak ditemukan!");
+          navigate('/admin/kelola-anggota');
+          return;
         }
+
+        // 3. Isi semua state form dengan data yang ada
+        setNama(anggota.nama);
+        setFotoUrl(anggota.foto_url || 'https://placehold.co/400x400/png');
+        setMotto(anggota.motto || '');
+        setInstagram(anggota.instagram_username || '');
+        setJabatanDiDivisi(anggota.jabatan_di_divisi || '');
+        
+        // 4. Set state dropdown ke nilai yang ada di database
+        //    Ini akan otomatis memicu EFEK 2
+        setSelectedPeriodeId(anggota.periode_id); 
+        setSelectedDivisiId(anggota.divisi_id);
+
       } catch (error) {
-        alert(`Gagal mengambil data: ${error.message}`);
+        alert("Gagal memuat data anggota: " + error.message);
+        setLoading(false);
+      }
+      // 'loading' di-set ke false nanti di EFEK 2, setelah divisi juga dimuat
+    }
+    
+    loadInitialData();
+  }, [id, navigate]); // [] = Hanya berjalan sekali saat halaman dimuat
+
+  // --- EFEK 2: Ambil daftar DIVISI saat 'selectedPeriodeId' berubah ---
+  useEffect(() => {
+    if (!selectedPeriodeId) {
+      setDivisiList([]);
+      return;
+    }
+
+    async function fetchDivisi() {
+      setLoadingDivisi(true);
+      try {
+        const { data, error } = await supabase
+          .from('divisi')
+          .select('id, nama_divisi')
+          .eq('periode_id', selectedPeriodeId) // <-- KUNCI CASCADING
+          .order('nama_divisi', { ascending: true });
+        
+        if (error) throw error;
+        setDivisiList(data || []);
+        
+      } catch (error) {
+        alert("Gagal memuat daftar divisi: " + error.message);
       } finally {
-        setPageLoading(false);
+        setLoading(false); // Data awal (anggota + periode + divisi) selesai dimuat
+        setLoadingDivisi(false);
       }
     }
     
-    loadPageData();
-  }, [id]); // <-- Bergantung pada 'id' dari URL
+    fetchDivisi();
+  }, [selectedPeriodeId]); // <-- 'Trigger' saat state ini berubah
 
-  // --- handleSubmit diperbarui untuk 'periode_id' ---
+  // --- Handler saat admin MENGGANTI periode ---
+  const handlePeriodeChange = (e) => {
+    setSelectedPeriodeId(e.target.value);
+    // KOSONGKAN pilihan divisi, karena divisi lama tidak valid
+    setSelectedDivisiId(''); 
+  };
+
+  // --- FUNGSI SUBMIT (UPDATE) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!selectedPeriodeId || !selectedDivisiId) {
+      alert("Harap pilih Periode dan Divisi.");
+      return;
+    }
+    setSaving(true);
 
     try {
+      // Kita gunakan 'update' bukan 'insert'
       const { error } = await supabase
         .from('anggota')
         .update({ 
-          nama: nama, 
-          jabatan: jabatan, 
-          periode_id: parseInt(periode), // <-- Kolom database baru kita
+          nama: nama,
           foto_url: fotoUrl,
           motto: motto,
-          instagram_username: instagram
+          instagram_username: instagram,
+          jabatan_di_divisi: jabatanDiDivisi,
+          divisi_id: selectedDivisiId,   // FK Divisi (bisa jadi baru)
+          periode_id: selectedPeriodeId // FK Periode (bisa jadi baru)
         })
-        .eq('id', id);
+        .eq('id', id); // <-- KUNCI UPDATE: WHERE id = ...
 
       if (error) throw error;
-      alert('Data anggota berhasil diperbarui!');
-      navigate('/admin/kelola-anggota');
+      alert('Anggota berhasil diperbarui!');
+      navigate('/admin/kelola-anggota'); // Arahkan kembali ke tabel
 
     } catch (error) {
       alert(`Gagal memperbarui anggota: ${error.message}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  // --- STYLING LENGKAP (Sudah termasuk) ---
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    maxWidth: '500px',
-    margin: '20px auto',
-    padding: '20px',
-    border: '1px solid #ddd',
-    borderRadius: '8px'
-  };
-  const inputGroupStyle = {
-    marginBottom: '15px'
-  };
-  const labelStyle = {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: 'bold'
-  };
-  const inputStyle = {
-    width: '100%',
-    padding: '8px',
-    boxSizing: 'border-box' 
-  };
-  const buttonStyle = {
-    padding: '10px 15px',
-    fontSize: '1em',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    cursor: 'pointer'
-  };
-  
-  // Tampilkan satu loading screen untuk semua
-  if (pageLoading) { 
-    return <p>Memuat data editor anggota...</p>;
+  // --- Styling (Sama seperti TambahAnggota) ---
+  const formStyle = { display: 'flex', flexDirection: 'column', maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' };
+  const inputGroupStyle = { marginBottom: '15px' };
+  const labelStyle = { display: 'block', marginBottom: '5px', fontWeight: 'bold' };
+  const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box' };
+  const selectStyle = { ...inputStyle, padding: '8px', backgroundColor: '#f9f9f9' };
+  const buttonStyle = { padding: '10px 15px', fontSize: '1em', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer', marginTop: '10px' };
+
+  if (loading) {
+    return <h2>Memuat data anggota untuk diedit...</h2>;
   }
 
   return (
     <div>
-      <h2>Edit Anggota OSIM</h2>
+      <h2>Edit Anggota: {nama}</h2>
       <form style={formStyle} onSubmit={handleSubmit}>
+
+        <div style={{ display: 'flex', gap: '15px' }}>
+          {/* Kolom Dropdown Periode */}
+          <div style={{ ...inputGroupStyle, flex: 1 }}>
+            <label style={labelStyle} htmlFor="periode">Periode:</label>
+            <select 
+              id="periode" style={selectStyle}
+              value={selectedPeriodeId}
+              onChange={handlePeriodeChange} // <-- Pakai handler khusus
+              required
+            >
+              <option value="" disabled>-- Pilih Periode --</option>
+              {periodeList.map(periode => (
+                <option key={periode.id} value={periode.id}>
+                  {periode.tahun_mulai}/{periode.tahun_selesai} ({periode.nama_kabinet || 'Tanpa Nama'})
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Kolom Dropdown Divisi */}
+          <div style={{ ...inputGroupStyle, flex: 1 }}>
+            <label style={labelStyle} htmlFor="divisi">Divisi:</label>
+            {loadingDivisi ? <p>Memuat...</p> : (
+              <select 
+                id="divisi" style={selectStyle}
+                value={selectedDivisiId}
+                onChange={(e) => setSelectedDivisiId(e.target.value)}
+                required
+                disabled={divisiList.length === 0}
+              >
+                <option value="" disabled>-- Pilih Divisi --</option>
+                {divisiList.map(divisi => (
+                  <option key={divisi.id} value={divisi.id}>
+                    {divisi.nama_divisi}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+
+        {/* --- Input fields (sama seperti TambahAnggota) --- */}
         <div style={inputGroupStyle}>
           <label style={labelStyle} htmlFor="nama">Nama Lengkap:</label>
-          <input style={inputStyle} type="text" id="nama" value={nama}
-            onChange={(e) => setNama(e.target.value)} required />
+          <input style={inputStyle} type="text" id="nama"
+            value={nama} onChange={(e) => setNama(e.target.value)} required />
         </div>
-        
         <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="jabatan">Jabatan:</label>
-          <input style={inputStyle} type="text" id="jabatan" value={jabatan}
-            onChange={(e) => setJabatan(e.target.value)} required />
+          <label style={labelStyle} htmlFor="jabatanDiDivisi">Jabatan di Divisi:</label>
+          <input style={inputStyle} type="text" id="jabatanDiDivisi"
+            value={jabatanDiDivisi} onChange={(e) => setJabatanDiDivisi(e.target.value)} required />
         </div>
-
-        {/* --- FIELD PERIODE (DROPDOWN) --- */}
-        <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="periode">Periode Jabatan:</label>
-          <select
-            style={inputStyle}
-            id="periode"
-            value={periode} // 'value' ini akan diisi oleh data anggota
-            onChange={(e) => setPeriode(e.target.value)}
-            required
-          >
-            <option value="" disabled>-- Pilih Periode --</option>
-            {periodeList.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.tahun_mulai}/{p.tahun_selesai} 
-                {p.nama_kabinet ? ` (${p.nama_kabinet})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-        
         <div style={inputGroupStyle}>
           <label style={labelStyle} htmlFor="fotoUrl">URL Foto:</label>
-          <input style={inputStyle} type="text" id="fotoUrl" value={fotoUrl}
-            onChange={(e) => setFotoUrl(e.target.value)} />
+          <input style={inputStyle} type="text" id="fotoUrl"
+            value={fotoUrl} onChange={(e) => setFotoUrl(e.target.value)} />
         </div>
-
         <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="motto">Motto:</label>
-          <input style={inputStyle} type="text" id="motto" value={motto}
-            onChange={(e) => setMotto(e.target.value)} />
+          <label style={labelStyle} htmlFor="motto">Motto (Opsional):</label>
+          <input style={inputStyle} type="text" id="motto"
+            value={motto} onChange={(e) => setMotto(e.target.value)} />
+        </div>
+        <div style={inputGroupStyle}>
+          <label style={labelStyle} htmlFor="instagram">Username Instagram (Opsional, tanpa @):</label>
+          <input style={inputStyle} type="text" id="instagram"
+            value={instagram} onChange={(e) => setInstagram(e.target.value)} />
         </div>
         
-        <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="instagram">Instagram Username:</label>
-          <input style={inputStyle} type="text" id="instagram" value={instagram}
-            onChange={(e) => setInstagram(e.target.value)} />
-        </div>
-        
-        <button style={buttonStyle} type="submit" disabled={loading}>
-          {loading ? 'Menyimpan...' : 'Perbarui Data Anggota'}
+        <button style={buttonStyle} type="submit" disabled={saving || loading || loadingDivisi}>
+          {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
         </button>
       </form>
     </div>

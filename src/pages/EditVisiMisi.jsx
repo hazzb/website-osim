@@ -1,147 +1,131 @@
 // src/pages/EditVisiMisi.jsx
+// --- VERSI DIPERBARUI (setelah Skrip Nuklir) ---
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+// Path ini sudah benar: EditVisiMisi.jsx (di pages) -> ../ (ke src) -> supabaseClient.js
+import { supabase } from '../supabaseClient'; 
 import { useNavigate } from 'react-router-dom';
 
 function EditVisiMisi() {
-  // Kita tidak perlu 'useParams' karena kita TAHU slug-nya adalah 'visi-misi'
+  // Kita butuh 2 state, satu untuk Visi, satu untuk Misi
+  const [visi, setVisi] = useState('');
+  const [misi, setMisi] = useState('');
   
-  const [judul, setJudul] = useState('');
-  const [kontenMarkdown, setKontenMarkdown] = useState('');
-  
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // Hook untuk redirect
+  const [loading, setLoading] = useState(true); // Untuk fetch data awal
+  const [saving, setSaving] = useState(false);  // Untuk tombol simpan
+  const navigate = useNavigate();
 
-  // 1. useEffect untuk MENGAMBIL (FETCH) data 'visi-misi'
+  // LANGKAH 1: FETCH data Visi dan Misi saat halaman dimuat
   useEffect(() => {
-    async function getKonten() {
+    async function fetchKonten() {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // Ambil Visi (dari nama_halaman = 'visi')
+        const { data: visiData, error: visiError } = await supabase
           .from('konten_halaman')
-          .select('judul, konten_markdown') // Kita hanya butuh 2 kolom ini
-          .eq('slug', 'visi-misi') // Kunci utamanya
-          .single(); // Kita hanya mengharapkan satu hasil
+          .select('konten')
+          .eq('nama_halaman', 'visi') // <-- Kolom baru kita
+          .single();
+        
+        if (visiError) throw visiError;
+        if (visiData) setVisi(visiData.konten);
 
-        if (error) throw error;
+        // Ambil Misi (dari nama_halaman = 'misi')
+        const { data: misiData, error: misiError } = await supabase
+          .from('konten_halaman')
+          .select('konten')
+          .eq('nama_halaman', 'misi') // <-- Kolom baru kita
+          .single();
 
-        // Isi 'state' form dengan data yang didapat dari database
-        if (data) {
-          setJudul(data.judul);
-          setKontenMarkdown(data.konten_markdown || '');
-        }
+        if (misiError) throw misiError;
+        if (misiData) setMisi(misiData.konten);
+
       } catch (error) {
-        alert(`Gagal mengambil data konten: ${error.message}`);
+        alert("Gagal mengambil data Visi & Misi: " + error.message);
       } finally {
         setLoading(false);
       }
     }
     
-    getKonten();
-  }, []); // <-- Array kosong, hanya berjalan sekali saat load
+    fetchKonten();
+  }, []); // [] = Hanya berjalan sekali
 
-  // 2. Fungsi 'handleSubmit' untuk MENG-UPDATE data
+  // LANGKAH 2: FUNGSI SIMPAN (Harus meng-update 2 baris)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
+    setSaving(true);
     try {
-      // Ini adalah perintah 'UPDATE'
-      const { error } = await supabase
+      // Update Visi
+      const { error: visiError } = await supabase
         .from('konten_halaman')
         .update({ 
-          judul: judul, 
-          konten_markdown: kontenMarkdown
+          konten: visi,
+          updated_at: new Date() // Set waktu update
         })
-        .eq('slug', 'visi-misi'); // <-- DI MANA 'slug' adalah 'visi-misi'
+        .eq('nama_halaman', 'visi'); // <-- Kondisi update baru
+      
+      if (visiError) throw visiError;
 
-      if (error) throw error;
+      // Update Misi
+      const { error: misiError } = await supabase
+        .from('konten_halaman')
+        .update({ 
+          konten: misi,
+          updated_at: new Date() 
+        })
+        .eq('nama_halaman', 'misi'); // <-- Kondisi update baru
 
-      alert('Konten Visi & Misi berhasil diperbarui!');
-      // Arahkan kembali ke dashboard admin
-      navigate('/admin/dashboard');
+      if (misiError) throw misiError;
+
+      alert('Visi & Misi berhasil diperbarui!');
+      navigate('/admin/dashboard'); // Kembali ke dashboard setelah simpan
 
     } catch (error) {
-      alert(`Gagal memperbarui konten: ${error.message}`);
+      alert('Gagal menyimpan data: ' + error.message);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
-
-  // --- Styling Sederhana untuk Form ---
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    maxWidth: '800px', // Lebih lebar untuk editor markdown
-    margin: '20px auto',
-    padding: '20px',
-    border: '1px solid #ddd',
-    borderRadius: '8px'
-  };
-  const inputGroupStyle = {
-    marginBottom: '15px'
-  };
-  const labelStyle = {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: 'bold'
-  };
-  const inputStyle = {
-    width: '100%',
-    padding: '8px',
-    boxSizing: 'border-box'
-  };
-  // Style khusus untuk <textarea>
-  const textareaStyle = {
-    ...inputStyle,
-    height: '400px', // Jauh lebih tinggi
-    fontFamily: 'monospace' // Font yang baik untuk coding/markdown
-  };
-  const buttonStyle = {
-    padding: '10px 15px',
-    fontSize: '1em',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    cursor: 'pointer'
-  };
   
-  if (loading && !judul) { 
-    return <p>Memuat konten Visi Misi...</p>;
+  // --- Styling (Disesuaikan agar lebih rapi) ---
+  const formStyle = { display: 'flex', flexDirection: 'column', maxWidth: '800px', margin: '20px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' };
+  const inputGroupStyle = { marginBottom: '20px' };
+  const labelStyle = { display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '1.2em' };
+  const textareaStyle = { width: '100%', minHeight: '150px', padding: '10px', boxSizing: 'border-box', fontFamily: 'Arial, sans-serif', fontSize: '1em', lineHeight: '1.6' };
+  const buttonStyle = { padding: '12px 20px', fontSize: '1em', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '5px' };
+
+  if (loading) {
+    return <p>Memuat editor Visi & Misi...</p>;
   }
 
   return (
     <div>
-      <h2>Edit Konten Visi & Misi</h2>
-      <p>Anda bisa menggunakan format Markdown (cth: `### Judul`, `* item`) di sini.</p>
-      
+      <h2>Edit Visi & Misi</h2>
       <form style={formStyle} onSubmit={handleSubmit}>
-        <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="judul">Judul Halaman:</label>
-          <input 
-            style={inputStyle} 
-            type="text" 
-            id="judul" 
-            value={judul}
-            onChange={(e) => setJudul(e.target.value)} 
-            required 
-          />
-        </div>
         
         <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="konten">Konten (Markdown):</label>
-          {/* KITA PAKAI <textarea> DI SINI */}
+          <label style={labelStyle} htmlFor="visi">Visi:</label>
           <textarea 
-            style={textareaStyle}
-            id="konten"
-            value={kontenMarkdown}
-            onChange={(e) => setKontenMarkdown(e.target.value)}
+            style={textareaStyle} 
+            id="visi"
+            value={visi}
+            onChange={(e) => setVisi(e.target.value)}
           />
         </div>
+
+        <div style={inputGroupStyle}>
+          <label style={labelStyle} htmlFor="misi">Misi:</label>
+          <textarea 
+            style={textareaStyle} 
+            id="misi"
+            value={misi}
+            onChange={(e) => setMisi(e.target.value)}
+          />
+          <small>Tips: Gunakan "1." "2." untuk baris baru agar rapi di halaman publik.</small>
+        </div>
         
-        <button style={buttonStyle} type="submit" disabled={loading}>
-          {loading ? 'Menyimpan...' : 'Perbarui Konten'}
+        <button style={buttonStyle} type="submit" disabled={saving}>
+          {saving ? 'Menyimpan...' : 'Simpan Perubahan Visi & Misi'}
         </button>
       </form>
     </div>
