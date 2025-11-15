@@ -1,5 +1,5 @@
 // src/pages/KelolaDivisi.jsx
-// --- VERSI 4.1 (FIXED Syntax Error) ---
+// --- VERSI 5.0 (Tampilkan Logo di Tabel) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 
 // --- (Modal Hapus Tunggal - tidak berubah) ---
 function DeleteConfirmationModal({ divisi, onClose, onConfirm }) {
+  // ... (kode modal sama)
   const [confirmationInput, setConfirmationInput] = useState('');
   const confirmationText = divisi.nama_divisi;
   const isMatch = confirmationInput === confirmationText;
@@ -15,7 +16,6 @@ function DeleteConfirmationModal({ divisi, onClose, onConfirm }) {
   const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box', margin: '10px 0' };
   const buttonDisabledStyle = { backgroundColor: '#ccc', cursor: 'not-allowed', padding: '10px', width: '100%', border: 'none', color: 'white' };
   const buttonEnabledStyle = { ...buttonDisabledStyle, backgroundColor: '#dc3545', cursor: 'pointer' };
-
   return (
     <div style={modalOverlayStyle} onClick={onClose}>
       <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
@@ -32,6 +32,7 @@ function DeleteConfirmationModal({ divisi, onClose, onConfirm }) {
 
 // --- (Modal Hapus Massal - tidak berubah) ---
 function MassDeleteDivisiModal({ periode, onClose, onConfirm }) {
+  // ... (kode modal sama)
   const [confirmationInput, setConfirmationInput] = useState('');
   const confirmationText = periode.nama_kabinet || `${periode.tahun_mulai}/${periode.tahun_selesai}`;
   const isMatch = confirmationInput === confirmationText;
@@ -40,7 +41,6 @@ function MassDeleteDivisiModal({ periode, onClose, onConfirm }) {
   const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box', margin: '10px 0' };
   const buttonDisabledStyle = { backgroundColor: '#ccc', cursor: 'not-allowed', padding: '10px', width: '100%', border: 'none', color: 'white' };
   const buttonEnabledStyle = { ...buttonDisabledStyle, backgroundColor: '#dc3545', cursor: 'pointer' };
-
   return (
     <div style={modalOverlayStyle} onClick={onClose}>
       <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
@@ -66,14 +66,10 @@ function KelolaDivisi() {
   const [divisiToDelete, setDivisiToDelete] = useState(null);
   const [showMassDeleteModal, setShowMassDeleteModal] = useState(false);
 
-  const getSelectedPeriode = () => {
-    return periodeList.find(p => p.id == selectedPeriodeId) || null;
-  }
-
-  // --- (Fungsi fetch tidak berubah) ---
+  // --- (Semua fungsi - tidak berubah) ---
+  const getSelectedPeriode = () => periodeList.find(p => p.id == selectedPeriodeId) || null;
   async function fetchData() {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const { data: periodeData, error: periodeError } = await supabase.from('periode_jabatan').select('id, nama_kabinet, tahun_mulai, tahun_selesai').order('tahun_mulai', { ascending: false });
       if (periodeError) throw periodeError;
@@ -83,78 +79,59 @@ function KelolaDivisi() {
         filterPeriodeId = periodeData[0].id;
         setSelectedPeriodeId(filterPeriodeId);
       }
-      if (filterPeriodeId) {
-        await fetchDivisiByPeriode(filterPeriodeId);
-      } else {
-        setDivisiList([]);
-        setLoading(false);
-      }
+      if (filterPeriodeId) await fetchDivisiByPeriode(filterPeriodeId);
+      else { setDivisiList([]); setLoading(false); }
     } catch (error) {
       console.error("Error fetching data:", error.message);
-      setError(error.message);
-      setLoading(false);
+      setError(error.message); setLoading(false);
     }
   }
-  
   async function fetchDivisiByPeriode(periodeId) {
     setLoading(true);
     try {
-      const { data: divisiData, error: divisiError } = await supabase
-        .from('divisi')
-        .select('*')
-        .eq('periode_id', periodeId)
-        .order('urutan', { ascending: true })
-        .order('nama_divisi', { ascending: true });
-      
+      const { data: divisiData, error: divisiError } = await supabase.from('divisi').select('*').eq('periode_id', periodeId).order('urutan', { ascending: true }).order('nama_divisi', { ascending: true });
       if (divisiError) throw divisiError;
       setDivisiList(divisiData || []);
-    } catch (error) {
-       console.error("Error fetching divisi:", error.message);
-       setError(error.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error("Error fetching divisi:", error.message); setError(error.message); } 
+    finally { setLoading(false); }
   }
   useEffect(() => { fetchData(); }, []);
   useEffect(() => { if (selectedPeriodeId) { fetchDivisiByPeriode(selectedPeriodeId); } }, [selectedPeriodeId]);
-
-  // --- (Fungsi Hapus - tidak berubah) ---
   const handleOpenDeleteModal = (divisi) => { setDivisiToDelete(divisi); setShowDeleteModal(true); };
   const handleCloseDeleteModal = () => { setShowDeleteModal(false); setDivisiToDelete(null); };
-  
-  // --- INI ADALAH PERBAIKAN ---
   const handleConfirmDelete = async () => {
     if (!divisiToDelete) return;
     try {
-      // Baris 130 yang salah: const { error } } = ...
-      const { error } = await supabase.from('divisi').delete().eq('id', divisiToDelete.id); // <-- SUDAH DIPERBAIKI
+      // --- Logika Hapus Logo (BARU) ---
+      if (divisiToDelete.logo_url) {
+        const oldFileName = divisiToDelete.logo_url.split('/').pop();
+        console.log("Menghapus logo:", oldFileName);
+        await supabase.storage.from('logos').remove([oldFileName]);
+      }
+      // --- Hapus Divisi (Lama) ---
+      const { error } = await supabase.from('divisi').delete().eq('id', divisiToDelete.id);
       if (error) throw error;
       alert(`Divisi "${divisiToDelete.nama_divisi}" telah dihapus.`);
       handleCloseDeleteModal();
       fetchDivisiByPeriode(selectedPeriodeId); 
-    } catch (error) {
-      setError("Gagal menghapus divisi: " + error.message);
-    }
+    } catch (error) { setError("Gagal menghapus divisi: " + error.message); }
   };
-  // -----------------------------
-
   const handleOpenMassDeleteModal = () => setShowMassDeleteModal(true);
   const handleCloseMassDeleteModal = () => setShowMassDeleteModal(false);
   const handleConfirmMassDelete = async () => {
+    // TODO: Hapus massal logo juga (fitur v2)
     try {
       const { error } = await supabase.from('divisi').delete().eq('periode_id', selectedPeriodeId);
       if (error) throw error;
       alert(`SEMUA divisi untuk periode ini telah dihapus.`);
       handleCloseMassDeleteModal();
       fetchDivisiByPeriode(selectedPeriodeId);
-    } catch (error) {
-      setError("Gagal menghapus semua divisi: " + error.message);
-    }
+    } catch (error) { setError("Gagal menghapus semua divisi: " + error.message); }
   };
 
   // --- Styling ---
   const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
-  const thTdStyle = { border: '1px solid #ddd', padding: '8px', textAlign: 'left' };
+  const thTdStyle = { border: '1px solid #ddd', padding: '8px', textAlign: 'left', verticalAlign: 'middle' }; // <-- middle
   const thStyle = { ...thTdStyle, backgroundColor: '#f2f2f2', fontWeight: 'bold' };
   const buttonStyle = { marginRight: '5px', padding: '5px 10px', cursor: 'pointer', border: 'none', borderRadius: '4px' };
   const addButtonStyle = { ...buttonStyle, backgroundColor: '#28a745', color: 'white', textDecoration: 'none', display: 'inline-block' };
@@ -164,19 +141,20 @@ function KelolaDivisi() {
   const filterGroupStyle = { margin: '20px 0', padding: '15px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
   const labelStyle = { fontWeight: 'bold', marginRight: '10px' };
   const selectStyle = { padding: '8px', fontSize: '1em' };
+  // --- Style Baru ---
+  const logoInTableStyle = { width: '100px', height: 'auto', maxHeight: '50px', objectFit: 'contain' };
 
   return (
     <div>
-      {/* ... (Render Modal) ... */}
+      {/* ... (Render Modal - tidak berubah) ... */}
       {showDeleteModal && <DeleteConfirmationModal divisi={divisiToDelete} onClose={handleCloseDeleteModal} onConfirm={handleConfirmDelete} />}
       {showMassDeleteModal && <MassDeleteDivisiModal periode={getSelectedPeriode()} onClose={handleCloseMassDeleteModal} onConfirm={handleConfirmMassDelete} />}
     
-      {/* ... (Header) ... */}
+      {/* ... (Header & Filter - tidak berubah) ... */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Kelola Divisi</h2>
         <Link to="/admin/divisi/tambah" style={addButtonStyle}>+ Tambah Divisi Baru</Link>
       </div>
-      {/* ... (Filter Group) ... */}
       <div style={filterGroupStyle}>
         <div>
           <label style={labelStyle} htmlFor="periodeFilter">Tampilkan divisi untuk periode:</label>
@@ -195,10 +173,11 @@ function KelolaDivisi() {
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
       
-      {/* ... (Tabel) ... */}
+      {/* --- TABEL (DIMODIFIKASI) --- */}
       <table style={tableStyle}>
         <thead>
           <tr>
+            <th style={thStyle}>Logo</th> {/* <-- KOLOM BARU --> */}
             <th style={thStyle}>Urutan</th>
             <th style={thStyle}>Nama Divisi</th>
             <th style={thStyle}>Deskripsi</th>
@@ -207,10 +186,18 @@ function KelolaDivisi() {
         </thead>
         <tbody>
           {loading ? (
-            <tr><td colSpan="4" style={thTdStyle}>Memuat data divisi...</td></tr>
+            <tr><td colSpan="5" style={thTdStyle}>Memuat data divisi...</td></tr>
           ) : divisiList.length > 0 ? (
             divisiList.map((divisi) => (
               <tr key={divisi.id}>
+                {/* <-- DATA BARU --> */}
+                <td style={thTdStyle}>
+                  {divisi.logo_url ? (
+                    <img src={divisi.logo_url} alt={`Logo ${divisi.nama_divisi}`} style={logoInTableStyle} />
+                  ) : (
+                    '-'
+                  )}
+                </td>
                 <td style={thTdStyle}>{divisi.urutan}</td>
                 <td style={thTdStyle}>{divisi.nama_divisi}</td>
                 <td style={thTdStyle}>{divisi.deskripsi || '-'}</td>
@@ -225,7 +212,7 @@ function KelolaDivisi() {
               </tr>
             ))
           ) : (
-            <tr><td colSpan="4" style={thTdStyle}>Belum ada divisi untuk periode ini.</td></tr>
+            <tr><td colSpan="5" style={thTdStyle}>Belum ada divisi untuk periode ini.</td></tr>
           )}
         </tbody>
       </table>

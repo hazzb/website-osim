@@ -1,55 +1,74 @@
-// src/pages/TambahPeriode.jsx
-// --- VERSI 2.0 (Menambahkan Motto Kabinet) ---
+// src/pages/EditPeriode.jsx
+// --- FILE BARU ---
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-function TambahPeriode() {
+function EditPeriode() {
+  const { id } = useParams(); // Ambil ID periode dari URL
+  const navigate = useNavigate();
+
+  // State form
   const [namaKabinet, setNamaKabinet] = useState('');
   const [tahunMulai, setTahunMulai] = useState('');
   const [tahunSelesai, setTahunSelesai] = useState('');
-  
-  // --- STATE BARU ---
   const [mottoKabinet, setMottoKabinet] = useState('');
   
-  const [isActive, setIsActive] = useState(false);
+  // State UI
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const navigate = useNavigate();
+
+  // Efek untuk mengambil data periode yang ada
+  useEffect(() => {
+    async function fetchPeriode() {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('periode_jabatan')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) throw error;
+        if (data) {
+          setNamaKabinet(data.nama_kabinet);
+          setTahunMulai(data.tahun_mulai);
+          setTahunSelesai(data.tahun_selesai);
+          setMottoKabinet(data.motto_kabinet || ''); // Isi motto
+        } else {
+          alert("Periode tidak ditemukan!");
+          navigate('/admin/kelola-periode');
+        }
+      } catch (error) {
+        alert("Gagal memuat data periode: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPeriode();
+  }, [id, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    
     try {
-      // Jika 'isActive' dicentang, nonaktifkan semua periode lain dulu
-      if (isActive) {
-        const { error: updateError } = await supabase
-          .from('periode_jabatan')
-          .update({ is_active: false })
-          .eq('is_active', true);
-        if (updateError) throw updateError;
-      }
-
-      // Masukkan periode baru
-      const { error: insertError } = await supabase
+      // Hanya update data, JANGAN sentuh 'is_active'
+      const { error } = await supabase
         .from('periode_jabatan')
-        .insert([
-          { 
-            nama_kabinet: namaKabinet, 
-            tahun_mulai: tahunMulai, 
-            tahun_selesai: tahunSelesai, 
-            is_active: isActive,
-            motto_kabinet: mottoKabinet // <-- TAMBAHKAN MOTTO
-          }
-        ]);
-      if (insertError) throw insertError;
-      
-      alert('Periode baru berhasil ditambahkan!');
-      navigate('/admin/kelola-periode');
+        .update({ 
+          nama_kabinet: namaKabinet,
+          tahun_mulai: tahunMulai,
+          tahun_selesai: tahunSelesai,
+          motto_kabinet: mottoKabinet // <-- Update motto
+        })
+        .eq('id', id);
 
+      if (error) throw error;
+      alert('Periode berhasil diperbarui!');
+      navigate('/admin/kelola-periode');
     } catch (error) {
-      alert(`Gagal menambahkan periode: ${error.message}`);
+      alert(`Gagal memperbarui periode: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -60,13 +79,16 @@ function TambahPeriode() {
   const inputGroupStyle = { marginBottom: '15px' };
   const labelStyle = { display: 'block', marginBottom: '5px', fontWeight: 'bold' };
   const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box' };
-  const checkboxGroupStyle = { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' };
-  const buttonStyle = { padding: '10px 15px', fontSize: '1em', backgroundColor: '#28a745', color: 'white', border: 'none', cursor: 'pointer' };
-  const textareaStyle = { ...inputStyle, minHeight: '100px', fontFamily: 'Arial, sans-serif' }; // <-- Style baru
+  const buttonStyle = { padding: '10px 15px', fontSize: '1em', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' };
+  const textareaStyle = { ...inputStyle, minHeight: '100px', fontFamily: 'Arial, sans-serif' };
+
+  if (loading) {
+    return <h2>Memuat data periode...</h2>;
+  }
 
   return (
     <div>
-      <h2>Tambah Periode Baru</h2>
+      <h2>Edit Periode</h2>
       <form style={formStyle} onSubmit={handleSubmit}>
         <div style={inputGroupStyle}>
           <label style={labelStyle} htmlFor="namaKabinet">Nama Kabinet:</label>
@@ -74,7 +96,6 @@ function TambahPeriode() {
             value={namaKabinet} onChange={(e) => setNamaKabinet(e.target.value)} required />
         </div>
         
-        {/* --- FIELD MOTTO BARU --- */}
         <div style={inputGroupStyle}>
           <label style={labelStyle} htmlFor="mottoKabinet">Motto Kabinet (Opsional):</label>
           <textarea style={textareaStyle} id="mottoKabinet"
@@ -94,18 +115,15 @@ function TambahPeriode() {
               value={tahunSelesai} onChange={(e) => setTahunSelesai(e.target.value)} required />
           </div>
         </div>
-        <div style={checkboxGroupStyle}>
-          <input type="checkbox" id="isActive"
-            checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-          <label htmlFor="isActive" style={{ fontWeight: 'bold' }}>Jadikan periode ini aktif?</label>
-        </div>
+        
+        <p style={{fontStyle: 'italic', color: '#555'}}>Status 'Aktif' hanya bisa diubah melalui tombol "Jadikan Aktif" di halaman utama "Kelola Periode".</p>
         
         <button style={buttonStyle} type="submit" disabled={saving}>
-          {saving ? 'Menyimpan...' : 'Simpan Periode'}
+          {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
         </button>
       </form>
     </div>
   );
 }
 
-export default TambahPeriode;
+export default EditPeriode;

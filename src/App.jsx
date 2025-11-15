@@ -1,5 +1,5 @@
 // src/App.jsx
-// --- VERSI LENGKAP (Termasuk Rute EditDivisi) ---
+// --- VERSI LENGKAP (Termasuk Rute Progja Detail) ---
 
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -12,6 +12,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Beranda from './pages/Beranda';
 import DaftarAnggota from './pages/DaftarAnggota';
 import ProgramKerja from './pages/ProgramKerja';
+import ProgramKerjaDetail from './pages/ProgramKerjaDetail'; // <-- 1. IMPOR BARU
 import VisiMisi from './pages/VisiMisi';
 import LoginPage from './pages/LoginPage';
 
@@ -20,22 +21,24 @@ import DashboardAdmin from './pages/DashboardAdmin';
 import EditVisiMisi from './pages/EditVisiMisi';
 import Pengaturan from './pages/Pengaturan';
 
-// Rute Fondasi (Periode, Divisi, Jabatan)
+// Rute Fondasi
 import KelolaPeriode from './pages/KelolaPeriode'; 
 import TambahPeriode from './pages/TambahPeriode';
+import EditPeriode from './pages/EditPeriode';
+
 import KelolaDivisi from './pages/KelolaDivisi';
 import TambahDivisi from './pages/TambahDivisi';
-import EditDivisi from './pages/EditDivisi'; // <-- PASTIKAN INI ADA
+import EditDivisi from './pages/EditDivisi';
 import KelolaJabatan from './pages/KelolaJabatan';
 import TambahJabatan from './pages/TambahJabatan';
 import EditJabatan from './pages/EditJabatan';
 
-// Rute Anggota (Sudah diperbaiki)
+// Rute Anggota
 import KelolaAnggota from './pages/KelolaAnggota';
 import TambahAnggota from './pages/TambahAnggota';
 import EditAnggota from './pages/EditAnggota';
 
-// Rute Program Kerja (Sudah diperbaiki)
+// Rute Program Kerja
 import KelolaProgramKerja from './pages/KelolaProgramKerja';
 import TambahProgramKerja from './pages/TambahProgramKerja';
 import EditProgramKerja from './pages/EditProgramKerja';
@@ -55,9 +58,13 @@ function App() {
           {/* --- Rute Publik --- */}
           <Route path="/" element={<Beranda />} />
           <Route path="/anggota" element={<DaftarAnggota />} />
-          <Route path="/program-kerja" element={<ProgramKerja />} />
           <Route path="/visi-misi" element={<VisiMisi />} />
           <Route path="/login" element={<LoginPage />} />
+          
+          {/* --- Rute Progja Baru --- */}
+          <Route path="/program-kerja" element={<ProgramKerja />} />
+          <Route path="/program-kerja/:id" element={<ProgramKerjaDetail />} /> {/* <-- 2. RUTE BARU */}
+
           
           {/* --- Rute Admin yang Diproteksi --- */}
           <Route element={<ProtectedRoute />}>
@@ -69,10 +76,11 @@ function App() {
             {/* Rute Fondasi */}
             <Route path="/admin/kelola-periode" element={<KelolaPeriode />} />
             <Route path="/admin/periode/tambah" element={<TambahPeriode />} />
-            
+            <Route path="/admin/periode/edit/:id" element={<EditPeriode />} />
+
             <Route path="/admin/kelola-divisi" element={<KelolaDivisi />} /> 
             <Route path="/admin/divisi/tambah" element={<TambahDivisi />} />
-            <Route path="/admin/divisi/edit/:id" element={<EditDivisi />} /> {/* <-- INI RUTE YANG HILANG */}
+            <Route path="/admin/divisi/edit/:id" element={<EditDivisi />} />
 
             <Route path="/admin/kelola-jabatan" element={<KelolaJabatan />} />
             <Route path="/admin/jabatan/tambah" element={<TambahJabatan />} />
