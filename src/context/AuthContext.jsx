@@ -1,98 +1,66 @@
 // src/context/AuthContext.jsx
-// --- VERSI FINAL (Robust dengan useEffect Ganda) ---
+// --- VERSI 1.1 (Perbaikan: Menambahkan fungsi signOut) ---
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-// Pastikan path ini kembali ke .env (jika Anda sudah memperbaikinya)
-// atau biarkan hard-coded untuk saat ini
-import { supabase } from '../supabaseClient.js'; 
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
-  
-  // 'loading' ini HANYA untuk pengecekan sesi awal
-  const [loading, setLoading] = useState(true); 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // --- EFEK 1: HANYA UNTUK SESI ---
-  // Tugasnya: Mendapatkan sesi awal & mengatur listener.
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        
-        // KUNCI UTAMA:
-        // Setelah listener berjalan pertama kali,
-        // kita tahu status sesi awal kita. Kita selesai loading.
+    // Set sesi saat pertama kali dimuat
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Pantau perubahan status auth (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
-    // Fungsi cleanup
+    // Berhenti memantau saat komponen di-unmount
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
-  }, []); // <-- Hanya berjalan sekali saat mount
+  }, []);
 
-  // --- EFEK 2: HANYA UNTUK PROFIL ---
-  // Tugasnya: Mengawasi 'session'. Jika 'session' berubah, ambil profil.
-  useEffect(() => {
-    // 1. Jika tidak ada sesi (logout), bersihkan profil
-    if (!session) {
-      setProfile(null);
-      return; // Berhenti di sini
-    }
-
-    // 2. Sesi ADA. Kita coba ambil profil.
-    const getProfile = async () => {
-      try {
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id) // Gunakan ID dari sesi yang ada
-          .single();
-        
-        if (error) throw error;
-        
-        setProfile(profileData || null);
-      } catch (error) {
-        console.error("Gagal mengambil profil:", error);
-        setProfile(null); // Gagal? Set profil ke null.
-      }
-    };
-    
-    getProfile();
-
-  }, [session]); // <-- INI KUNCINYA: Berjalan setiap kali 'session' berubah
-
-  // --- Nilai yang Disediakan ---
+  // Objek value yang akan dibagikan ke komponen anak
   const value = {
     session,
-    profile,
-    loading, // Kita berikan 'loading' jika halaman lain perlu tahu
-    logout: () => supabase.auth.signOut(),
+    user,
+    loading,
+    
+    // --- INI ADALAH PERBAIKANNYA ---
+    // Kita mengekspos fungsi signOut dari supabase
+    // agar komponen lain (seperti Navbar) bisa menggunakannya.
+    signOut: () => supabase.auth.signOut(),
+    // ---------------------------------
   };
 
-  // 'loading' sekarang HANYA melindungi dari pengecekan sesi awal.
-  // Jika masih loading, jangan render apa-apa.
-  if (loading) {
-    return null; // Ini akan menjadi 'flash' sesaat, bukan WSOD permanen
-  }
-
-  // Selesai loading, render aplikasi
+  // Tampilkan loading screen jika sesi belum dimuat
+  // atau langsung render children jika sudah
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
 
-// Custom hook (tetap sama)
+// Hook kustom untuk menggunakan context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth harus digunakan di dalam AuthProvider");
+    throw new Error('useAuth harus digunakan di dalam AuthProvider');
   }
   return context;
 }

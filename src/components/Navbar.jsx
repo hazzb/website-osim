@@ -1,119 +1,90 @@
 // src/components/Navbar.jsx
-// --- Versi dengan Link Dashboard ---
+// --- VERSI 3.2 (Perbaikan Navbar - Menghapus 'hidden') ---
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
-  const { session, profile, logout } = useAuth();
+  const { session, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      await logout(); 
+    const { error } = await signOut();
+    if (error) {
+      alert(`Gagal Logout: ${error.message}`);
+    } else {
+      alert('Berhasil Logout');
       navigate('/'); 
-    } catch (error) {
-      alert(error.message);
     }
   };
 
-  // --- Styling (Tidak berubah) ---
-  const navStyle = {
-    backgroundColor: '#f0f0f0',
-    padding: '10px',
-    marginBottom: '20px',
-    borderBottom: '1px solid #ccc'
-  };
-  const linkStyle = {
-    marginRight: '15px',
-    textDecoration: 'none',
-    color: '#333',
-    fontWeight: 'bold'
-  };
-  const navContainerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    ...navStyle
-  };
-  const logoutButtonStyle = {
-    ...linkStyle,
-    color: '#dc3545',
-    cursor: 'pointer',
-    fontWeight: 'normal',
-    marginRight: '0', // Hapus margin kanan
-    marginLeft: '10px', // Tambah margin kiri
-    border: 'none',
-    background: 'none',
-    fontFamily: 'inherit',
-    fontSize: 'inherit'
-  };
-  const adminInfoStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    marginRight: '0'
-  };
-  const adminLinkStyle = {
-    ...linkStyle,
-    color: '#007bff',
-    border: '1px solid #007bff',
-    padding: '5px 10px',
-    borderRadius: '5px',
-    marginRight: '0'
-  };
-  // Style baru untuk link dashboard, kita pakai ulang 'adminLinkStyle'
-  const dashboardLinkStyle = {
-    ...adminLinkStyle,
-    marginRight: '10px' // Beri jarak ke tombol logout
-  };
-
+  const navLinkClass = "font-bold text-gray-600 hover:text-blue-500 hover:underline";
+  
+  const buttonClass = "px-3 py-1.5 text-sm font-semibold rounded-md shadow-sm";
+  const loginButtonClass = `${buttonClass} bg-blue-600 text-white hover:bg-blue-700`;
+  const logoutButtonClass = `${buttonClass} bg-red-600 text-white hover:bg-red-700`;
 
   return (
-    <div style={navContainerStyle}>
-      {/* Grup Link Kiri (Navigasi Publik) */}
+    <nav className="flex items-center py-4 px-8 border-b border-gray-200 mb-6">
+      
+      {/* Judul Website */}
       <div>
-        <Link to="/" style={linkStyle}>
-          Beranda
-        </Link>
-        <Link to="/anggota" style={linkStyle}>
-          Daftar Anggota
-        </Link>
-        <Link to="/program-kerja" style={linkStyle}>
-          Program Kerja
-        </Link>
-        <Link to="/visi-misi" style={linkStyle}>
-          Visi & Misi
-        </Link>
+        <h1 className="text-2xl font-bold text-blue-600">
+          <RouterLink to="/" className="hover:no-underline">
+            OSIM Website
+          </RouterLink>
+        </h1>
       </div>
+      
+      {/* Spacer */}
+      <div className="flex-grow"></div>
 
-      {/* Grup Link Kanan (Cek Kondisi) */}
-      <div style={adminInfoStyle}>
-        
-        {session ? (
-          // Jika ADA Sesi (sudah login):
-          <>
-            <span style={{ marginRight: '10px', color: '#555' }}>
-              Halo, {profile ? profile.nama_lengkap : session.user.email}
-            </span>
-            
-            {/* --- LINK BARU KITA --- */}
-            <Link to="/admin/dashboard" style={dashboardLinkStyle}>
-              Dashboard
-            </Link>
-
-            <button onClick={handleLogout} style={logoutButtonStyle}>
-              Logout
-            </button>
-          </>
-        ) : (
-          // Jika TIDAK ADA Sesi (belum login):
-          <Link to="/login" style={adminLinkStyle}>
-            Login Admin
-          </Link>
+      {/* Link Navigasi (Desktop)
+        'hidden md:flex' DIGANTI DENGAN 'flex' agar selalu terlihat
+      */}
+      <div className="flex gap-6"> 
+        <RouterLink to="/" className={navLinkClass}>
+          Beranda
+        </RouterLink>
+        <RouterLink to="/visi-misi" className={navLinkClass}>
+          Visi Misi
+        </RouterLink>
+        <RouterLink to="/anggota" className={navLinkClass}>
+          Anggota
+        </RouterLink>
+        <RouterLink to="/program-kerja" className={navLinkClass}>
+          Program Kerja
+        </RouterLink>
+        {session && (
+          <RouterLink to="/admin/dashboard" className={`${navLinkClass} text-red-500`}>
+            ADMIN DASHBOARD
+          </RouterLink>
         )}
       </div>
-    </div>
+
+      {/* Spacer */}
+      <div className="flex-grow"></div>
+
+      {/* Tombol Login/Logout */}
+      <div>
+        {session ? (
+          <button
+            onClick={handleLogout}
+            className={logoutButtonClass}
+          >
+            Logout
+          </button>
+        ) : (
+          <RouterLink
+            to="/login"
+            className={loginButtonClass}
+          >
+            Login Admin
+          </RouterLink>
+        )}
+      </div>
+    </nav>
   );
 }
 
