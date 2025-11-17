@@ -74,17 +74,17 @@ function EditProgramKerja() {
 
   // --- (Efek 2 & 3 - tidak berubah dari v2.6 sebelumnya) ---
   useEffect(() => {
-    if (loadingDropdowns) return;
-    if (selectedPeriodeId) {
-      async function fetchDivisi() {
-        setDivisiList([]); setSelectedDivisiId(''); setAnggotaList([]); setSelectedPjId('');
-        try {
-          const { data, error } = await supabase.from('divisi').select('id, nama_divisi').eq('periode_id', selectedPeriodeId).order('urutan', { ascending: true });
-          if (error) throw error;
-          setDivisiList([divisiUmum, ...(data || [])]);
-        } catch (error) { alert("Gagal memuat daftar divisi: " + error.message); }
-      }
-    }
+    // if (loadingDropdowns) return;
+    // if (selectedPeriodeId) {
+    //   async function fetchDivisi() {
+    //     setDivisiList([]); setSelectedDivisiId(''); setAnggotaList([]); setSelectedPjId('');
+    //     try {
+    //       const { data, error } = await supabase.from('divisi').select('id, nama_divisi').eq('periode_id', selectedPeriodeId).order('urutan', { ascending: true });
+    //       if (error) throw error;
+    //       setDivisiList([divisiUmum, ...(data || [])]);
+    //     } catch (error) { alert("Gagal memuat daftar divisi: " + error.message); }
+    //   }
+    // }
   }, [selectedPeriodeId, loadingDropdowns]);
   useEffect(() => {
     if (loadingDropdowns || !selectedDivisiId || divisiList.length === 0) return;

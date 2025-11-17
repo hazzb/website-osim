@@ -1,105 +1,100 @@
 // src/App.jsx
-// --- VERSI LENGKAP (Termasuk Rute Progja Detail) ---
+// --- VERSI 3.0 (Kembali ke Struktur Global Navbar) ---
 
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 
-// Impor Navbar & Komponen Utama
-import Navbar from './components/Navbar';
-import ProtectedRoute from './components/ProtectedRoute'; 
+// Impor Komponen
+import Navbar from './components/Navbar.jsx'; // Navbar global kita
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
-// === Impor Halaman Publik ===
-import Beranda from './pages/Beranda';
-import DaftarAnggota from './pages/DaftarAnggota';
-import ProgramKerja from './pages/ProgramKerja';
-import ProgramKerjaDetail from './pages/ProgramKerjaDetail'; // <-- 1. IMPOR BARU
-import VisiMisi from './pages/VisiMisi';
-import LoginPage from './pages/LoginPage';
+// Impor Halaman Publik
+import Beranda from './pages/Beranda.jsx';
+import VisiMisi from './pages/VisiMisi.jsx';
+import DaftarAnggota from './pages/DaftarAnggota.jsx';
+import ProgramKerja from './pages/ProgramKerja.jsx';
+import ProgramKerjaDetail from './pages/ProgramKerjaDetail.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 
-// === Impor Halaman Admin ===
-import DashboardAdmin from './pages/DashboardAdmin';
-import EditVisiMisi from './pages/EditVisiMisi';
-import Pengaturan from './pages/Pengaturan';
-
-// Rute Fondasi
-import KelolaPeriode from './pages/KelolaPeriode'; 
-import TambahPeriode from './pages/TambahPeriode';
-import EditPeriode from './pages/EditPeriode';
-
-import KelolaDivisi from './pages/KelolaDivisi';
-import TambahDivisi from './pages/TambahDivisi';
-import EditDivisi from './pages/EditDivisi';
-import KelolaJabatan from './pages/KelolaJabatan';
-import TambahJabatan from './pages/TambahJabatan';
-import EditJabatan from './pages/EditJabatan';
-
-// Rute Anggota
-import KelolaAnggota from './pages/KelolaAnggota';
-import TambahAnggota from './pages/TambahAnggota';
-import EditAnggota from './pages/EditAnggota';
-
-// Rute Program Kerja
-import KelolaProgramKerja from './pages/KelolaProgramKerja';
-import TambahProgramKerja from './pages/TambahProgramKerja';
-import EditProgramKerja from './pages/EditProgramKerja';
-
+// Impor Halaman Admin
+import DashboardAdmin from './pages/DashboardAdmin.jsx';
+import KelolaAnggota from './pages/KelolaAnggota.jsx';
+import TambahAnggota from './pages/TambahAnggota.jsx';
+import EditAnggota from './pages/EditAnggota.jsx';
+import KelolaProgramKerja from './pages/KelolaProgramKerja.jsx';
+import TambahProgramKerja from './pages/TambahProgramKerja.jsx';
+import EditProgramKerja from './pages/EditProgramKerja.jsx';
+import KelolaDivisi from './pages/KelolaDivisi.jsx';
+import TambahDivisi from './pages/TambahDivisi.jsx';
+import EditDivisi from './pages/EditDivisi.jsx';
+import KelolaJabatan from './pages/KelolaJabatan.jsx';
+import TambahJabatan from './pages/TambahJabatan.jsx';
+import EditJabatan from './pages/EditJabatan.jsx';
+import KelolaPeriode from './pages/KelolaPeriode.jsx';
+import TambahPeriode from './pages/TambahPeriode.jsx';
+import EditPeriode from './pages/EditPeriode.jsx';
+import Pengaturan from './pages/Pengaturan.jsx';
+import EditVisiMisi from './pages/EditVisiMisi.jsx';
 
 function App() {
-  const appStyle = {
-    fontFamily: 'Arial, sans-serif',
-    padding: '0 20px'
-  };
-
   return (
     <BrowserRouter>
-      <div style={appStyle}>
-        <Navbar />
-        <Routes>
-          {/* --- Rute Publik --- */}
-          <Route path="/" element={<Beranda />} />
-          <Route path="/anggota" element={<DaftarAnggota />} />
-          <Route path="/visi-misi" element={<VisiMisi />} />
-          <Route path="/login" element={<LoginPage />} />
+      {/* Navbar sekarang ada di luar Routes, berlaku global */}
+      <Navbar />
+      
+      <Routes>
+        {/* --- RUTE PUBLIK --- */}
+        {/* Konten akan dirender di bawah Navbar */}
+        <Route path="/" element={<Beranda />} />
+        <Route path="visi-misi" element={<VisiMisi />} />
+        <Route path="anggota" element={<DaftarAnggota />} />
+        <Route path="program-kerja" element={<ProgramKerja />} />
+        <Route path="program-kerja/:id" element={<ProgramKerjaDetail />} />
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* --- RUTE ADMIN --- */}
+        {/* Konten juga akan dirender di bawah Navbar */}
+        <Route
+          path="/admin"
+          element={<ProtectedRoute />}
+        >
+          {/* Arahkan /admin ke /admin/dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardAdmin />} />
           
-          {/* --- Rute Progja Baru --- */}
-          <Route path="/program-kerja" element={<ProgramKerja />} />
-          <Route path="/program-kerja/:id" element={<ProgramKerjaDetail />} /> {/* <-- 2. RUTE BARU */}
-
+          <Route path="anggota" element={<KelolaAnggota />} />
+          <Route path="anggota/tambah" element={<TambahAnggota />} />
+          <Route path="anggota/edit/:id" element={<EditAnggota />} />
           
-          {/* --- Rute Admin yang Diproteksi --- */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-            
-            <Route path="/admin/edit-visi-misi" element={<EditVisiMisi />} />
-            <Route path="/admin/pengaturan" element={<Pengaturan />} />
-
-            {/* Rute Fondasi */}
-            <Route path="/admin/kelola-periode" element={<KelolaPeriode />} />
-            <Route path="/admin/periode/tambah" element={<TambahPeriode />} />
-            <Route path="/admin/periode/edit/:id" element={<EditPeriode />} />
-
-            <Route path="/admin/kelola-divisi" element={<KelolaDivisi />} /> 
-            <Route path="/admin/divisi/tambah" element={<TambahDivisi />} />
-            <Route path="/admin/divisi/edit/:id" element={<EditDivisi />} />
-
-            <Route path="/admin/kelola-jabatan" element={<KelolaJabatan />} />
-            <Route path="/admin/jabatan/tambah" element={<TambahJabatan />} />
-            <Route path="/admin/jabatan/edit/:id" element={<EditJabatan />} />
-
-            {/* Rute Anggota */}
-            <Route path="/admin/kelola-anggota" element={<KelolaAnggota />} />
-            <Route path="/admin/anggota/tambah" element={<TambahAnggota />} />
-            <Route path="/admin/anggota/edit/:id" element={<EditAnggota />} />
-            
-            {/* Rute Program Kerja */}
-            <Route path="/admin/kelola-program-kerja" element={<KelolaProgramKerja />} />
-            <Route path="/admin/program-kerja/tambah" element={<TambahProgramKerja />} />
-            <Route path="/admin/program-kerja/edit/:id" element={<EditProgramKerja />} />
-          </Route>
+          <Route path="program-kerja" element={<KelolaProgramKerja />} />
+          <Route path="program-kerja/tambah" element={<TambahProgramKerja />} />
+          <Route path="program-kerja/edit/:id" element={<EditProgramKerja />} />
           
-          <Route path="*" element={<div><h2>404: Halaman Tidak Ditemukan</h2></div>} />
-        </Routes>
-      </div>
+          <Route path="divisi" element={<KelolaDivisi />} />
+          <Route path="divisi/tambah" element={<TambahDivisi />} />
+          <Route path="divisi/edit/:id" element={<EditDivisi />} />
+          
+          <Route path="jabatan" element={<KelolaJabatan />} />
+          <Route path="jabatan/tambah" element={<TambahJabatan />} />
+          <Route path="jabatan/edit/:id" element={<EditJabatan />} />
+          
+          <Route path="periode" element={<KelolaPeriode />} />
+          <Route path="periode/tambah" element={<TambahPeriode />} />
+          <Route path="periode/edit/:id" element={<EditPeriode />} />
+          
+          <Route path="pengaturan" element={<Pengaturan />} />
+          <Route path="visi-misi/edit" element={<EditVisiMisi />} />
+        </Route>
+        
+        {/* Rute 404 */}
+        <Route path="*" element={
+          <div className="main-content" style={{ textAlign: 'center' }}>
+            <h2>404: Halaman Tidak Ditemukan</h2>
+            <Link to="/">Kembali ke Beranda</Link>
+          </div>
+        } />
+
+      </Routes>
     </BrowserRouter>
   );
 }

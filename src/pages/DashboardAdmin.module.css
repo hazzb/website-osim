@@ -1,0 +1,76 @@
+/* src/pages/DashboardAdmin.module.css */
+
+.dashboard-page .page-subtitle {
+  font-size: 1.125rem; /* text-lg */
+  color: #4a5568; /* gray.600 */
+  margin-top: -1rem;
+  margin-bottom: 2rem;
+}
+.dashboard-page .admin-email {
+  color: #2d3748; /* gray.800 */
+  margin-left: 0.25rem;
+}
+
+/* Grid Statistik (Responsif, 3 Kolom) */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr); /* 1 kolom di HP */
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (min-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Kartu Statistik */
+.stat-card {
+  /* .card adalah global, jadi kita tambahkan style spesifik di sini */
+  background-color: white;
+  border: 1px solid #e2e8f0; /* gray.200 */
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+.stat-title {
+  font-size: 0.875rem; /* sm */
+  font-weight: 600;
+  color: #718096; /* gray.500 */
+  text-transform: uppercase;
+}
+.stat-value {
+  font-size: 2.25rem; /* 4xl */
+  font-weight: bold;
+  color: #1a202c; /* gray.900 */
+  margin-bottom: 1rem;
+}
+
+/* Kartu Aksi Cepat */
+.quick-actions {
+  background-color: white;
+  border: 1px solid #e2e8f0; /* gray.200 */
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 kolom */
+  gap: 1rem;
+  margin-top: 1rem;
+}
+/* 4 kolom di desktop */
+@media (min-width: 1024px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.quick-actions-grid .button {
+  text-align: center;
+}
