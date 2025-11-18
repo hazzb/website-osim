@@ -1,0 +1,62 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Latar belakang gelap transparan */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Paling atas */
+  padding: 1rem;
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 600px; /* Lebar maksimal modal */
+  max-height: 90vh; /* Agar tidak melebihi tinggi layar */
+  overflow-y: auto; /* Scroll jika konten panjang */
+  position: relative;
+  animation: slideIn 0.2s ease-out;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1a202c;
+  margin: 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #718096;
+  line-height: 1;
+}
+.closeButton:hover {
+  color: #e53e3e;
+}
+
+.body {
+  padding: 1.5rem;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,256 +1,243 @@
 // src/pages/KelolaProgramKerja.jsx
-// --- VERSI 2.0 (Menggunakan View dan Filter) ---
+// --- VERSI 8.0 (Hook + Modal) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useAdminTable } from '../hooks/useAdminTable'; // Hook Sakti
 
-// --- BAGIAN BARU: Modal Hapus Aman ---
-function DeleteProgjaModal({ progja, onClose, onConfirm }) {
-  const [confirmationInput, setConfirmationInput] = useState('');
-  const confirmationText = progja.nama_acara; // Konfirmasi dengan nama acara
-  const isMatch = confirmationInput === confirmationText;
+// Components
+import styles from '../components/admin/AdminTable.module.css';
+import formStyles from '../components/admin/AdminForm.module.css';
+import FormInput from '../components/admin/FormInput.jsx';
+import Modal from '../components/Modal.jsx';
 
-  // (Styling Modal disalin dari KelolaAnggota)
-  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const modalContentStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' };
-  const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box', margin: '10px 0' };
-  const buttonDisabledStyle = { backgroundColor: '#ccc', cursor: 'not-allowed', padding: '10px', width: '100%', border: 'none', color: 'white' };
-  const buttonEnabledStyle = { ...buttonDisabledStyle, backgroundColor: '#dc3545', cursor: 'pointer' };
-
-  return (
-    <div style={modalOverlayStyle} onClick={onClose}>
-      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ color: '#dc3545', marginTop: 0 }}>Konfirmasi Hapus Progja</h3>
-        <p>Anda akan menghapus program kerja: <strong>{progja.nama_acara}</strong>.</p>
-        <p>Tindakan ini tidak dapat dibatalkan.</p>
-        <p>Silakan ketik <strong>{confirmationText}</strong> untuk mengonfirmasi.</p>
-        <input type="text" style={inputStyle} value={confirmationInput} onChange={(e) => setConfirmationInput(e.target.value)} />
-        <button style={isMatch ? buttonEnabledStyle : buttonDisabledStyle} disabled={!isMatch} onClick={onConfirm}>Hapus Permanen Progja Ini</button>
-        <button style={{ ...inputStyle, backgroundColor: '#6c757d', color: 'white', cursor: 'pointer', border: 'none' }} onClick={onClose}>Batal</button>
-      </div>
-    </div>
-  );
-}
-
-// --- Komponen Utama KelolaProgramKerja ---
 function KelolaProgramKerja() {
-  const [progjaList, setProgjaList] = useState([]); // Daftar yg sudah difilter
-  const [fullProgjaList, setFullProgjaList] = useState([]); // Daftar lengkap periode aktif
+  const { user } = useAuth();
   
-  // State Filter
-  const [divisiList, setDivisiList] = useState([]); // Untuk filter dropdown
-  const [selectedDivisiId, setSelectedDivisiId] = useState('semua');
-  const [selectedStatus, setSelectedStatus] = useState('semua');
-  
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // State modal hapus
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [progjaToDelete, setProgjaToDelete] = useState(null);
+  // 1. SETUP HOOK TABEL
+  const {
+    data: progjaList, loading, error, 
+    currentPage, setCurrentPage, totalPages, 
+    searchTerm, setSearchTerm, handleDelete, refreshData
+  } = useAdminTable({
+    tableName: 'program_kerja',
+    select: '*, divisi(nama_divisi), periode_jabatan(nama_kabinet)', // Join data
+    searchColumn: 'nama_acara',
+    defaultOrder: { column: 'tanggal', ascending: false }
+  });
 
-  // --- Fungsi untuk mengambil data awal ---
-  async function fetchData() {
-    setLoading(true);
-    setError(null);
-    try {
-      // 1. Ambil SEMUA progja dari periode AKTIF (via View)
-      //    View 'program_kerja_detail_view' sudah otomatis filter 'is_active = TRUE'
-      const { data: progjaData, error: progjaError } = await supabase
-        .from('program_kerja_detail_view')
-        .select('*')
-        .order('tanggal', { ascending: false }); // Progja terbaru di atas
-        
-      if (progjaError) throw progjaError;
-      
-      setProgjaList(progjaData || []); // Tampilkan semua di awal
-      setFullProgjaList(progjaData || []); // Simpan data master
+  // 2. STATE FORM
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [formFile, setFormFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
 
-      // 2. Buat daftar Divisi unik dari data progja (untuk filter)
-      const divisiUnik = new Map();
-      progjaData.forEach(progja => {
-        if (!divisiUnik.has(progja.divisi_id)) {
-          divisiUnik.set(progja.divisi_id, progja.nama_divisi);
-        }
-      });
-      const divisiFilterList = Array.from(divisiUnik, ([id, nama_divisi]) => ({ id, nama_divisi }));
-      setDivisiList(divisiFilterList);
+  // State Dropdown
+  const [periodeList, setPeriodeList] = useState([]);
+  const [divisiList, setDivisiList] = useState([]);
 
-    } catch (error) {
-      console.error("Error fetching progja:", error.message);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Ambil data saat halaman dimuat
+  // Fetch Dropdown Data (Sekali saja saat mount)
   useEffect(() => {
-    fetchData();
+    const fetchDropdowns = async () => {
+      const { data: pData } = await supabase.from('periode_jabatan').select('id, nama_kabinet').order('tahun_mulai', { ascending: false });
+      setPeriodeList(pData || []);
+      
+      // Kita ambil semua divisi untuk dropdown (bisa difilter per periode jika mau lebih canggih nanti)
+      const { data: dData } = await supabase.from('divisi').select('id, nama_divisi').order('nama_divisi');
+      setDivisiList(dData || []);
+    };
+    fetchDropdowns();
   }, []);
 
-  // --- EFEK untuk FILTER (berjalan di sisi React) ---
-  useEffect(() => {
-    let filteredList = fullProgjaList;
-
-    // Filter berdasarkan Divisi
-    if (selectedDivisiId !== 'semua') {
-      filteredList = filteredList.filter(
-        progja => progja.divisi_id == selectedDivisiId
-      );
+  // 3. HANDLERS
+  const openModal = (item = null) => {
+    setFormFile(null);
+    if (item) {
+      setEditingId(item.id);
+      setFormData(item);
+      setPreview(item.poster_url);
+    } else {
+      setEditingId(null);
+      setFormData({ 
+        status: 'Rencana', 
+        tampilkan_di_publik: true,
+        periode_id: periodeList[0]?.id // Default periode terbaru
+      });
+      setPreview(null);
     }
-
-    // Filter berdasarkan Status
-    if (selectedStatus !== 'semua') {
-      filteredList = filteredList.filter(
-        progja => progja.status === selectedStatus
-      );
-    }
-
-    setProgjaList(filteredList);
-  }, [selectedDivisiId, selectedStatus, fullProgjaList]); // 'Trigger' saat filter berubah
-
-  // --- Fungsi Hapus ---
-  const handleOpenDeleteModal = (progja) => {
-    setProgjaToDelete(progja);
-    setShowDeleteModal(true);
+    setIsModalOpen(true);
   };
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false);
-    setProgjaToDelete(null);
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-  const handleConfirmDelete = async () => {
-    if (!progjaToDelete) return;
-    setError(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
     try {
-      // Kita HAPUS dari tabel 'program_kerja' asli, bukan view
-      const { error } = await supabase
-        .from('program_kerja')
-        .delete()
-        .eq('id', progjaToDelete.id);
-        
-      if (error) throw error;
-      
-      alert(`Program Kerja "${progjaToDelete.nama_acara}" telah dihapus.`);
-      handleCloseDeleteModal();
-      fetchData(); // Ambil ulang SEMUA data
-      
-    } catch (error) {
-      console.error("Error deleting progja:", error.message);
-      setError("Gagal menghapus program kerja: " + error.message);
+      let finalPosterUrl = formData.poster_url;
+
+      if (formFile) {
+        const ext = formFile.name.split('.').pop();
+        const fileName = `progja_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('gambar-osim').upload(`program_kerja/${fileName}`, formFile);
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from('gambar-osim').getPublicUrl(`program_kerja/${fileName}`);
+        finalPosterUrl = urlData.publicUrl;
+      }
+
+      const payload = {
+        nama_acara: formData.nama_acara,
+        deskripsi: formData.deskripsi, // Singkat
+        deskripsi_lengkap: formData.deskripsi_lengkap, // Markdown
+        tanggal: formData.tanggal,
+        waktu: formData.waktu,
+        tempat: formData.tempat,
+        status: formData.status,
+        divisi_id: formData.divisi_id,
+        periode_id: formData.periode_id,
+        nama_penanggung_jawab: formData.nama_penanggung_jawab,
+        link_dokumentasi: formData.link_dokumentasi,
+        embed_html: formData.embed_html, // Video
+        tampilkan_di_publik: formData.tampilkan_di_publik,
+        poster_url: finalPosterUrl
+      };
+
+      if (editingId) {
+        await supabase.from('program_kerja').update(payload).eq('id', editingId);
+      } else {
+        await supabase.from('program_kerja').insert(payload);
+      }
+
+      alert("Berhasil disimpan!");
+      setIsModalOpen(false);
+      refreshData();
+    } catch (err) {
+      alert("Gagal: " + err.message);
+    } finally {
+      setModalLoading(false);
     }
   };
-
-  // --- Styling ---
-  const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
-  const thTdStyle = { border: '1px solid #ddd', padding: '8px', textAlign: 'left' };
-  const thStyle = { ...thTdStyle, backgroundColor: '#f2f2f2', fontWeight: 'bold' };
-  const buttonStyle = { marginRight: '5px', padding: '5px 10px', cursor: 'pointer', border: 'none', borderRadius: '4px' };
-  const addButtonStyle = { ...buttonStyle, backgroundColor: '#28a745', color: 'white', textDecoration: 'none', display: 'inline-block' };
-  const deleteButtonStyle = { ...buttonStyle, backgroundColor: '#dc3545', color: 'white' };
-  const filterGroupStyle = { margin: '20px 0', padding: '15px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', gap: '20px' };
-  const labelStyle = { fontWeight: 'bold', marginRight: '10px' };
-  const selectStyle = { padding: '8px', fontSize: '1em' };
 
   return (
-    <div>
-      {/* Render Modal Hapus */}
-      {showDeleteModal && (
-        <DeleteProgjaModal
-          progja={progjaToDelete}
-          onClose={handleCloseDeleteModal}
-          onConfirm={handleConfirmDelete}
-        />
-      )}
-    
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Kelola Program Kerja (Periode Aktif)</h2>
-        <Link to="/admin/program-kerja/tambah" style={addButtonStyle}>
-          + Tambah Progja Baru
-        </Link>
+    <div className="main-content">
+      <div className={styles['admin-page-header']}>
+        <h1 className="page-title">Kelola Program Kerja</h1>
+        <button onClick={() => openModal()} className="button button-primary">+ Tambah Progja</button>
       </div>
 
-      {/* --- Filter UI --- */}
-      <div style={filterGroupStyle}>
-        <div>
-          <label style={labelStyle} htmlFor="divisiFilter">Filter Divisi:</label>
-          <select 
-            id="divisiFilter" 
-            style={selectStyle}
-            value={selectedDivisiId}
-            onChange={(e) => setSelectedDivisiId(e.target.value)}
-            disabled={loading}
-          >
-            <option value="semua">-- Semua Divisi --</option>
-            {divisiList.map(divisi => (
-              <option key={divisi.id} value={divisi.id}>
-                {divisi.nama_divisi}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle} htmlFor="statusFilter">Filter Status:</label>
-          <select 
-            id="statusFilter" 
-            style={selectStyle}
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            disabled={loading}
-          >
-            <option value="semua">-- Semua Status --</option>
-            <option value="Rencana">Rencana</option>
-            <option value="Akan Datang">Akan Datang</option>
-            <option value="Selesai">Selesai</option>
-          </select>
+      <div className={styles['table-filter-container']}>
+        <div className={styles['search-input-group']}>
+           <span>🔍</span>
+           <input type="text" placeholder="Cari acara..." className={styles['search-input']} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
       </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Tanggal</th>
-            <th style={thStyle}>Nama Acara</th>
-            <th style={thStyle}>Status</th>
-            <th style={thStyle}>Divisi</th>
-            <th style={thStyle}>Penanggung Jawab</th>
-            <th style={thStyle}>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
+      {error && <p className="error-text">{error}</p>}
+
+      <div className={styles['table-container']}>
+        <table className={styles['admin-table']}>
+          <thead>
             <tr>
-              <td colSpan="6" style={thTdStyle}>Memuat data program kerja...</td>
+              <th>Poster</th>
+              <th>Nama Acara</th>
+              <th>Divisi</th>
+              <th>Tanggal</th>
+              <th>Status</th>
+              <th>Aksi</th>
             </tr>
-          ) : progjaList.length > 0 ? (
-            progjaList.map((progja) => (
-              <tr key={progja.id}>
-                <td style={thTdStyle}>{new Date(progja.tanggal).toLocaleDateString('id-ID')}</td>
-                <td style={thTdStyle}>{progja.nama_acara}</td>
-                <td style={thTdStyle}>{progja.status}</td>
-                <td style={thTdStyle}>{progja.nama_divisi}</td>
-                <td style={thTdStyle}>{progja.nama_penanggung_jawab}</td>
-                <td style={thTdStyle}>
-                  <Link to={`/admin/program-kerja/edit/${progja.id}`} style={buttonStyle}>Edit</Link>
-                  <button 
-                    style={deleteButtonStyle}
-                    onClick={() => handleOpenDeleteModal(progja)}
-                  >
-                    Hapus
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" style={thTdStyle}>Tidak ada program kerja untuk filter ini.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {loading ? <tr><td colSpan="6" className="loading-text">Memuat...</td></tr> : 
+             progjaList.map(item => (
+               <tr key={item.id}>
+                 <td className={styles['avatar-cell']}>
+                    {item.poster_url ? <img src={item.poster_url} alt="Poster" className={styles['avatar-image']} style={{borderRadius: '4px', width:'50px', height:'auto'}} /> : '-'}
+                 </td>
+                 <td><strong>{item.nama_acara}</strong></td>
+                 <td>{item.divisi?.nama_divisi || '-'}</td>
+                 <td>{new Date(item.tanggal).toLocaleDateString('id-ID')}</td>
+                 <td>
+                    <span style={{
+                      padding:'2px 8px', borderRadius:'99px', fontSize:'0.75rem', fontWeight:'bold',
+                      backgroundColor: item.status === 'Selesai' ? '#def7ec' : item.status === 'Akan Datang' ? '#e1effe' : '#fdf6b2',
+                      color: item.status === 'Selesai' ? '#03543f' : item.status === 'Akan Datang' ? '#1e429f' : '#723b13'
+                    }}>
+                      {item.status}
+                    </span>
+                 </td>
+                 <td className={styles['actions-cell']}>
+                   <button onClick={() => openModal(item)} className={`${styles['button-table']} ${styles['button-edit']}`}>Edit</button>
+                   <button onClick={() => handleDelete(item.id, item.poster_url)} className={`${styles['button-table']} ${styles['button-delete']}`}>Hapus</button>
+                 </td>
+               </tr>
+             ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className={styles['pagination-container']}>
+         <span className={styles['pagination-info']}>Halaman {currentPage} dari {totalPages}</span>
+         <div className={styles['pagination-buttons']}>
+           <button className={styles['pagination-button']} onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>Prev</button>
+           <button className={styles['pagination-button']} onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>Next</button>
+         </div>
+      </div>
+
+      {/* MODAL FORM */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Program Kerja" : "Tambah Program Kerja"}>
+        <form onSubmit={handleSubmit}>
+          <div className={formStyles['form-grid']}>
+            <FormInput label="Nama Acara" name="nama_acara" type="text" value={formData.nama_acara || ''} onChange={handleFormChange} required span="col-span-2" />
+            <FormInput label="Status" name="status" type="select" value={formData.status || 'Rencana'} onChange={handleFormChange} span="col-span-1">
+               <option value="Rencana">Rencana</option>
+               <option value="Akan Datang">Akan Datang</option>
+               <option value="Selesai">Selesai</option>
+            </FormInput>
+
+            <FormInput label="Divisi Pelaksana" name="divisi_id" type="select" value={formData.divisi_id || ''} onChange={handleFormChange} required span="col-span-1">
+               <option value="">-- Pilih Divisi --</option>
+               {divisiList.map(d => <option key={d.id} value={d.id}>{d.nama_divisi}</option>)}
+            </FormInput>
+
+            <FormInput label="Tanggal" name="tanggal" type="date" value={formData.tanggal || ''} onChange={handleFormChange} required span="col-span-1" />
+            <FormInput label="Waktu" name="waktu" type="time" value={formData.waktu || ''} onChange={handleFormChange} span="col-span-1" />
+
+            <FormInput label="Tempat" name="tempat" type="text" value={formData.tempat || ''} onChange={handleFormChange} span="col-span-2" />
+            <FormInput label="Penanggung Jawab" name="nama_penanggung_jawab" type="text" value={formData.nama_penanggung_jawab || ''} onChange={handleFormChange} span="col-span-1" />
+
+            <FormInput label="Deskripsi Singkat" name="deskripsi" type="textarea" value={formData.deskripsi || ''} onChange={handleFormChange} span="col-span-3" style={{height:'80px'}} />
+            <FormInput label="Deskripsi Lengkap (Markdown)" name="deskripsi_lengkap" type="textarea" value={formData.deskripsi_lengkap || ''} onChange={handleFormChange} span="col-span-3" style={{height:'150px'}} />
+
+            <FormInput label="Embed HTML (Video)" name="embed_html" type="text" value={formData.embed_html || ''} onChange={handleFormChange} span="col-span-3" placeholder='<iframe src="..."></iframe>' />
+            <FormInput label="Link Dokumen (Google Drive/PDF)" name="link_dokumentasi" type="text" value={formData.link_dokumentasi || ''} onChange={handleFormChange} span="col-span-3" />
+
+            {/* Tampilkan Publik */}
+            <FormInput label="Tampilkan di Web?" name="tampilkan_di_publik" type="select" value={formData.tampilkan_di_publik} onChange={handleFormChange} span="col-span-1">
+               <option value={true}>Ya, Tampilkan</option>
+               <option value={false}>Tidak, Sembunyikan</option>
+            </FormInput>
+
+            <FormInput label="Poster" name="poster" type="file" onChange={(e) => { setFormFile(e.target.files[0]); setPreview(URL.createObjectURL(e.target.files[0])); }} span="col-span-2" />
+            
+            {preview && (
+               <div className={`${formStyles['form-group']} ${formStyles['col-span-3']}`} style={{textAlign:'center'}}>
+                  <img src={preview} alt="Preview" style={{maxHeight:'200px', maxWidth:'100%', borderRadius:'8px', border:'1px solid #ddd'}} />
+               </div>
+            )}
+          </div>
+
+          <div className={formStyles['form-footer']}>
+             <button type="button" onClick={() => setIsModalOpen(false)} className="button button-secondary">Batal</button>
+             <button type="submit" className="button button-primary" disabled={modalLoading}>{modalLoading ? 'Menyimpan...' : 'Simpan'}</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

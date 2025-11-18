@@ -1,34 +1,32 @@
-// src/components/ProtectedRoute.jsx
-
 import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-// Navigate: komponen untuk "menendang" (redirect) pengguna
-// Outlet:   placeholder untuk halaman yang kita proteksi (misal: Dashboard)
-import { Navigate, Outlet } from 'react-router-dom';
+const ProtectedRoute = () => {
+  const { user, loading } = useAuth();
 
-/*
-* Dokumentasi Komponen 'ProtectedRoute':
-* Ini adalah penjaga pintu.
-* 1. Ia memeriksa 'session' dari 'useAuth()'.
-* 2. Jika TIDAK ADA 'session' (session === null),
-* ia akan me-render komponen <Navigate>,
-* mengarahkan pengguna ke "/login" dan 'mengganti' riwayat
-* (agar pengguna tidak bisa klik "back" kembali ke admin).
-* 3. Jika ADA 'session',
-* ia akan me-render <Outlet />, yang merupakan
-* halaman admin yang kita inginkan (misal: <DashboardAdmin />).
-*/
-function ProtectedRoute() {
-  const { session } = useAuth();
+  // 1. TAHAP LOADING (PENTING!)
+  // Jika AuthContext masih sibuk mengecek sesi ke Supabase,
+  // kita TAHAN dulu. Jangan redirect, jangan render konten.
+  // Tampilkan indikator loading sederhana.
+  if (loading) {
+    return (
+      <div className="main-content" style={{ textAlign: 'center', marginTop: '2rem' }}>
+        <p className="loading-text">Memeriksa izin akses...</p>
+      </div>
+    );
+  }
 
-  if (!session) {
-    // Pengguna tidak login, tendang ke halaman login
+  // 2. TAHAP PENGECEKAN
+  // Jika loading sudah selesai (false), tapi user masih null (tidak ada),
+  // berarti pengguna memang belum login. Tendang ke /login.
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Pengguna sudah login, izinkan masuk (tampilkan halaman)
+  // 3. TAHAP AKSES DITERIMA
+  // Jika loading selesai dan user ada, izinkan masuk ke rute anak (Outlet).
   return <Outlet />;
-}
+};
 
 export default ProtectedRoute;

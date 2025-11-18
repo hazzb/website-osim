@@ -1,221 +1,206 @@
 // src/pages/KelolaDivisi.jsx
-// --- VERSI 5.0 (Tampilkan Logo di Tabel) ---
+// --- VERSI 8.0 (Custom Hook + Modal System) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-// --- (Modal Hapus Tunggal - tidak berubah) ---
-function DeleteConfirmationModal({ divisi, onClose, onConfirm }) {
-  // ... (kode modal sama)
-  const [confirmationInput, setConfirmationInput] = useState('');
-  const confirmationText = divisi.nama_divisi;
-  const isMatch = confirmationInput === confirmationText;
-  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const modalContentStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' };
-  const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box', margin: '10px 0' };
-  const buttonDisabledStyle = { backgroundColor: '#ccc', cursor: 'not-allowed', padding: '10px', width: '100%', border: 'none', color: 'white' };
-  const buttonEnabledStyle = { ...buttonDisabledStyle, backgroundColor: '#dc3545', cursor: 'pointer' };
-  return (
-    <div style={modalOverlayStyle} onClick={onClose}>
-      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ color: '#dc3545', marginTop: 0 }}>Konfirmasi Hapus Divisi</h3>
-        <p>Menghapus divisi ini juga akan menghapus <strong>semua anggota dan progja</strong> terkait (ON DELETE CASCADE).</p>
-        <p>Silakan ketik <strong>{confirmationText}</strong> untuk mengonfirmasi.</p>
-        <input type="text" style={inputStyle} value={confirmationInput} onChange={(e) => setConfirmationInput(e.target.value)} />
-        <button style={isMatch ? buttonEnabledStyle : buttonDisabledStyle} disabled={!isMatch} onClick={onConfirm}>Hapus Permanen Divisi Ini</button>
-        <button style={{ ...inputStyle, backgroundColor: '#6c757d', color: 'white', cursor: 'pointer', border: 'none' }} onClick={onClose}>Batal</button>
-      </div>
-    </div>
-  );
-}
+// Reusable Stuff
+import { useAdminTable } from '../hooks/useAdminTable'; // <-- HOOK BARU
+import styles from '../components/admin/AdminTable.module.css';
+import formStyles from '../components/admin/AdminForm.module.css';
+import FormInput from '../components/admin/FormInput.jsx';
+import Modal from '../components/Modal.jsx';
 
-// --- (Modal Hapus Massal - tidak berubah) ---
-function MassDeleteDivisiModal({ periode, onClose, onConfirm }) {
-  // ... (kode modal sama)
-  const [confirmationInput, setConfirmationInput] = useState('');
-  const confirmationText = periode.nama_kabinet || `${periode.tahun_mulai}/${periode.tahun_selesai}`;
-  const isMatch = confirmationInput === confirmationText;
-  const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
-  const modalContentStyle = { backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '400px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' };
-  const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box', margin: '10px 0' };
-  const buttonDisabledStyle = { backgroundColor: '#ccc', cursor: 'not-allowed', padding: '10px', width: '100%', border: 'none', color: 'white' };
-  const buttonEnabledStyle = { ...buttonDisabledStyle, backgroundColor: '#dc3545', cursor: 'pointer' };
-  return (
-    <div style={modalOverlayStyle} onClick={onClose}>
-      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ color: '#dc3545', marginTop: 0 }}>Hapus SEMUA Divisi?</h3>
-        <p>Ini akan menghapus <strong>SEMUA divisi</strong> untuk periode <strong>{confirmationText}</strong>.</p>
-        <p>Silakan ketik <strong>{confirmationText}</strong> untuk mengonfirmasi.</p>
-        <input type="text" style={inputStyle} value={confirmationInput} onChange={(e) => setConfirmationInput(e.target.value)} />
-        <button style={isMatch ? buttonEnabledStyle : buttonDisabledStyle} disabled={!isMatch} onClick={onConfirm}>Hapus Semua Divisi Periode Ini</button>
-        <button style={{ ...inputStyle, backgroundColor: '#6c757d', color: 'white', cursor: 'pointer', border: 'none' }} onClick={onClose}>Batal</button>
-      </div>
-    </div>
-  );
-}
-
-// --- Komponen Utama KelolaDivisi ---
 function KelolaDivisi() {
-  const [divisiList, setDivisiList] = useState([]);
-  const [periodeList, setPeriodeList] = useState([]);
-  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [divisiToDelete, setDivisiToDelete] = useState(null);
-  const [showMassDeleteModal, setShowMassDeleteModal] = useState(false);
+  const { user } = useAuth();
 
-  // --- (Semua fungsi - tidak berubah) ---
-  const getSelectedPeriode = () => periodeList.find(p => p.id == selectedPeriodeId) || null;
-  async function fetchData() {
-    setLoading(true); setError(null);
-    try {
-      const { data: periodeData, error: periodeError } = await supabase.from('periode_jabatan').select('id, nama_kabinet, tahun_mulai, tahun_selesai').order('tahun_mulai', { ascending: false });
-      if (periodeError) throw periodeError;
-      setPeriodeList(periodeData || []);
-      let filterPeriodeId = selectedPeriodeId;
-      if (!selectedPeriodeId && periodeData.length > 0) {
-        filterPeriodeId = periodeData[0].id;
-        setSelectedPeriodeId(filterPeriodeId);
-      }
-      if (filterPeriodeId) await fetchDivisiByPeriode(filterPeriodeId);
-      else { setDivisiList([]); setLoading(false); }
-    } catch (error) {
-      console.error("Error fetching data:", error.message);
-      setError(error.message); setLoading(false);
+  // --- 1. GUNAKAN HOOK (Menghemat 50 baris kode!) ---
+  const {
+    data: divisiList,
+    loading,
+    error,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    searchTerm,
+    setSearchTerm,
+    handleDelete,
+    refreshData
+  } = useAdminTable({
+    tableName: 'divisi',
+    select: '*, periode_jabatan(nama_kabinet)', // Join tabel
+    defaultOrder: { column: 'urutan', ascending: true },
+    searchColumn: 'nama_divisi'
+  });
+
+  // --- 2. STATE MODAL & FORM ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [formFile, setFormFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [periodeList, setPeriodeList] = useState([]); // Dropdown data
+
+  // Fetch Periode untuk Dropdown Form
+  useEffect(() => {
+    const fetchP = async () => {
+      const { data } = await supabase.from('periode_jabatan').select('id, nama_kabinet').order('tahun_mulai', { ascending: false });
+      setPeriodeList(data || []);
+    };
+    fetchP();
+  }, []);
+
+  // --- 3. HANDLERS FORM ---
+  const openModal = (divisi = null) => {
+    setFormFile(null);
+    if (divisi) {
+      // Mode Edit
+      setEditingId(divisi.id);
+      setFormData(divisi);
+      setPreview(divisi.logo_url);
+    } else {
+      // Mode Tambah
+      setEditingId(null);
+      setFormData({ urutan: 10, periode_id: periodeList[0]?.id });
+      setPreview(null);
     }
-  }
-  async function fetchDivisiByPeriode(periodeId) {
-    setLoading(true);
-    try {
-      const { data: divisiData, error: divisiError } = await supabase.from('divisi').select('*').eq('periode_id', periodeId).order('urutan', { ascending: true }).order('nama_divisi', { ascending: true });
-      if (divisiError) throw divisiError;
-      setDivisiList(divisiData || []);
-    } catch (error) { console.error("Error fetching divisi:", error.message); setError(error.message); } 
-    finally { setLoading(false); }
-  }
-  useEffect(() => { fetchData(); }, []);
-  useEffect(() => { if (selectedPeriodeId) { fetchDivisiByPeriode(selectedPeriodeId); } }, [selectedPeriodeId]);
-  const handleOpenDeleteModal = (divisi) => { setDivisiToDelete(divisi); setShowDeleteModal(true); };
-  const handleCloseDeleteModal = () => { setShowDeleteModal(false); setDivisiToDelete(null); };
-  const handleConfirmDelete = async () => {
-    if (!divisiToDelete) return;
-    try {
-      // --- Logika Hapus Logo (BARU) ---
-      if (divisiToDelete.logo_url) {
-        const oldFileName = divisiToDelete.logo_url.split('/').pop();
-        console.log("Menghapus logo:", oldFileName);
-        await supabase.storage.from('logos').remove([oldFileName]);
-      }
-      // --- Hapus Divisi (Lama) ---
-      const { error } = await supabase.from('divisi').delete().eq('id', divisiToDelete.id);
-      if (error) throw error;
-      alert(`Divisi "${divisiToDelete.nama_divisi}" telah dihapus.`);
-      handleCloseDeleteModal();
-      fetchDivisiByPeriode(selectedPeriodeId); 
-    } catch (error) { setError("Gagal menghapus divisi: " + error.message); }
-  };
-  const handleOpenMassDeleteModal = () => setShowMassDeleteModal(true);
-  const handleCloseMassDeleteModal = () => setShowMassDeleteModal(false);
-  const handleConfirmMassDelete = async () => {
-    // TODO: Hapus massal logo juga (fitur v2)
-    try {
-      const { error } = await supabase.from('divisi').delete().eq('periode_id', selectedPeriodeId);
-      if (error) throw error;
-      alert(`SEMUA divisi untuk periode ini telah dihapus.`);
-      handleCloseMassDeleteModal();
-      fetchDivisiByPeriode(selectedPeriodeId);
-    } catch (error) { setError("Gagal menghapus semua divisi: " + error.message); }
+    setIsModalOpen(true);
   };
 
-  // --- Styling ---
-  const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
-  const thTdStyle = { border: '1px solid #ddd', padding: '8px', textAlign: 'left', verticalAlign: 'middle' }; // <-- middle
-  const thStyle = { ...thTdStyle, backgroundColor: '#f2f2f2', fontWeight: 'bold' };
-  const buttonStyle = { marginRight: '5px', padding: '5px 10px', cursor: 'pointer', border: 'none', borderRadius: '4px' };
-  const addButtonStyle = { ...buttonStyle, backgroundColor: '#28a745', color: 'white', textDecoration: 'none', display: 'inline-block' };
-  const deleteButtonStyle = { ...buttonStyle, backgroundColor: '#dc3545', color: 'white' };
-  const editButtonStyle = { ...buttonStyle, backgroundColor: '#007bff', color: 'white', textDecoration: 'none' };
-  const massDeleteButtonStyle = { ...deleteButtonStyle, backgroundColor: '#b22222' };
-  const filterGroupStyle = { margin: '20px 0', padding: '15px', backgroundColor: '#f9f9f9', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-  const labelStyle = { fontWeight: 'bold', marginRight: '10px' };
-  const selectStyle = { padding: '8px', fontSize: '1em' };
-  // --- Style Baru ---
-  const logoInTableStyle = { width: '100px', height: 'auto', maxHeight: '50px', objectFit: 'contain' };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    try {
+      let finalLogoUrl = formData.logo_url;
+
+      // Upload Logo jika ada file baru
+      if (formFile) {
+        const ext = formFile.name.split('.').pop();
+        const fileName = `divisi_${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('gambar-osim').upload(`divisi/${fileName}`, formFile);
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from('gambar-osim').getPublicUrl(`divisi/${fileName}`);
+        finalLogoUrl = urlData.publicUrl;
+      }
+
+      const payload = {
+        nama_divisi: formData.nama_divisi,
+        deskripsi: formData.deskripsi,
+        urutan: formData.urutan,
+        periode_id: formData.periode_id,
+        logo_url: finalLogoUrl
+      };
+
+      if (editingId) {
+        await supabase.from('divisi').update(payload).eq('id', editingId);
+      } else {
+        await supabase.from('divisi').insert(payload);
+      }
+
+      alert("Berhasil disimpan!");
+      setIsModalOpen(false);
+      refreshData(); // Refresh tabel otomatis via Hook
+    } catch (err) {
+      alert("Gagal: " + err.message);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   return (
-    <div>
-      {/* ... (Render Modal - tidak berubah) ... */}
-      {showDeleteModal && <DeleteConfirmationModal divisi={divisiToDelete} onClose={handleCloseDeleteModal} onConfirm={handleConfirmDelete} />}
-      {showMassDeleteModal && <MassDeleteDivisiModal periode={getSelectedPeriode()} onClose={handleCloseMassDeleteModal} onConfirm={handleConfirmMassDelete} />}
-    
-      {/* ... (Header & Filter - tidak berubah) ... */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Kelola Divisi</h2>
-        <Link to="/admin/divisi/tambah" style={addButtonStyle}>+ Tambah Divisi Baru</Link>
-      </div>
-      <div style={filterGroupStyle}>
-        <div>
-          <label style={labelStyle} htmlFor="periodeFilter">Tampilkan divisi untuk periode:</label>
-          <select id="periodeFilter" style={selectStyle} value={selectedPeriodeId} onChange={(e) => setSelectedPeriodeId(e.target.value)}>
-            {periodeList.map(periode => (
-              <option key={periode.id} value={periode.id}>
-                {periode.tahun_mulai}/{periode.tahun_selesai} ({periode.nama_kabinet || 'Tanpa Nama'})
-              </option>
-            ))}
-          </select>
-        </div>
-        <button style={massDeleteButtonStyle} onClick={handleOpenMassDeleteModal} disabled={loading || divisiList.length === 0}>
-          Hapus Semua Divisi Periode Ini
-        </button>
+    <div className="main-content">
+      <div className={styles['admin-page-header']}>
+        <h1 className="page-title">Kelola Divisi</h1>
+        <button onClick={() => openModal()} className="button button-primary">+ Tambah Divisi</button>
       </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      
-      {/* --- TABEL (DIMODIFIKASI) --- */}
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Logo</th> {/* <-- KOLOM BARU --> */}
-            <th style={thStyle}>Urutan</th>
-            <th style={thStyle}>Nama Divisi</th>
-            <th style={thStyle}>Deskripsi</th>
-            <th style={thStyle}>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            <tr><td colSpan="5" style={thTdStyle}>Memuat data divisi...</td></tr>
-          ) : divisiList.length > 0 ? (
-            divisiList.map((divisi) => (
+      {/* Filter Search */}
+      <div className={styles['table-filter-container']}>
+        <div className={styles['search-input-group']}>
+          <span>🔍</span>
+          <input 
+            type="text" placeholder="Cari divisi..." className={styles['search-input']} 
+            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} 
+          />
+        </div>
+      </div>
+
+      {error && <p className="error-text">{error}</p>}
+
+      <div className={styles['table-container']}>
+        <table className={styles['admin-table']}>
+          <thead>
+            <tr>
+              <th>Logo</th>
+              <th>Nama Divisi</th>
+              <th>Periode</th>
+              <th>Urutan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? <tr><td colSpan="5" className="loading-text">Memuat...</td></tr> : 
+             divisiList.map(divisi => (
               <tr key={divisi.id}>
-                {/* <-- DATA BARU --> */}
-                <td style={thTdStyle}>
-                  {divisi.logo_url ? (
-                    <img src={divisi.logo_url} alt={`Logo ${divisi.nama_divisi}`} style={logoInTableStyle} />
-                  ) : (
-                    '-'
-                  )}
+                <td className={styles['avatar-cell']}>
+                  {divisi.logo_url ? <img src={divisi.logo_url} alt="logo" className={styles['avatar-image']} style={{objectFit:'contain'}} /> : '-'}
                 </td>
-                <td style={thTdStyle}>{divisi.urutan}</td>
-                <td style={thTdStyle}>{divisi.nama_divisi}</td>
-                <td style={thTdStyle}>{divisi.deskripsi || '-'}</td>
-                <td style={thTdStyle}>
-                  <Link to={`/admin/divisi/edit/${divisi.id}`} style={editButtonStyle}>
-                    Edit
-                  </Link>
-                  <button style={deleteButtonStyle} onClick={() => handleOpenDeleteModal(divisi)}>
-                    Hapus
-                  </button>
+                <td><strong>{divisi.nama_divisi}</strong></td>
+                <td>{divisi.periode_jabatan?.nama_kabinet || '-'}</td>
+                <td>{divisi.urutan}</td>
+                <td className={styles['actions-cell']}>
+                  <button onClick={() => openModal(divisi)} className={`${styles['button-table']} ${styles['button-edit']}`}>Edit</button>
+                  <button onClick={() => handleDelete(divisi.id, divisi.logo_url)} className={`${styles['button-table']} ${styles['button-delete']}`}>Hapus</button>
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr><td colSpan="5" style={thTdStyle}>Belum ada divisi untuk periode ini.</td></tr>
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination dari Hook */}
+      <div className={styles['pagination-container']}>
+         <span className={styles['pagination-info']}>Page {currentPage} of {totalPages}</span>
+         <div className={styles['pagination-buttons']}>
+           <button className={styles['pagination-button']} onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>Prev</button>
+           <button className={styles['pagination-button']} onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>Next</button>
+         </div>
+      </div>
+
+      {/* Modal Form */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Divisi" : "Tambah Divisi"}>
+        <form onSubmit={handleSubmit}>
+          <div className={formStyles['form-grid']}>
+            <FormInput label="Nama Divisi" name="nama_divisi" type="text" value={formData.nama_divisi || ''} onChange={(e) => setFormData({...formData, nama_divisi: e.target.value})} required span="col-span-2" />
+            <FormInput label="Urutan" name="urutan" type="number" value={formData.urutan || ''} onChange={(e) => setFormData({...formData, urutan: e.target.value})} span="col-span-1" />
+            
+            <FormInput label="Periode" name="periode_id" type="select" value={formData.periode_id || ''} onChange={(e) => setFormData({...formData, periode_id: e.target.value})} required span="col-span-3">
+               <option value="">-- Pilih --</option>
+               {periodeList.map(p => <option key={p.id} value={p.id}>{p.nama_kabinet}</option>)}
+            </FormInput>
+
+            <FormInput label="Visi Misi (Markdown)" name="deskripsi" type="textarea" value={formData.deskripsi || ''} onChange={(e) => setFormData({...formData, deskripsi: e.target.value})} span="col-span-3" style={{minHeight: '150px'}} />
+
+            <FormInput label="Logo" name="logo" type="file" onChange={(e) => {
+                setFormFile(e.target.files[0]);
+                setPreview(URL.createObjectURL(e.target.files[0]));
+            }} span="col-span-2" />
+            
+            {preview && (
+              <div className={`${formStyles['form-group']} ${formStyles['col-span-1']}`}>
+                <label className={formStyles['form-label']}>Preview</label>
+                <img src={preview} className={formStyles['form-image-preview']} style={{objectFit:'contain'}} />
+              </div>
+            )}
+          </div>
+          <div className={formStyles['form-footer']}>
+            <button type="button" onClick={() => setIsModalOpen(false)} className="button button-secondary">Batal</button>
+            <button type="submit" className="button button-primary" disabled={modalLoading}>{modalLoading ? 'Menyimpan...' : 'Simpan'}</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -1,75 +1,93 @@
 // src/components/Navbar.jsx
-// --- VERSI 5.0 (Refaktor CSS Murni) ---
+// --- VERSI RESPONSIVE (Hamburger Menu) ---
 
-import React from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-// Kita tidak lagi mengimpor dari Chakra UI
+import { supabase } from '../supabaseClient';
+import styles from './Navbar.module.css'; // Impor CSS Module Baru
 
 function Navbar() {
-  const { session, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // State untuk menu mobile
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
-    const { error } = await signOut();
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setIsOpen(false); // Tutup menu setelah logout
+      navigate('/login');
+    } catch (error) {
       alert(`Gagal Logout: ${error.message}`);
-    } else {
-      alert('Berhasil Logout');
-      navigate('/'); 
     }
   };
 
+  // Fungsi untuk menutup menu saat link diklik
+  const closeMenu = () => setIsOpen(false);
+
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <h1 className="navbar-brand">
-          <RouterLink to="/">
-            OSIM Website
-          </RouterLink>
-        </h1>
+    <nav className={styles.navbar}>
+      <div className={styles.container}>
         
-        <div className="navbar-spacer"></div>
+        {/* 1. LOGO */}
+        <div className={styles.brand}>
+          <Link to="/" onClick={closeMenu}>OSIM APP</Link>
+        </div>
 
-        <div className="navbar-links">
-          <RouterLink to="/" className="navbar-link">
+        {/* 2. TOMBOL HAMBURGER (Hanya muncul di HP) */}
+        <button 
+          className={styles.hamburger} 
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        {/* 3. MENU LINKS */}
+        {/* Tambahkan class 'active' jika isOpen true */}
+        <div className={`${styles.links} ${isOpen ? styles.active : ''}`}>
+          
+          <Link to="/" className={styles.link} onClick={closeMenu}>
             Beranda
-          </RouterLink>
-          <RouterLink to="/visi-misi" className="navbar-link">
+          </Link>
+          <Link to="/visi-misi" className={styles.link} onClick={closeMenu}>
             Visi Misi
-          </RouterLink>
-          <RouterLink to="/anggota" className="navbar-link">
+          </Link>
+          <Link to="/anggota" className={styles.link} onClick={closeMenu}>
             Anggota
-          </RouterLink>
-          <RouterLink to="/program-kerja" className="navbar-link">
+          </Link>
+          <Link to="/program-kerja" className={styles.link} onClick={closeMenu}>
             Program Kerja
-          </RouterLink>
-          {session && (
-            <RouterLink to="/admin/dashboard" className="navbar-link admin-link">
-              ADMIN DASHBOARD
-            </RouterLink>
-          )}
-        </div>
-
-        <div className="navbar-spacer"></div>
-
-        <div className="navbar-actions">
-          {session ? (
-            <button
-              onClick={handleLogout}
-              className="button button-danger"
-            >
-              Logout
-            </button>
+          </Link>
+          
+          {/* Logika Login/Logout */}
+          {user ? (
+            <>
+              <Link to="/admin/dashboard" className={`${styles.link} ${styles.adminLink}`} onClick={closeMenu}>
+                Dashboard
+              </Link>
+              
+              <span className={styles.separator}></span>
+              
+              <button onClick={handleLogout} className={styles.logoutButton}>
+                Logout
+              </button>
+            </>
           ) : (
-            <RouterLink
-              to="/login"
-              className="button button-primary"
-            >
-              Login Admin
-            </RouterLink>
+            <>
+              <span className={styles.separator}></span>
+              <Link to="/login" className={styles.link} onClick={closeMenu}>
+                Login
+              </Link>
+            </>
           )}
         </div>
+
       </div>
     </nav>
   );

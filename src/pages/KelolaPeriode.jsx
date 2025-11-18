@@ -1,131 +1,154 @@
 // src/pages/KelolaPeriode.jsx
-// --- VERSI 3.0 (Tombol Edit Aktif) ---
+// --- VERSI 8.0 (Hook + Modal) ---
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Link } from 'react-router-dom'; // <-- Pastikan Link di-impor
+import { useAdminTable } from '../hooks/useAdminTable';
+import styles from '../components/admin/AdminTable.module.css';
+import formStyles from '../components/admin/AdminForm.module.css';
+import FormInput from '../components/admin/FormInput.jsx';
+import Modal from '../components/Modal.jsx';
 
 function KelolaPeriode() {
-  const [periodeList, setPeriodeList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    data: periodeList, loading, error, 
+    currentPage, setCurrentPage, totalPages, 
+    searchTerm, setSearchTerm, handleDelete, refreshData
+  } = useAdminTable({
+    tableName: 'periode_jabatan',
+    searchColumn: 'nama_kabinet',
+    defaultOrder: { column: 'tahun_mulai', ascending: false }
+  });
 
-  // Fungsi untuk mengambil data
-  async function fetchPeriode() {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('periode_jabatan')
-        .select('*')
-        .order('tahun_mulai', { ascending: false });
-      if (error) throw error;
-      setPeriodeList(data || []);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const openModal = (item = null) => {
+    if (item) {
+      setEditingId(item.id);
+      setFormData(item);
+    } else {
+      setEditingId(null);
+      setFormData({ 
+        tahun_mulai: new Date().getFullYear(), 
+        tahun_selesai: new Date().getFullYear() + 1,
+        is_active: false 
+      });
     }
-  }
+    setIsModalOpen(true);
+  };
 
-  // Ambil data saat komponen dimuat
-  useEffect(() => {
-    fetchPeriode();
-  }, []);
-
-  // Fungsi untuk 'Jadikan Aktif'
-  const handleSetActive = async (periodeId) => {
-    setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
     try {
-      // 1. Nonaktifkan periode aktif saat ini
-      const { error: updateError } = await supabase
-        .from('periode_jabatan')
-        .update({ is_active: false })
-        .eq('is_active', true);
-      if (updateError) throw updateError;
+      const payload = { 
+        nama_kabinet: formData.nama_kabinet, 
+        tahun_mulai: formData.tahun_mulai,
+        tahun_selesai: formData.tahun_selesai,
+        motto_kabinet: formData.motto_kabinet,
+        is_active: formData.is_active === 'true' || formData.is_active === true
+      };
+
+      // Logic: Jika periode ini di-set aktif, nonaktifkan yang lain
+      if (payload.is_active) {
+         await supabase.from('periode_jabatan').update({ is_active: false }).neq('id', 0);
+      }
+
+      if (editingId) {
+        await supabase.from('periode_jabatan').update(payload).eq('id', editingId);
+      } else {
+        await supabase.from('periode_jabatan').insert(payload);
+      }
       
-      // 2. Aktifkan periode yang dipilih
-      const { error: activeError } = await supabase
-        .from('periode_jabatan')
-        .update({ is_active: true })
-        .eq('id', periodeId);
-      if (activeError) throw activeError;
-      
-      // 3. Muat ulang data
-      fetchPeriode();
-      
-    } catch (error) {
-      setError("Gagal mengubah periode aktif: " + error.message);
-      setLoading(false);
+      alert("Berhasil disimpan!");
+      setIsModalOpen(false);
+      refreshData();
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setModalLoading(false);
     }
   };
 
-  // --- Styling ---
-  const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
-  const thTdStyle = { border: '1px solid #ddd', padding: '10px', textAlign: 'left', verticalAlign: 'middle' };
-  const thStyle = { ...thTdStyle, backgroundColor: '#f2f2f2', fontWeight: 'bold' };
-  const buttonStyle = { marginRight: '5px', padding: '5px 10px', cursor: 'pointer', border: 'none', borderRadius: '4px', textDecoration: 'none' };
-  const addButtonStyle = { ...buttonStyle, backgroundColor: '#28a745', color: 'white', display: 'inline-block' };
-  const activeButtonStyle = { ...buttonStyle, backgroundColor: '#17a2b8', color: 'white' };
-  const alreadyActiveStyle = { ...buttonStyle, backgroundColor: '#28a745', color: 'white', cursor: 'default' };
-  // --- Style Baru ---
-  const editButtonStyle = { ...buttonStyle, backgroundColor: '#007bff', color: 'white' };
-  const mottoStyle = { fontSize: '0.9em', color: '#444', fontStyle: 'italic', whiteSpace: 'pre-wrap' };
-
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Kelola Periode Jabatan</h2>
-        <Link to="/admin/periode/tambah" style={addButtonStyle}>+ Tambah Periode Baru</Link>
+    <div className="main-content">
+      <div className={styles['admin-page-header']}>
+        <h1 className="page-title">Kelola Periode</h1>
+        <button onClick={() => openModal()} className="button button-primary">+ Tambah Periode</button>
       </div>
-      
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th style={thStyle}>Status</th>
-            <th style={thStyle}>Kabinet</th>
-            <th style={thStyle}>Tahun</th>
-            <th style={thStyle}>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            <tr><td colSpan="4" style={thTdStyle}>Memuat data periode...</td></tr>
-          ) : periodeList.length > 0 ? (
-            periodeList.map((periode) => (
-              <tr key={periode.id}>
-                <td style={thTdStyle}>
-                  {periode.is_active ? (
-                    <span style={alreadyActiveStyle}>✔ Aktif</span>
-                  ) : (
-                    <button style={activeButtonStyle} onClick={() => handleSetActive(periode.id)}>
-                      Jadikan Aktif
-                    </button>
-                  )}
-                </td>
-                <td style={thTdStyle}>
-                  <strong style={{fontSize: '1.1em'}}>{periode.nama_kabinet}</strong>
-                  {/* --- Tampilkan Motto (BARU) --- */}
-                  {periode.motto_kabinet && (
-                    <p style={mottoStyle}>"{periode.motto_kabinet}"</p>
-                  )}
-                </td>
-                <td style={thTdStyle}>{periode.tahun_mulai} / {periode.tahun_selesai}</td>
-                <td style={thTdStyle}>
-                  {/* --- TOMBOL EDIT (BARU) --- */}
-                  <Link to={`/admin/periode/edit/${periode.id}`} style={editButtonStyle}>
-                    Edit
-                  </Link>
-                  {/* Tombol Hapus bisa ditambahkan di sini nanti jika perlu */}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr><td colSpan="4" style={thTdStyle}>Belum ada periode. Silakan tambahkan.</td></tr>
-          )}
-        </tbody>
-      </table>
+
+      <div className={styles['table-filter-container']}>
+        <div className={styles['search-input-group']}>
+           <span>🔍</span>
+           <input type="text" placeholder="Cari kabinet..." className={styles['search-input']} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        </div>
+      </div>
+
+      {error && <p className="error-text">{error}</p>}
+
+      <div className={styles['table-container']}>
+        <table className={styles['admin-table']}>
+          <thead>
+            <tr>
+              <th>Nama Kabinet</th>
+              <th>Tahun</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? <tr><td colSpan="4" className="loading-text">Memuat...</td></tr> : 
+             periodeList.map(item => (
+               <tr key={item.id}>
+                 <td><strong>{item.nama_kabinet}</strong></td>
+                 <td>{item.tahun_mulai} - {item.tahun_selesai}</td>
+                 <td>
+                   {item.is_active ? <span style={{color:'green', fontWeight:'bold'}}>AKTIF</span> : <span style={{color:'gray'}}>Non-Aktif</span>}
+                 </td>
+                 <td className={styles['actions-cell']}>
+                   <button onClick={() => openModal(item)} className={`${styles['button-table']} ${styles['button-edit']}`}>Edit</button>
+                   <button onClick={() => handleDelete(item.id)} className={`${styles['button-table']} ${styles['button-delete']}`}>Hapus</button>
+                 </td>
+               </tr>
+             ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      <div className={styles['pagination-container']}>
+         <span className={styles['pagination-info']}>Page {currentPage} of {totalPages}</span>
+         <div className={styles['pagination-buttons']}>
+           <button className={styles['pagination-button']} onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>Prev</button>
+           <button className={styles['pagination-button']} onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>Next</button>
+         </div>
+      </div>
+
+      {/* Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Periode" : "Tambah Periode"}>
+        <form onSubmit={handleSubmit}>
+          <div className={formStyles['form-grid']}>
+            <FormInput label="Nama Kabinet" name="nama_kabinet" type="text" value={formData.nama_kabinet || ''} onChange={(e) => setFormData({...formData, nama_kabinet: e.target.value})} required span="col-span-3" />
+            
+            <FormInput label="Tahun Mulai" name="tahun_mulai" type="number" value={formData.tahun_mulai || ''} onChange={(e) => setFormData({...formData, tahun_mulai: e.target.value})} required span="col-span-1" />
+            <FormInput label="Tahun Selesai" name="tahun_selesai" type="number" value={formData.tahun_selesai || ''} onChange={(e) => setFormData({...formData, tahun_selesai: e.target.value})} required span="col-span-1" />
+            
+            <FormInput label="Status Aktif" name="is_active" type="select" value={formData.is_active} onChange={(e) => setFormData({...formData, is_active: e.target.value})} span="col-span-1">
+               <option value={false}>Tidak</option>
+               <option value={true}>Ya, Aktif</option>
+            </FormInput>
+
+            <FormInput label="Motto Kabinet" name="motto_kabinet" type="textarea" value={formData.motto_kabinet || ''} onChange={(e) => setFormData({...formData, motto_kabinet: e.target.value})} span="col-span-3" />
+          </div>
+          <div className={formStyles['form-footer']}>
+            <button type="button" onClick={() => setIsModalOpen(false)} className="button button-secondary">Batal</button>
+            <button type="submit" className="button button-primary" disabled={modalLoading}>Simpan</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

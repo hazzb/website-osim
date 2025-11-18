@@ -1,118 +1,142 @@
 // src/pages/DashboardAdmin.jsx
-// --- VERSI 6.1 (Refaktor CSS Modules) ---
+// --- VERSI 8.0 (Compact Grid Layout) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-// --- [PERUBAHAN 1] ---
-import styles from './DashboardAdmin.module.css'; // Impor CSS Module
+import styles from './DashboardAdmin.module.css'; // CSS Module Baru
 
 function DashboardAdmin() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    anggota: 0,
-    progja: 0,
-    divisi: 0
-  });
+  const [stats, setStats] = useState({ anggota: 0, progja: 0, divisi: 0 });
   const [loading, setLoading] = useState(true);
 
-  // ... (useEffect untuk fetchStats tidak berubah) ...
   useEffect(() => {
     async function fetchStats() {
       setLoading(true);
       try {
-        const { count: anggotaCount, error: anggotaError } = await supabase
-          .from('anggota')
-          .select('*', { count: 'exact', head: true });
-        
-        const { count: progjaCount, error: progjaError } = await supabase
-          .from('program_kerja')
-          .select('*', { count: 'exact', head: true });
-
-        const { count: divisiCount, error: divisiError } = await supabase
-          .from('divisi')
-          .select('*', { count: 'exact', head: true });
-        
-        if (anggotaError) console.error("Error fetching anggota count:", anggotaError.message);
-        if (progjaError) console.error("Error fetching progja count:", progjaError.message);
-        if (divisiError) console.error("Error fetching divisi count:", divisiError.message);
+        const { count: cAnggota } = await supabase.from('anggota').select('*', { count: 'exact', head: true });
+        const { count: cProgja } = await supabase.from('program_kerja').select('*', { count: 'exact', head: true });
+        const { count: cDivisi } = await supabase.from('divisi').select('*', { count: 'exact', head: true });
 
         setStats({
-          anggota: anggotaCount || 0,
-          progja: progjaCount || 0,
-          divisi: divisiCount || 0
+          anggota: cAnggota || 0,
+          progja: cProgja || 0,
+          divisi: cDivisi || 0
         });
       } catch (err) {
-        console.error("Gagal memuat statistik:", err);
+        console.error("Gagal load stats", err);
       } finally {
         setLoading(false);
       }
     }
-    
-    // Kita aktifkan lagi fetchStats()
     fetchStats();
-
   }, []);
 
   return (
-    // 'main-content' adalah class GLOBAL
-    <div className={`main-content ${styles['dashboard-page']}`}>
-      {/* 'page-title' adalah class GLOBAL */}
-      <h1 className="page-title">Dashboard</h1>
-      <p className={styles['page-subtitle']}>
-        Selamat datang kembali, 
-        <strong className={styles['admin-email']}>{user ? user.email : 'Admin'}</strong>!
-      </p>
-
-      {/* Grid Statistik */}
-      <div className={styles['dashboard-grid']}>
-        {/* 'card' adalah class GLOBAL, 'stat-card' dari MODULE */}
-        <div className={`card ${styles['stat-card']}`}>
-          <h3 className={styles['stat-title']}>Total Anggota</h3>
-          <p className={styles['stat-value']}>{loading ? '...' : stats.anggota}</p>
-          {/* 'card-detail-link' adalah class GLOBAL */}
-          <Link to="/admin/anggota" className="card-detail-link">
-            Kelola Anggota →
-          </Link>
-        </div>
-
-        <div className={`card ${styles['stat-card']}`}>
-          <h3 className={styles['stat-title']}>Total Program Kerja</h3>
-          <p className={styles['stat-value']}>{loading ? '...' : stats.progja}</p>
-          <Link to="/admin/program-kerja" className="card-detail-link">
-            Kelola Progja →
-          </Link>
-        </div>
-
-        <div className={`card ${styles['stat-card']}`}>
-          <h3 className={styles['stat-title']}>Total Divisi</h3>
-          <p className={styles['stat-value']}>{loading ? '...' : stats.divisi}</p>
-          <Link to="/admin/divisi" className="card-detail-link">
-            Kelola Divisi →
-          </Link>
-        </div>
-      </div>
+    <div className="main-content">
       
-      {/* Area Aksi Cepat */}
-      <div className={`card ${styles['quick-actions']}`}>
-        {/* 'divisi-title' adalah class GLOBAL */}
-        <h2 className="divisi-title">Aksi Cepat</h2>
-        <div className={styles['quick-actions-grid']}>
-          {/* 'button' adalah class GLOBAL */}
-          <Link to="/admin/anggota/tambah" className="button button-primary">
-            + Tambah Anggota
-          </Link>
-          <Link to="/admin/program-kerja/tambah" className="button button-primary">
-            + Tambah Progja
-          </Link>
-          <Link to="/admin/divisi/tambah" className="button button-secondary">
-            + Tambah Divisi
-          </Link>
-          <Link to="/admin/pengaturan" className="button button-secondary">
-            Pengaturan Website
-          </Link>
+      {/* 1. Header Section (Compact) */}
+      <div className={styles['header-section']}>
+        <div>
+          <h1 className="page-title" style={{marginBottom: '0.25rem'}}>Dashboard</h1>
+          <p className={styles['welcome-text']}>Halo, <strong>{user?.email}</strong></p>
         </div>
+        <span className={styles['admin-badge']}>Administrator</span>
+      </div>
+
+      <div className={styles['dashboard-container']}>
+        
+        {/* 2. Stats Widgets (Baris Atas) */}
+        <div className={styles['stats-grid']}>
+          
+          {/* Widget Anggota */}
+          <Link to="/admin/anggota" className={styles['stat-card']}>
+            <div className={styles['stat-info']}>
+              <h3>Total Anggota</h3>
+              <div className={styles['stat-value']}>{loading ? '-' : stats.anggota}</div>
+            </div>
+            <div className={`${styles['stat-icon']} ${styles['icon-blue']}`}>👥</div>
+          </Link>
+
+          {/* Widget Divisi */}
+          <Link to="/admin/divisi" className={styles['stat-card']}>
+            <div className={styles['stat-info']}>
+              <h3>Total Divisi</h3>
+              <div className={styles['stat-value']}>{loading ? '-' : stats.divisi}</div>
+            </div>
+            <div className={`${styles['stat-icon']} ${styles['icon-purple']}`}>🏢</div>
+          </Link>
+
+          {/* Widget Progja */}
+          <Link to="/admin/program-kerja" className={styles['stat-card']}>
+            <div className={styles['stat-info']}>
+              <h3>Program Kerja</h3>
+              <div className={styles['stat-value']}>{loading ? '-' : stats.progja}</div>
+            </div>
+            <div className={`${styles['stat-icon']} ${styles['icon-green']}`}>📅</div>
+          </Link>
+        
+        </div>
+
+        {/* 3. Quick Actions (Tiles Grid) */}
+        <div>
+          <h2 className={styles['section-title']}>🚀 Akses Cepat</h2>
+          <div className={styles['actions-grid']}>
+            
+            {/* Tile: Anggota */}
+            <Link to="/admin/anggota" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>👤</div>
+              <div className={styles['tile-label']}>Kelola Anggota</div>
+              <div className={styles['tile-sub']}>Data Siswa</div>
+            </Link>
+
+            {/* Tile: Program Kerja */}
+            <Link to="/admin/program-kerja" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>📝</div>
+              <div className={styles['tile-label']}>Program Kerja</div>
+              <div className={styles['tile-sub']}>Event & Proyek</div>
+            </Link>
+
+             {/* Tile: Divisi */}
+             <Link to="/admin/divisi" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>🛡️</div>
+              <div className={styles['tile-label']}>Kelola Divisi</div>
+              <div className={styles['tile-sub']}>Struktur Organisasi</div>
+            </Link>
+
+            {/* Tile: Jabatan */}
+            <Link to="/admin/jabatan" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>🥇</div>
+              <div className={styles['tile-label']}>Master Jabatan</div>
+              <div className={styles['tile-sub']}>Daftar Posisi</div>
+            </Link>
+
+            {/* Tile: Periode */}
+            <Link to="/admin/periode" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>⏳</div>
+              <div className={styles['tile-label']}>Periode</div>
+              <div className={styles['tile-sub']}>Tahun Ajaran</div>
+            </Link>
+
+            {/* Tile: Visi Misi */}
+            <Link to="/admin/visi-misi/edit" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>🎯</div>
+              <div className={styles['tile-label']}>Edit Visi Misi</div>
+              <div className={styles['tile-sub']}>Halaman Publik</div>
+            </Link>
+
+             {/* Tile: Pengaturan */}
+             <Link to="/admin/pengaturan" className={styles['action-tile']}>
+              <div className={styles['tile-icon']}>⚙️</div>
+              <div className={styles['tile-label']}>Pengaturan</div>
+              <div className={styles['tile-sub']}>Tampilan Web</div>
+            </Link>
+
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -1,76 +1,158 @@
 /* src/pages/DashboardAdmin.module.css */
 
-.dashboard-page .page-subtitle {
-  font-size: 1.125rem; /* text-lg */
-  color: #4a5568; /* gray.600 */
-  margin-top: -1rem;
-  margin-bottom: 2rem;
+/* Header yang lebih tipis */
+.header-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
-.dashboard-page .admin-email {
-  color: #2d3748; /* gray.800 */
-  margin-left: 0.25rem;
+.welcome-text {
+  color: #4a5568;
+  font-size: 0.95rem;
+  margin: 0;
+}
+.admin-badge {
+  background-color: #ebf8ff;
+  color: #2b6cb0;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: bold;
+  font-size: 0.75rem;
 }
 
-/* Grid Statistik (Responsif, 3 Kolom) */
-.dashboard-grid {
+/* --- GRID LAYOUT UTAMA --- */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* --- 1. STATS WIDGETS (Compact) --- */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr); /* 1 kolom di HP */
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
 }
 @media (min-width: 640px) {
-  .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 1024px) {
-  .dashboard-grid {
+  .stats-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Kartu Statistik */
 .stat-card {
-  /* .card adalah global, jadi kita tambahkan style spesifik di sini */
-  background-color: white;
-  border: 1px solid #e2e8f0; /* gray.200 */
+  background: white;
+  border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1rem 1.25rem; /* Padding lebih kecil */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-decoration: none; /* Karena dibungkus Link */
 }
-.stat-title {
-  font-size: 0.875rem; /* sm */
-  font-weight: 600;
-  color: #718096; /* gray.500 */
-  text-transform: uppercase;
-}
-.stat-value {
-  font-size: 2.25rem; /* 4xl */
-  font-weight: bold;
-  color: #1a202c; /* gray.900 */
-  margin-bottom: 1rem;
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  border-color: #bee3f8;
 }
 
-/* Kartu Aksi Cepat */
-.quick-actions {
-  background-color: white;
-  border: 1px solid #e2e8f0; /* gray.200 */
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+.stat-info h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #718096;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
 }
-.quick-actions-grid {
+.stat-value {
+  font-size: 1.75rem; /* Angka besar tapi compact */
+  font-weight: 800;
+  color: #2d3748;
+  line-height: 1;
+}
+.stat-icon {
+  font-size: 1.5rem;
+  opacity: 0.8;
+  background-color: #f7fafc;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* Warna spesifik untuk ikon stat */
+.icon-blue { color: #3182ce; background-color: #ebf8ff; }
+.icon-green { color: #38a169; background-color: #f0fff4; }
+.icon-purple { color: #805ad5; background-color: #faf5ff; }
+
+/* --- 2. QUICK ACTIONS (Tiles) --- */
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actions-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 kolom */
-  gap: 1rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(2, 1fr); /* 2 kolom di HP */
+  gap: 0.75rem;
 }
-/* 4 kolom di desktop */
-@media (min-width: 1024px) {
-  .quick-actions-grid {
-    grid-template-columns: repeat(4, 1fr);
+@media (min-width: 768px) {
+  .actions-grid {
+    grid-template-columns: repeat(4, 1fr); /* 4 kolom di Tablet */
   }
 }
-.quick-actions-grid .button {
+@media (min-width: 1024px) {
+  .actions-grid {
+    grid-template-columns: repeat(5, 1fr); /* 5 kolom di Desktop */
+  }
+}
+
+.action-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1.25rem 0.5rem;
   text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  color: #4a5568;
+  height: 100%;
+}
+.action-tile:hover {
+  background-color: #f7fafc;
+  border-color: #cbd5e0;
+  color: #2b6cb0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tile-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.tile-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.tile-sub {
+  font-size: 0.7rem;
+  color: #a0aec0;
+  margin-top: 0.25rem;
+  font-weight: normal;
 }

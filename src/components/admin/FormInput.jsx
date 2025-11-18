@@ -1,56 +1,83 @@
 // src/components/admin/FormInput.jsx
-// --- Komponen Reusable untuk Form ---
+// --- VERSI COMPACT & INFORMATIF ---
 
 import React from 'react';
-import styles from './FormInput.module.css'; // Kita akan buat file ini
+// Pastikan path import CSS ini benar sesuai struktur folder Anda
+import styles from './AdminForm.module.css';
 
-/**
- * Komponen Form serbaguna.
- * Bisa merender <input>, <select>, atau <textarea>
- *
- * Props:
- * - type: "text", "file", "select", "textarea"
- * - label: Teks untuk <label>
- * - name: (diteruskan ke input)
- * - value: (diteruskan ke input)
- * - onChange: (diteruskan ke input)
- * - disabled: (diteruskan ke input)
- * - required: (diteruskan ke input)
- * - children: (untuk <option> di dalam <select>)
- * - span: "col-span-2" (opsional)
- */
-function FormInput({ type, label, name, span, children, ...props }) {
+function FormInput({ 
+  label, 
+  name, 
+  type = 'text', 
+  value, 
+  onChange, 
+  required = false, 
+  disabled = false, 
+  error = null, 
+  children, 
+  span = 'col-span-1', // Default 1 kolom
+  helper = null, // Prop baru untuk teks bantuan
+  placeholder = '',
+  ...props 
+}) {
   
-  // Tentukan elemen apa yang akan dirender
-  let InputComponent;
-  if (type === 'select') {
-    InputComponent = (
-      <select id={name} name={name} className={styles['form-select']} {...props}>
-        {children}
-      </select>
-    );
-  } else if (type === 'textarea') {
-    InputComponent = (
-      <textarea id={name} name={name} className={styles['form-textarea']} {...props} />
-    );
-  } else {
-    // Default ke <input> (untuk text, file, dll)
-    InputComponent = (
-      <input type={type} id={name} name={name} className={styles['form-input']} {...props} />
-    );
-  }
-
-  // Tentukan class wrapper
-  const wrapperClass = `${styles['form-group']} ${span ? styles[span] : ''}`;
+  // Tentukan class grid span
+  const spanClass = styles[span] || styles['col-span-1'];
+  
+  // Tentukan class input (tambah border merah jika error)
+  const inputClass = `${type === 'select' ? styles['form-select'] : type === 'textarea' ? styles['form-textarea'] : styles['form-input']} ${error ? styles['input-error'] : ''}`;
 
   return (
-    <div className={wrapperClass}>
+    <div className={`${styles['form-group']} ${spanClass}`}>
+      
+      {/* Label dengan tanda bintang jika required */}
       <label htmlFor={name} className={styles['form-label']}>
-        {label}
+        {label} {required && <span style={{color: '#e53e3e'}}>*</span>}
       </label>
-      {InputComponent}
-      {/* Menampilkan pesan error kecil (jika ada) */}
-      {props.error && <small className={styles['form-error']}>{props.error}</small>}
+
+      {/* Render Input Berdasarkan Type */}
+      {type === 'select' ? (
+        <select
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          className={inputClass}
+          disabled={disabled}
+          {...props}
+        >
+          {children}
+        </select>
+      ) : type === 'textarea' ? (
+        <textarea
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          className={inputClass}
+          disabled={disabled}
+          placeholder={placeholder}
+          {...props}
+        />
+      ) : (
+        <input
+          type={type}
+          id={name}
+          name={name}
+          value={type !== 'file' ? value : undefined}
+          onChange={onChange}
+          className={inputClass}
+          disabled={disabled}
+          placeholder={placeholder}
+          {...props}
+        />
+      )}
+
+      {/* Helper Text (Abu-abu) */}
+      {helper && !error && <p className={styles['form-helper']}>{helper}</p>}
+
+      {/* Error Text (Merah) */}
+      {error && <p className={styles['form-error-msg']}>{error}</p>}
     </div>
   );
 }
