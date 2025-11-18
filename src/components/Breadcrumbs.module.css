@@ -1,0 +1,39 @@
+/* src/components/Breadcrumbs.module.css */
+/* --- STYLE BARU --- */
+
+.breadcrumb {
+  padding-top: 0.5rem;
+  font-size: 0.875rem; /* text-sm */
+  color: #718096; /* gray.500 */
+}
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+}
+/* Separator (garis miring) */
+.breadcrumb li + li::before {
+  content: '/';
+  display: inline-block;
+  margin: 0 0.5rem; /* 8px space */
+  color: #a0aec0; /* gray.400 */
+}
+.breadcrumb a {
+  color: #718096; /* gray.500 */
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: #2b6cb0; /* blue.600 */
+  text-decoration: underline;
+}
+/* Halaman saat ini (terakhir) */
+.breadcrumb span {
+  font-weight: 600;
+  color: #2d3748; /* gray.700 */
+}

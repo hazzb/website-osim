@@ -1,16 +1,15 @@
 // src/pages/KelolaAnggota.jsx
-// --- VERSI 7.1 (Refaktor CSS Modules) ---
+// --- VERSI 7.3 (Perbaikan: Menggunakan CSS Module untuk Filter Pill) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Link } from 'react-router-dom';
-// --- [PERUBAHAN 1] ---
-import styles from './KelolaAnggota.module.css'; // Impor CSS Module
+import styles from '../components/admin/AdminTable.module.css'; // Path impor sudah benar
 
 const PER_PAGE = 10;
 
 function KelolaAnggota() {
-  // ... (Semua state dan logic useEffects/handleSubmit tidak berubah) ...
+  // ... (Semua state dan logic tidak berubah) ...
   const [anggotaList, setAnggotaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,6 +24,7 @@ function KelolaAnggota() {
   const [totalCount, setTotalCount] = useState(0);
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
+  // ... (Semua useEffect dan handleHapus tidak berubah) ...
   useEffect(() => {
     async function fetchPeriode() {
       setLoadingPeriode(true);
@@ -33,10 +33,8 @@ function KelolaAnggota() {
           .from('periode_jabatan')
           .select('id, nama_kabinet, tahun_mulai, tahun_selesai, is_active')
           .order('tahun_mulai', { ascending: false });
-        
         if (error) throw error;
         setPeriodeList(data || []);
-        
         const activePeriode = data.find(p => p.is_active);
         if (activePeriode) {
           setSelectedPeriodeId(activePeriode.id);
@@ -54,7 +52,6 @@ function KelolaAnggota() {
 
   useEffect(() => {
     if (!selectedPeriodeId) return;
-
     async function fetchDivisi() {
       setLoadingDivisi(true);
       setDivisiList([]);
@@ -65,7 +62,6 @@ function KelolaAnggota() {
           .select('id, nama_divisi')
           .eq('periode_id', selectedPeriodeId)
           .order('urutan', { ascending: true });
-        
         if (error) throw error;
         setDivisiList(data || []);
       } catch (err) {
@@ -87,14 +83,11 @@ function KelolaAnggota() {
       setLoading(false);
       return;
     }
-
     async function fetchAnggota() {
       setLoading(true);
       setError(null);
-
       const from = (currentPage - 1) * PER_PAGE;
       const to = from + PER_PAGE - 1;
-
       try {
         let query = supabase
           .from('anggota_detail_view')
@@ -103,22 +96,16 @@ function KelolaAnggota() {
           .order('urutan', { ascending: true })
           .order('nama', { ascending: true })
           .range(from, to);
-        
         if (selectedDivisiId !== 'semua') {
           query = query.eq('divisi_id', selectedDivisiId);
         }
-        
         if (searchTerm) {
           query = query.ilike('nama', `%${searchTerm}%`); 
         }
-
         const { data, error, count } = await query;
-          
         if (error) throw error;
-        
         setAnggotaList(data || []);
         setTotalCount(count || 0);
-
       } catch (err) {
         setError("Gagal memuat data anggota: " + err.message);
         console.error(err);
@@ -160,26 +147,22 @@ function KelolaAnggota() {
   const isLoading = loading || loadingPeriode;
 
   return (
-    // 'main-content' adalah class GLOBAL
     <div className="main-content">
-      {/* --- [PERUBAHAN 2] --- */}
-      {/* Menggunakan class CSS Module */}
       <div className={styles['admin-page-header']}>
-        {/* 'page-title' adalah class GLOBAL */}
         <h1 className="page-title">Kelola Anggota</h1>
-        {/* 'button' adalah class GLOBAL */}
         <Link to="/admin/anggota/tambah" className="button button-primary">
           + Tambah Anggota
         </Link>
       </div>
 
+      {/* --- [INI PERBAIKANNYA] --- */}
       <div className={styles['table-filter-container']}>
-        {/* 'filter-group' dan 'filter-select' adalah class GLOBAL */}
-        <div className="filter-group">
+        {/* Menggunakan style dari module */}
+        <div className={styles['filter-group']}>
           <label htmlFor="periode-select">Periode:</label>
           <select 
             id="periode-select" 
-            className="filter-select"
+            className={styles['filter-select']}
             value={selectedPeriodeId}
             onChange={(e) => setSelectedPeriodeId(e.target.value)}
             disabled={loadingPeriode}
@@ -193,11 +176,12 @@ function KelolaAnggota() {
           </select>
         </div>
         
-        <div className="filter-group">
+        {/* Menggunakan style dari module */}
+        <div className={styles['filter-group']}>
           <label htmlFor="divisi-select">Divisi:</label>
           <select 
             id="divisi-select" 
-            className="filter-select"
+            className={styles['filter-select']}
             value={selectedDivisiId}
             onChange={(e) => setSelectedDivisiId(e.target.value)}
             disabled={loadingDivisi || !selectedPeriodeId}
@@ -209,7 +193,7 @@ function KelolaAnggota() {
           </select>
         </div>
 
-        {/* Menggunakan class CSS Module */}
+        {/* Ini sudah benar dari sebelumnya */}
         <div className={styles['search-input-group']}>
           <span>🔍</span>
           <input
@@ -221,9 +205,12 @@ function KelolaAnggota() {
           />
         </div>
       </div>
+      {/* --- [AKHIR PERBAIKAN] --- */}
+
 
       {error && <p className="error-text">{error}</p>}
       
+      {/* Sisa file (tabel dan pagination) tidak berubah */ }
       <div className={styles['table-container']}>
         <table className={styles['admin-table']}>
           <thead>

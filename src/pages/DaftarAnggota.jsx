@@ -1,25 +1,20 @@
 // src/pages/DaftarAnggota.jsx
-// --- VERSI 6.1 (Refaktor CSS Modules) ---
+// --- VERSI 6.2 (Menambahkan Tombol Detail Divisi) ---
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../supabaseClient'; 
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
-// --- [PERUBAHAN 1] ---
 import styles from './DaftarAnggota.module.css'; // Impor CSS Module
 
-// --- [Komponen AdminToggle (Versi CSS Module)] ---
+// --- [Komponen AdminToggle (Versi CSS Module) - Tidak berubah] ---
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
-  // Menggunakan styles.[nama-class]
   const toggleClasses = `${styles['admin-toggle']} ${isEnabled ? styles['toggled-on'] : styles['toggled-off']} ${isSaving ? styles['is-saving'] : ''}`;
   const labelId = `toggle-label-${label.replace(/\s+/g, '-')}`;
-
   return (
     <div className={toggleClasses} onClick={() => !isSaving && onToggle(!isEnabled)}>
-      <label className={styles['admin-toggle-label']} id={labelId}>
-        {label}
-      </label>
+      <label className={styles['admin-toggle-label']} id={labelId}>{label}</label>
       <div className={styles['admin-toggle-switch']} role="switch" aria-checked={isEnabled} aria-labelledby={labelId}>
         <div className={styles['admin-toggle-knob']}></div>
       </div>
@@ -27,39 +22,32 @@ function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   );
 }
 
-// --- [Komponen AnggotaCard (Versi CSS Module)] ---
+// --- [Komponen AnggotaCard (Versi CSS Module) - Tidak berubah] ---
 function AnggotaCard({ anggota, isAdmin, pengaturan }) {
   const showMotto = pengaturan.tampilkan_anggota_motto && anggota.motto;
   const showIg = pengaturan.tampilkan_anggota_ig && anggota.instagram_username;
   const showAlamat = pengaturan.tampilkan_anggota_alamat && anggota.alamat;
-
   return (
-    // Menggunakan styles.card
     <div className={styles.card}>
       {isAdmin && (
         <Link to={`/admin/anggota/edit/${anggota.id}`} title={`Edit ${anggota.nama}`} className={styles['card-edit-button']}>
           ✏️
         </Link>
       )}
-      
       <img 
         src={anggota.foto_url || 'https://via.placeholder.com/150.png/eee/808080?text=Foto'}
         alt={`Foto ${anggota.nama}`}
         className={styles['anggota-card-image']}
       />
-      
       <div className={styles['anggota-card-content']}>
         <h3 className={styles['anggota-card-nama']}>{anggota.nama}</h3>
         <p className={styles['anggota-card-jabatan']}>
           {anggota.jabatan_di_divisi}
-          {anggota.jenis_kelamin && (
-            <span> ({anggota.jenis_kelamin})</span>
-          )}
+          {anggota.jenis_kelamin && ( <span> ({anggota.jenis_kelamin})</span> )}
         </p>
-        
         {(showMotto || showIg || showAlamat) && (
           <>
-            <hr className={styles['card-divider']} />
+            <hr className="card-divider" /> {/* Class global */}
             <div className={styles['anggota-card-info']}>
               {showMotto && ( <p className={styles['info-motto']}>"{anggota.motto}"</p> )}
               {showIg && ( <p><strong>IG:</strong> @{anggota.instagram_username}</p> )}
@@ -97,18 +85,15 @@ function DaftarAnggota() {
         const fetchPeriode = supabase.from('periode_jabatan').select('*').order('tahun_mulai', { ascending: false });
         const fetchSettings = supabase.from('pengaturan').select('id, tampilkan_anggota_motto, tampilkan_anggota_ig, tampilkan_anggota_alamat').single();
         const [periodeResult, settingsResult] = await Promise.all([ fetchPeriode, fetchSettings ]);
-        
         if (periodeResult.error) throw periodeResult.error;
         const periodes = periodeResult.data || [];
         setPeriodeList(periodes);
-        
         const activePeriode = periodes.find(p => p.is_active);
         let defaultPeriode = activePeriode || (periodes.length > 0 ? periodes[0] : null);
         if (defaultPeriode) {
           setSelectedPeriodeId(defaultPeriode.id);
         }
         setLoadingPeriode(false);
-
         if (settingsResult.error) throw settingsResult.error;
         setPengaturan(settingsResult.data);
         setLoadingPengaturan(false);
@@ -176,6 +161,7 @@ function DaftarAnggota() {
   }, [unfilteredAnggota, selectedDivisiFilter, selectedGenderFilter]);
 
   const handleToggleSetting = async (key, newValue) => {
+    // ... (Logika handleToggleSetting tidak berubah) ...
     if (!pengaturan) return;
     setIsSavingSetting(true);
     setPengaturan(prev => ({ ...prev, [key]: newValue }));
@@ -192,15 +178,11 @@ function DaftarAnggota() {
   
   const isLoading = loadingPeriode || loadingAnggota || loadingPengaturan;
 
-  // --- Render Komponen ---
   return (
-    // 'main-content' adalah class GLOBAL dari index.css
     <div className="main-content"> 
-      {/* 'page-title' adalah class GLOBAL dari index.css */}
       <h1 className="page-title">Daftar Anggota</h1>
-
-      {/* --- Filter (Versi CSS Module) --- */}
       <div className={styles['filter-bar']}>
+        {/* ... (Filter bar tidak berubah) ... */}
         <span className={styles['filter-label']}>Filters:</span>
         <div className={styles['filter-group']}>
           <label htmlFor="periode-select">Periode:</label>
@@ -219,7 +201,6 @@ function DaftarAnggota() {
             ))}
           </select>
         </div>
-        
         <div className={styles['filter-group']}>
           <label htmlFor="divisi-filter">Divisi:</label>
           <select 
@@ -235,7 +216,6 @@ function DaftarAnggota() {
             ))}
           </select>
         </div>
-
         <div className={styles['filter-group']}>
           <label htmlFor="gender-filter">Gender:</label>
           <select 
@@ -252,9 +232,9 @@ function DaftarAnggota() {
         </div>
       </div>
       
-      {/* --- Admin Control (Versi CSS Module) --- */}
       {isAdmin && !loadingPengaturan && pengaturan && (
         <div className={styles['admin-controls']}>
+          {/* ... (Admin controls tidak berubah) ... */}
           <strong className={styles['admin-controls-title']}>Kontrol Privasi Publik:</strong>
           <AdminToggle
             label="Tampilkan Motto"
@@ -277,7 +257,6 @@ function DaftarAnggota() {
         </div>
       )}
 
-      {/* 'loading-text' dan 'error-text' adalah class GLOBAL */}
       {isLoading && <p className="loading-text">Memuat Daftar Anggota...</p>}
       {error && !loadingAnggota && <p className="error-text">Error: {error}</p>}
       
@@ -299,6 +278,16 @@ function DaftarAnggota() {
                     +
                   </Link>
                 )}
+                
+                {/* --- [INI TOMBOL BARUNYA] --- */}
+                <Link 
+                  to={`/divisi/${divisi.divisi_id}`} 
+                  className={styles['detail-button']}
+                >
+                  Lihat Detail Divisi
+                </Link>
+                {/* --- [AKHIR TOMBOL BARU] --- */}
+
               </div>
               
               <div className={styles['card-grid']}>
@@ -313,7 +302,6 @@ function DaftarAnggota() {
               </div>
             </section>
           )) : (
-            // 'info-text' adalah class GLOBAL
             <p className="info-text">
               Tidak ada anggota yang cocok dengan filter Anda.
             </p>

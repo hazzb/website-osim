@@ -1,235 +1,290 @@
 // src/pages/EditAnggota.jsx
-// --- VERSI 5.5 (Ganti Laki-laki -> Ikhwan) ---
+// --- VERSI 6.8 (Logika Database-Driven) ---
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import styles from '../components/admin/AdminForm.module.css'; 
+import FormInput from '../components/admin/FormInput.jsx'; 
 
 function EditAnggota() {
-  const { id } = useParams();
+  const { id } = useParams(); 
   const navigate = useNavigate();
-  const placeholderFoto = 'https://via.placeholder.com/400.png/eee/808080?text=Preview+Foto';
+  const { user } = useAuth();
 
-  // State form
-  const [nama, setNama] = useState('');
-  const [motto, setMotto] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [jenisKelamin, setJenisKelamin] = useState('');
-  const [alamat, setAlamat] = useState('');
-  const [oldFotoUrl, setOldFotoUrl] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(placeholderFoto);
-  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    nama: '',
+    jenis_kelamin: 'Ikhwan',
+    alamat: '',
+    motto: '',
+    instagram_username: '',
+    periode_id: '',
+    divisi_id: '',
+    jabatan_di_divisi: '',
+    foto_url: '',
+  });
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [oldFotoUrl, setOldFotoUrl] = useState(null);
+
   const [periodeList, setPeriodeList] = useState([]);
-  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
   const [divisiList, setDivisiList] = useState([]);
-  const [selectedDivisiId, setSelectedDivisiId] = useState('');
-  const [allJabatanList, setAllJabatanList] = useState([]);
-  const [jabatanOptions, setJabatanOptions] = useState([]);
-  const [selectedJabatan, setSelectedJabatan] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [jabatanList, setJabatanList] = useState([]); // Daftar jabatan yang sudah difilter
+  
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [loadingJabatan, setLoadingJabatan] = useState(false);
+  const [error, setError] = useState(null);
 
-  // --- (Efek 1, 2, 3 - tidak berubah) ---
+  // --- Efek 1: Memuat SEMUA data ---
   useEffect(() => {
-    async function loadInitialData() {
-      setLoading(true); setLoadingDropdowns(true); setIsInitialLoad(true);
+    async function fetchAnggotaData() {
+      if (!id) {
+        setLoadingData(false);
+        setError("ID anggota tidak ditemukan di URL.");
+        return; 
+      }
+      setLoadingData(true);
+      setError(null);
       try {
-        const { data: anggotaData, error: anggotaError } = await supabase.from('anggota').select('*').eq('id', id).single();
-        if (anggotaError) throw anggotaError;
-        const fetchPeriode = supabase.from('periode_jabatan').select('id, nama_kabinet, tahun_mulai, tahun_selesai');
-        const fetchJabatan = supabase.from('master_jabatan').select('nama_jabatan, tipe_jabatan');
-        const [periodeResult, jabatanResult] = await Promise.all([fetchPeriode, fetchJabatan]);
-        if (periodeResult.error) throw periodeResult.error;
-        if (jabatanResult.error) throw jabatanResult.error;
-        setPeriodeList(periodeResult.data || []);
-        setAllJabatanList(jabatanResult.data || []);
-        if (anggotaData) {
-          setNama(anggotaData.nama);
-          setMotto(anggotaData.motto || '');
-          setInstagram(anggotaData.instagram_username || '');
-          setJenisKelamin(anggotaData.jenis_kelamin || '');
-          setAlamat(anggotaData.alamat || '');
-          setSelectedPeriodeId(anggotaData.periode_id);
-          setSelectedDivisiId(anggotaData.divisi_id);
-          setSelectedJabatan(anggotaData.jabatan_di_divisi);
-          setPreviewUrl(anggotaData.foto_url || placeholderFoto);
-          setOldFotoUrl(anggotaData.foto_url || '');
+        // 1. Ambil data anggota
+        const { data: anggotaData, error: anggotaError } = await supabase
+          .from('anggota') 
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (anggotaError) throw new Error(`Gagal memuat anggota: ${anggotaError.message}`);
+
+        setFormData({
+          nama: anggotaData.nama || '',
+          jenis_kelamin: anggotaData.jenis_kelamin || 'Ikhwan',
+          alamat: anggotaData.alamat || '',
+          motto: anggotaData.motto || '',
+          instagram_username: anggotaData.instagram_username || '',
+          periode_id: anggotaData.periode_id,
+          divisi_id: anggotaData.divisi_id,
+          jabatan_di_divisi: anggotaData.jabatan_di_divisi || '',
+          foto_url: anggotaData.foto_url || '',
+        });
+        setOldFotoUrl(anggotaData.foto_url); 
+        setPreview(anggotaData.foto_url); 
+
+        // 2. Ambil data relasi (Periode, Divisi)
+        const { data: periode, error: pError } = await supabase.from('periode_jabatan').select('id, nama_kabinet, tahun_mulai, tahun_selesai');
+        if (pError) throw pError;
+        setPeriodeList(periode);
+        
+        const { data: divisi, error: dError } = await supabase.from('divisi').select('id, nama_divisi, periode_id');
+        if (dError) throw dError;
+        setDivisiList(divisi);
+        
+        // 3. Ambil daftar jabatan yang BENAR untuk divisi yang SUDAH DIPILIH
+        if (anggotaData.divisi_id) {
+          setLoadingJabatan(true);
+          const { data: jabatansData, error: jError } = await supabase
+            .from('divisi_jabatan_link')
+            .select('master_jabatan (id, nama_jabatan)')
+            .eq('divisi_id', anggotaData.divisi_id);
+          if (jError) throw jError;
+          setJabatanList(jabatansData.map(item => item.master_jabatan));
+          setLoadingJabatan(false);
         }
-      } catch (error) {
-        alert("Gagal memuat data: " + error.message);
+
+      } catch (err) {
+        setError(err.message);
       } finally {
-        setLoading(false); setLoadingDropdowns(false);
+        setLoadingData(false);
       }
     }
-    loadInitialData();
+    fetchAnggotaData();
   }, [id]);
+
+  // --- [EFEK BARU]: Memuat ulang Jabatan saat Divisi diubah ---
   useEffect(() => {
-    if (!selectedPeriodeId || loadingDropdowns) return;
-    async function fetchDivisi() {
-      try {
-        const { data, error } = await supabase.from('divisi').select('id, nama_divisi').eq('periode_id', selectedPeriodeId).order('urutan', { ascending: true });
-        if (error) throw error;
-        setDivisiList(data || []);
-      } catch (error) { alert("Gagal memuat daftar divisi: " + error.message); }
-    }
-    fetchDivisi();
-  }, [selectedPeriodeId, loadingDropdowns]);
-  useEffect(() => {
-    if (!selectedDivisiId || divisiList.length === 0 || loadingDropdowns) {
-      setJabatanOptions([]);
+    // Jangan jalankan saat load awal (karena sudah ditangani di efek pertama)
+    if (loadingData) return; 
+    
+    if (!formData.divisi_id) {
+      setJabatanList([]);
       return;
     }
-    const divisiTerpilih = divisiList.find(d => d.id == selectedDivisiId);
-    if (divisiTerpilih) {
-      let tipeYangDicari = (divisiTerpilih.nama_divisi === 'Pengurus Inti') ? 'Inti' : 'Divisi';
-      const tipeKustom = allJabatanList.find(j => j.tipe_jabatan === divisiTerpilih.nama_divisi);
-      if (tipeKustom) tipeYangDicari = divisiTerpilih.nama_divisi;
-      const filteredJabatan = allJabatanList.filter(j => j.tipe_jabatan === tipeYangDicari).map(j => j.nama_jabatan);
-      setJabatanOptions(filteredJabatan);
-      if (!isInitialLoad) {
-        setSelectedJabatan('');
-      } else {
-        if (!filteredJabatan.includes(selectedJabatan)) {
-          setSelectedJabatan('');
-        }
+
+    async function fetchJabatansForDivisi() {
+      setLoadingJabatan(true);
+      setError(null);
+      try {
+        const { data, error } = await supabase
+          .from('divisi_jabatan_link')
+          .select('master_jabatan (id, nama_jabatan)')
+          .eq('divisi_id', formData.divisi_id);
+        
+        if (error) throw error;
+        const jabatans = data.map(item => item.master_jabatan);
+        setJabatanList(jabatans);
+      } catch (err) {
+        setError("Gagal memuat jabatan: " + err.message);
+      } finally {
+        setLoadingJabatan(false);
       }
-    } else {
-      setJabatanOptions([]);
-      setSelectedJabatan('');
     }
-    if (isInitialLoad) {
-      setIsInitialLoad(false);
-    }
-  }, [selectedDivisiId, divisiList, allJabatanList, loadingDropdowns]);
-  
-  // --- (Fungsi handleFileChange - tidak berubah) ---
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    
+    fetchJabatansForDivisi();
+  }, [formData.divisi_id, loadingData]); // Dijalankan saat divisi_id berubah (dan data awal selesai load)
+
+  // ... (useEffect preview file tidak berubah) ...
+  useEffect(() => {
     if (!file) {
-      setSelectedFile(null); setPreviewUrl(oldFotoUrl || placeholderFoto); return;
+      setPreview(oldFotoUrl); 
+      return;
     }
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert("Tipe file tidak valid. Harap pilih file .jpg, .png, atau .webp.");
-      e.target.value = null; return;
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file, oldFotoUrl]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'divisi_id') {
+      setFormData(prev => ({ ...prev, jabatan_di_divisi: '' }));
     }
-    const maxSizeInBytes = 200 * 1024; // 200KB
-    if (file.size > maxSizeInBytes) {
-      alert(`Ukuran file terlalu besar (${(file.size / 1024).toFixed(0)} KB). Harap kompres file Anda di bawah 200 KB.`);
-      e.target.value = null; return;
+  };
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    } else {
+      setFile(null);
     }
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file)); 
   };
 
-  // --- (Fungsi handleSubmit - tidak berubah, 'jenisKelamin' sudah dinamis) ---
+  // ... (handleSubmit v6.5 sudah benar, tidak berubah) ...
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedPeriodeId || !selectedDivisiId || !selectedJabatan || !jenisKelamin) {
-      alert("Harap lengkapi Periode, Divisi, Jabatan, dan Ikhwan/Akhwat.");
+    if (!user) {
+      setError("Sesi Anda telah berakhir. Silakan login kembali untuk menyimpan data.");
+      alert("Sesi Anda telah berakhir. Silakan login kembali.");
+      setLoading(false);
       return;
     }
-    setUploading(true);
-    let finalFotoUrl = oldFotoUrl;
+    setLoading(true);
+    setError(null);
+    let finalFotoUrl = oldFotoUrl; 
     try {
-      if (selectedFile) {
-        const fileToUpload = selectedFile;
-        const fileExt = fileToUpload.name.split('.').pop() || 'jpg';
-        const fileName = `${nama.replace(/ /g, '-')}-${Date.now()}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage.from('avatars').upload(fileName, fileToUpload);
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+        const filePath = `anggota/${fileName}`;
+        const { error: uploadError } = await supabase.storage.from('gambar-osim').upload(filePath, file);
         if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(uploadData.path);
+        const { data: publicUrlData } = supabase.storage.from('gambar-osim').getPublicUrl(filePath);
         finalFotoUrl = publicUrlData.publicUrl;
         if (oldFotoUrl) {
-          const oldFileName = oldFotoUrl.split('/').pop();
-          await supabase.storage.from('avatars').remove([oldFileName]);
+          const oldFilePath = oldFotoUrl.split('gambar-osim/')[1];
+          if (oldFilePath) {
+            await supabase.storage.from('gambar-osim').remove([oldFilePath]);
+          }
         }
       }
-      const { error: updateError } = await supabase
-        .from('anggota')
-        .update({ 
-          nama: nama, foto_url: finalFotoUrl, motto: motto, 
-          instagram_username: instagram, jenis_kelamin: jenisKelamin,
-          alamat: alamat, jabatan_di_divisi: selectedJabatan,
-          divisi_id: selectedDivisiId, periode_id: selectedPeriodeId
-        })
-        .eq('id', id);
+      const { error: updateError } = await supabase.from('anggota').update({
+          nama: formData.nama,
+          jenis_kelamin: formData.jenis_kelamin,
+          alamat: formData.alamat || null,
+          motto: formData.motto || null,
+          instagram_username: formData.instagram_username || null,
+          periode_id: formData.periode_id,
+          divisi_id: formData.divisi_id,
+          jabatan_di_divisi: formData.jabatan_di_divisi,
+          foto_url: finalFotoUrl,
+        }).eq('id', id);
       if (updateError) throw updateError;
-      alert('Anggota berhasil diperbarui!');
-      navigate('/admin/kelola-anggota');
-    } catch (error) {
-      alert(`Gagal memperbarui anggota: ${error.message}`);
+      alert('Data anggota berhasil diperbarui!');
+      navigate('/admin/anggota');
+    } catch (err) {
+      setError("Gagal memperbarui anggota: " + err.message);
+      console.error(err);
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
-  // --- Styling ---
-  const formStyle = { display: 'flex', flexDirection: 'column', maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' };
-  const inputGroupStyle = { marginBottom: '15px' };
-  const labelStyle = { display: 'block', marginBottom: '5px', fontWeight: 'bold' };
-  const inputStyle = { width: '100%', padding: '8px', boxSizing: 'border-box' };
-  const textareaStyle = { ...inputStyle, minHeight: '80px', fontFamily: 'Arial' };
-  const selectStyle = { ...inputStyle, padding: '8px', backgroundColor: '#f9f9f9' };
-  const buttonStyle = { padding: '10px 15px', fontSize: '1em', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer', marginTop: '10px' };
-  const fotoPreviewStyle = { width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #eee', marginBottom: '10px', backgroundColor: '#f9f9f9' };
-  const radioGroupStyle = { display: 'flex', gap: '20px', alignItems: 'center', marginTop: '5px', minHeight: '40px' };
-  const radioLabelStyle = { cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' };
-  if (loading) { return <h2>Memuat data anggota...</h2>; }
-  const isProcessing = uploading || loading;
+  const filteredDivisiOptions = divisiList.filter(
+    d => d.periode_id == formData.periode_id
+  );
+
+  if (loadingData) {
+    return <div className="main-content"><p className="loading-text">Memuat data anggota...</p></div>;
+  }
 
   return (
-    <div>
-      <h2>Edit Anggota</h2>
-      <form style={formStyle} onSubmit={handleSubmit}>
-        {/* ... (Dropdown Periode & Divisi - tidak berubah) ... */}
-        <div style={inputGroupStyle}><label style={labelStyle} htmlFor="periode">1. Periode (Terkunci):</label><select id="periode" style={{...selectStyle, backgroundColor: '#eee'}} value={selectedPeriodeId} disabled required><option value="" disabled>-- Pilih Periode --</option>{periodeList.map(periode => <option key={periode.id} value={periode.id}>{periode.tahun_mulai}/{periode.tahun_selesai} ({periode.nama_kabinet || 'Tanpa Nama'})</option>)}</select><small>Periode tidak dapat diubah.</small></div>
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ ...inputGroupStyle, flex: 1 }}><label style={labelStyle} htmlFor="divisi">2. Divisi:</label><select id="divisi" style={selectStyle} value={selectedDivisiId} onChange={(e) => setSelectedDivisiId(e.target.value)} disabled={loadingDropdowns || divisiList.length === 0} required><option value="" disabled>-- Pilih Divisi --</option>{divisiList.map(divisi => <option key={divisi.id} value={divisi.id}>{divisi.nama_divisi}</option>)}</select></div>
-          <div style={{ ...inputGroupStyle, flex: 1 }}><label style={labelStyle} htmlFor="jabatan">3. Jabatan:</label><select id="jabatan" style={selectStyle} value={selectedJabatan} onChange={(e) => setSelectedJabatan(e.target.value)} required disabled={loadingDropdowns || jabatanOptions.length === 0} ><option value="" disabled>-- Pilih Jabatan --</option>{jabatanOptions.map(jabatan => (<option key={jabatan} value={jabatan}>{jabatan}</option>))}</select></div>
-        </div>
-        
-        {/* ... (Input Foto - tidak berubah) ... */}
-        <div style={inputGroupStyle}><label style={labelStyle} htmlFor="foto">4. Foto Anggota:</label><img src={previewUrl} alt="Preview Foto" style={fotoPreviewStyle} /><input style={inputStyle} type="file" id="foto" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} /><small>Pilih file baru jika ingin mengganti. **Maks 200 KB.**</small></div>
+    <div className="main-content">
+      <form className={styles['form-card']} onSubmit={handleSubmit}>
+        <h1 className={styles['form-title']}>Edit Anggota</h1>
+        {error && <p className="error-text">{error}</p>}
+        <div className={styles['form-grid']}>
+          {/* ... (Nama, Gender, IG, Alamat, Motto tidak berubah) ... */}
+          <FormInput type="text" label="Nama Lengkap" name="nama" span="col-span-3" value={formData.nama} onChange={handleChange} required />
+          <FormInput type="select" label="Jenis Kelamin" name="jenis_kelamin" span="col-span-1" value={formData.jenis_kelamin} onChange={handleChange}>
+            <option value="Ikhwan">Ikhwan</option>
+            <option value="Akhwat">Akhwat</option>
+          </FormInput>
+          <FormInput type="text" label="Instagram (tanpa @)" name="instagram_username" span="col-span-2" value={formData.instagram_username} onChange={handleChange} />
+          <FormInput type="text" label="Alamat" name="alamat" span="col-span-3" value={formData.alamat} onChange={handleChange} />
+          <FormInput type="textarea" label="Motto" name="motto" span="col-span-3" value={formData.motto} onChange={handleChange} />
+          <hr className="card-divider col-span-3" />
+          
+          <FormInput type="select" label="Periode" name="periode_id" span="col-span-1" value={formData.periode_id} onChange={handleChange} required disabled={loadingData}>
+            <option value="">-- Pilih Periode --</option>
+            {periodeList.map(p => (
+              <option key={p.id} value={p.id}>{p.nama_kabinet || `${p.tahun_mulai}/${p.tahun_selesai}`}</option>
+            ))}
+          </FormInput>
+          
+          <FormInput type="select" label="Divisi" name="divisi_id" span="col-span-1" value={formData.divisi_id} onChange={handleChange} required
+            disabled={loadingData || !formData.periode_id || filteredDivisiOptions.length === 0}
+            error={!formData.periode_id ? 'Pilih Periode' : null}
+          >
+            <option value="">-- Pilih Divisi --</option>
+            {filteredDivisiOptions.map(d => (
+              <option key={d.id} value={d.id}>{d.nama_divisi}</option>
+            ))}
+          </FormInput>
 
-        {/* --- FORM NAMA & JENIS KELAMIN (DIUBAH) --- */}
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ ...inputGroupStyle, flex: 2 }}><label style={labelStyle} htmlFor="nama">5. Nama Lengkap:</label><input style={inputStyle} type="text" id="nama" value={nama} onChange={(e) => setNama(e.target.value)} required /></div>
-          <div style={{ ...inputGroupStyle, flex: 1 }}>
-            <label style={labelStyle}>6. Ikhwan/Akhwat:</label> {/* <-- Label diubah */}
-            <div style={radioGroupStyle}>
-              <label style={radioLabelStyle}>
-                <input
-                  type="radio" value="Ikhwan" // <-- Value diubah
-                  checked={jenisKelamin === 'Ikhwan' || jenisKelamin === 'Laki-laki'} // <-- Handle data lama
-                  onChange={(e) => setJenisKelamin(e.target.value)}
-                  name="jenisKelamin" required
-                /> Ikhwan {/* <-- Teks diubah */}
-              </label>
-              <label style={radioLabelStyle}>
-                <input
-                  type="radio" value="Akhwat" // <-- Value diubah
-                  checked={jenisKelamin === 'Akhwat' || jenisKelamin === 'Perempuan'} // <-- Handle data lama
-                  onChange={(e) => setJenisKelamin(e.target.value)}
-                  name="jenisKelamin" required
-                /> Akhwat {/* <-- Teks diubah */}
-              </label>
+          {/* --- [PERBAIKAN 4: Render Jabatan dari state 'jabatanList' baru] --- */}
+          <FormInput type="select" label="Jabatan" name="jabatan_di_divisi" span="col-span-1"
+            value={formData.jabatan_di_divisi}
+            onChange={handleChange}
+            required
+            disabled={loadingJabatan || jabatanList.length === 0}
+            error={!formData.divisi_id ? 'Pilih Divisi' : (loadingJabatan ? 'Memuat...' : null)}
+          >
+            <option value="">-- Pilih Jabatan --</option>
+            {jabatanList.map(j => (
+              <option key={j.id} value={j.nama_jabatan}>{j.nama_jabatan}</option>
+            ))}
+          </FormInput>
+          
+          <hr className="card-divider col-span-3" />
+          {/* ... (Upload Foto & Tombol Submit tidak berubah) ... */}
+          <FormInput type="file" label="Ganti Foto" name="foto" onChange={handleFileChange} accept="image/png, image/jpeg, image/webp" span="col-span-2" />
+          {preview && (
+            <div className={`${styles['form-group']} ${styles['col-span-1']}`}>
+              <label className={styles['form-label']}>Preview Foto</label>
+              <img src={preview} alt="Preview Foto" className={styles['form-image-preview']} />
             </div>
-          </div>
+          )}
         </div>
-        
-        {/* ... (Sisa form tidak berubah) ... */}
-        <div style={inputGroupStyle}><label style={labelStyle} htmlFor="alamat">7. Alamat (Opsional):</label><textarea style={textareaStyle} id="alamat" value={alamat} onChange={(e) => setAlamat(e.target.value)} /><small>Data ini bersifat rahasia dan tidak akan ditampilkan ke publik secara default.</small></div>
-        <div style={inputGroupStyle}><label style={labelStyle} htmlFor="motto">8. Motto (Opsional):</label><input style={inputStyle} type="text" id="motto" value={motto} onChange={(e) => setMotto(e.target.value)} /></div>
-        <div style={inputGroupStyle}><label style={labelStyle} htmlFor="instagram">9. Username Instagram (Opsional, tanpa @):</label><input style={inputStyle} type="text" id="instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} /></div>
-        
-        <button style={buttonStyle} type="submit" disabled={isProcessing}>
-          {uploading ? 'Mengupload foto...' : (isProcessing ? 'Memuat...' : 'Simpan Perubahan')}
-        </button>
+        <div className={styles['form-footer']}>
+          <button type="button" className="button button-secondary" onClick={() => navigate('/admin/anggota')} disabled={loading}>
+            Batal
+          </button>
+          <button type="submit" className="button button-primary" disabled={loading || loadingData || loadingJabatan}>
+            {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </button>
+        </div>
       </form>
     </div>
   );
 }
+
 export default EditAnggota;

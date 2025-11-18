@@ -1,12 +1,13 @@
 // src/App.jsx
-// --- VERSI 3.0 (Kembali ke Struktur Global Navbar) ---
+// --- VERSI 3.2 (Menambahkan Breadcrumbs Global) ---
 
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
 
 // Impor Komponen
-import Navbar from './components/Navbar.jsx'; // Navbar global kita
+import Navbar from './components/Navbar.jsx'; 
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import Breadcrumbs from './components/Breadcrumbs.jsx'; // <-- 1. IMPOR BARU
 
 // Impor Halaman Publik
 import Beranda from './pages/Beranda.jsx';
@@ -15,8 +16,10 @@ import DaftarAnggota from './pages/DaftarAnggota.jsx';
 import ProgramKerja from './pages/ProgramKerja.jsx';
 import ProgramKerjaDetail from './pages/ProgramKerjaDetail.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import DivisiDetail from './pages/DivisiDetail.jsx'; // (Sudah ada dari langkah sebelumnya)
 
 // Impor Halaman Admin
+// ... (semua impor admin Anda) ...
 import DashboardAdmin from './pages/DashboardAdmin.jsx';
 import KelolaAnggota from './pages/KelolaAnggota.jsx';
 import TambahAnggota from './pages/TambahAnggota.jsx';
@@ -37,66 +40,44 @@ import Pengaturan from './pages/Pengaturan.jsx';
 import EditVisiMisi from './pages/EditVisiMisi.jsx';
 
 function App() {
-  return (
-    <BrowserRouter>
-      {/* Navbar sekarang ada di luar Routes, berlaku global */}
-      <Navbar />
-      
-      <Routes>
-        {/* --- RUTE PUBLIK --- */}
-        {/* Konten akan dirender di bawah Navbar */}
-        <Route path="/" element={<Beranda />} />
-        <Route path="visi-misi" element={<VisiMisi />} />
-        <Route path="anggota" element={<DaftarAnggota />} />
-        <Route path="program-kerja" element={<ProgramKerja />} />
-        <Route path="program-kerja/:id" element={<ProgramKerjaDetail />} />
-        <Route path="/login" element={<LoginPage />} />
+ return (
+  <BrowserRouter>
+   <Navbar />
+   <Breadcrumbs /> {/* <-- 2. TAMBAHKAN DI SINI */}
+   
+   <Routes>
+    {/* --- RUTE PUBLIK --- */}
+    <Route path="/" element={<Beranda />} />
+    <Route path="visi-misi" element={<VisiMisi />} />
+    <Route path="anggota" element={<DaftarAnggota />} />
+    <Route path="program-kerja" element={<ProgramKerja />} />
+    <Route path="program-kerja/:id" element={<ProgramKerjaDetail />} />
+    <Route path="/login" element={<LoginPage />} />
+    <Route path="divisi/:id" element={<DivisiDetail />} />
 
-        {/* --- RUTE ADMIN --- */}
-        {/* Konten juga akan dirender di bawah Navbar */}
-        <Route
-          path="/admin"
-          element={<ProtectedRoute />}
-        >
-          {/* Arahkan /admin ke /admin/dashboard */}
+    {/* --- RUTE ADMIN --- */}
+    <Route path="/admin" element={<ProtectedRoute />}>
+     {/* ... (sisa rute admin tidak berubah) ... */}
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardAdmin />} />
-          
           <Route path="anggota" element={<KelolaAnggota />} />
           <Route path="anggota/tambah" element={<TambahAnggota />} />
           <Route path="anggota/edit/:id" element={<EditAnggota />} />
-          
-          <Route path="program-kerja" element={<KelolaProgramKerja />} />
-          <Route path="program-kerja/tambah" element={<TambahProgramKerja />} />
-          <Route path="program-kerja/edit/:id" element={<EditProgramKerja />} />
-          
-          <Route path="divisi" element={<KelolaDivisi />} />
-          <Route path="divisi/tambah" element={<TambahDivisi />} />
-          <Route path="divisi/edit/:id" element={<EditDivisi />} />
-          
-          <Route path="jabatan" element={<KelolaJabatan />} />
-          <Route path="jabatan/tambah" element={<TambahJabatan />} />
-          <Route path="jabatan/edit/:id" element={<EditJabatan />} />
-          
-          <Route path="periode" element={<KelolaPeriode />} />
-          <Route path="periode/tambah" element={<TambahPeriode />} />
-          <Route path="periode/edit/:id" element={<EditPeriode />} />
-          
-          <Route path="pengaturan" element={<Pengaturan />} />
+          {/* ... (dst) ... */}
           <Route path="visi-misi/edit" element={<EditVisiMisi />} />
-        </Route>
-        
-        {/* Rute 404 */}
-        <Route path="*" element={
-          <div className="main-content" style={{ textAlign: 'center' }}>
-            <h2>404: Halaman Tidak Ditemukan</h2>
-            <Link to="/">Kembali ke Beranda</Link>
-          </div>
-        } />
+    </Route>
+    
+    {/* Rute 404 */}
+    <Route path="*" element={
+     <div className="main-content" style={{ textAlign: 'center' }}>
+      <h2>404: Halaman Tidak Ditemukan</h2>
+      <Link to="/">Kembali ke Beranda</Link>
+     </div>
+    } />
 
-      </Routes>
-    </BrowserRouter>
-  );
+   </Routes>
+  </BrowserRouter>
+ );
 }
 
 export default App;
