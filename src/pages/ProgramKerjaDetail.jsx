@@ -1,197 +1,277 @@
 // src/pages/ProgramKerjaDetail.jsx
-// --- VERSI 7.4 (Status Pill Editable & Tombol Edit Compact) ---
+// --- VERSI DEBUGGING (Deep Inspection) ---
 
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import ReactMarkdown from 'react-markdown';
-import { useAuth } from '../context/AuthContext';
-import styles from './ProgramKerjaDetail.module.css';
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
+import styles from "./ProgramKerjaDetail.module.css";
+
+import Modal from "../components/Modal.jsx";
+import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
 function ProgramKerjaDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [progja, setProgja] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  useEffect(() => {
-    async function fetchProgramKerjaDetail() {
-      // ... (Logika fetch data tidak berubah) ...
-      setLoading(true);
-      setError(null);
-      try {
-        const { data, error } = await supabase
-          .from('program_kerja_detail_view')
-          .select('*')
-          .eq('id', id)
-          .single();
-        if (error) {
-          if (error.code === 'PGRST116') {
-            setError("Program kerja tidak ditemukan.");
-            setProgja(null);
-            return;
-          }
-          throw error;
-        }
-        setProgja(data);
-      } catch (err) {
-        console.error("Error fetching program kerja detail:", err.message);
-        setError("Gagal memuat detail program kerja: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProgramKerjaDetail();
-  }, [id, navigate]);
+  const [progja, setProgja] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // --- [PERUBAHAN 1: Fungsi Handle Status Baru] ---
-  // Fungsi ini dipicu oleh <select>
-  const handleStatusChange = async (e) => {
-    const newStatus = e.target.value;
-    if (!window.confirm(`Apakah Anda yakin ingin mengubah status menjadi '${newStatus}'?`)) {
-      // Reset <select> ke nilai semula jika dibatalkan
-      e.target.value = progja.status;
-      return;
-    }
+  // Edit State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [formData, setFormData] = useState({});
 
-    setLoading(true);
-    setError(null);
+  // Dropdown Data
+  const [periodeList, setPeriodeList] = useState([]);
+  const [divisiList, setDivisiList] = useState([]);
+  const [anggotaList, setAnggotaList] = useState([]);
+
+  // 1. FETCH DETAIL
+  const fetchDetail = async () => {
+    console.log("🔄 Fetching Detail ID:", id);
     try {
-      const { error } = await supabase
-        .from('program_kerja')
-        .update({ status: newStatus })
-        .eq('id', id);
+      const { data, error } = await supabase
+        .from("program_kerja")
+        .select(`*, divisi ( id, nama_divisi ), anggota ( id, nama )`)
+        .eq("id", id)
+        .single();
 
       if (error) throw error;
-      setProgja(prev => ({ ...prev, status: newStatus }));
-      alert(`Status program kerja berhasil diubah menjadi '${newStatus}'.`);
+      if (!data) throw new Error("Data tidak ditemukan");
+
+      console.log("✅ Data Diterima:", data);
+      setProgja(data);
     } catch (err) {
-      setError("Gagal mengubah status: " + err.message);
-      alert("Gagal mengubah status: " + err.message);
+      console.error("❌ Error Fetch:", err);
+      // navigate('/program-kerja'); // Dimatikan dulu biar bisa liat error
     } finally {
       setLoading(false);
     }
   };
-  // --- [AKHIR PERUBAHAN 1] ---
 
-  if (loading && !progja) {
-    return <div className="main-content"><p className="loading-text">Memuat detail program kerja...</p></div>;
-  }
+  useEffect(() => {
+    if (id) fetchDetail();
+  }, [id]);
 
-  if (error || !progja) {
+  // 2. FETCH DROPDOWNS
+  const fetchDropdowns = async () => {
+    if (periodeList.length > 0) return;
+
+    const { data: pData } = await supabase
+      .from("periode_jabatan")
+      .select("id, nama_kabinet")
+      .order("tahun_mulai", { ascending: false });
+    setPeriodeList(pData || []);
+
+    const { data: dData } = await supabase
+      .from("divisi")
+      .select("id, nama_divisi")
+      .order("nama_divisi");
+    setDivisiList(dData || []);
+
+    const { data: aData } = await supabase
+      .from("anggota")
+      .select("id, nama")
+      .order("nama");
+    setAnggotaList(aData || []);
+  };
+
+  // 3. HANDLERS
+  const handleOpenEdit = async () => {
+    setEditLoading(true);
+    await fetchDropdowns();
+
+    // Pemetaan ketat sesuai Schema Database Anda
+    const initialData = {
+      nama_acara: progja.nama_acara,
+      tanggal: progja.tanggal,
+      status: progja.status,
+      deskripsi: progja.deskripsi || "",
+      link_dokumentasi: progja.link_dokumentasi || "",
+      divisi_id: progja.divisi_id,
+      penanggung_jawab_id: progja.penanggung_jawab_id, // Pastikan ini UUID
+      periode_id: progja.periode_id,
+      embed_html: progja.embed_html || "",
+    };
+
+    console.log("📝 Data Awal Form:", initialData);
+    setFormData(initialData);
+
+    setEditLoading(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // --- DEBUGGING DISINI ---
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+
+    console.log("================ DEBUG UPDATE ================");
+    console.log("1. Target ID:", id);
+    console.log("2. Payload (Data dikirim):", formData);
+
+    try {
+      // Lakukan Update dan minta balikan data (.select())
+      const { data, error, status, statusText } = await supabase
+        .from("program_kerja")
+        .update(formData)
+        .eq("id", id)
+        .select();
+
+      console.log("3. Status Response:", status, statusText);
+      console.log("4. Error Object:", error);
+      console.log("5. Data Returned:", data);
+
+      if (error) throw error;
+
+      // PENGECEKAN KRUSIAL: Apakah ada baris yang ter-update?
+      if (!data || data.length === 0) {
+        console.warn(
+          "⚠️ PERINGATAN: Update sukses secara sintaks, TAPI data returned kosong!"
+        );
+        console.warn(
+          "Penyebab mungkin: Row Level Security (RLS) memblokir UPDATE, atau ID salah."
+        );
+        alert(
+          "Gagal Update: Database menolak perubahan (Cek Console: RLS Block?)."
+        );
+      } else {
+        console.log("✅ SUKSES: Data benar-benar berubah di database.");
+        alert("Berhasil diperbarui!");
+        setIsEditModalOpen(false);
+        await fetchDetail(); // Refresh UI
+      }
+    } catch (err) {
+      console.error("❌ CRITICAL ERROR:", err);
+      alert("Error: " + err.message);
+    } finally {
+      setEditLoading(false);
+      console.log("==============================================");
+    }
+  };
+
+  if (loading)
     return (
       <div className="main-content">
-        <p className="error-text">{error || "Program Kerja Tidak Ditemukan"}</p>
-        <div style={{textAlign: 'center', marginTop: '1rem'}}>
-          <Link to="/program-kerja" className="button button-primary">Kembali ke Daftar Program Kerja</Link>
-        </div>
+        <p style={{ textAlign: "center" }}>Memuat...</p>
       </div>
     );
-  }
+  if (!progja) return null;
 
-  // Tentukan class status (tetap diperlukan untuk <select> dan <span>)
-  let statusClass = styles['status-rencana'];
-  if (progja.status === 'Selesai') {
-    statusClass = styles['status-selesai'];
-  } else if (progja.status === 'Akan Datang') {
-    statusClass = styles['status-akan-datang'];
-  }
-
-  const Breadcrumbs = () => (
-    <nav className="breadcrumbs" aria-label="breadcrumbs">
-        <Link to="/">Home</Link> / 
-        <Link to="/program-kerja">Program Kerja</Link> / 
-        <span>{progja.nama_acara}</span>
-    </nav>
-  );
+  const formattedDate = new Date(progja.tanggal).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="main-content">
-      <Breadcrumbs />
-      
-      <div className={styles['detail-card']}>
-        {/* Kolom Kiri */}
-        <div className={styles['left-column']}>
-          
-          {/* --- [PERUBAHAN 2: Header Status Baru] --- */}
-          <div className={styles['status-header']}>
-            {isAdmin ? (
-              // Jika ADMIN: Tampilkan <select>
-              <select 
-                value={progja.status} 
-                onChange={handleStatusChange}
-                disabled={loading}
-                className={`${styles['status-select']} ${statusClass}`}
-              >
-                <option value="Akan Datang">Akan Datang</option>
-                <option value="Rencana">Rencana</option>
-                <option value="Selesai">Selesai</option>
-              </select>
-            ) : (
-              // Jika PUBLIK: Tampilkan <span>
-              <span className={`${styles['status-badge']} ${statusClass}`}>
-                {progja.status}
-              </span>
-            )}
-            
-            {/* Tombol Edit dipindahkan ke sini, hanya untuk admin */}
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className={styles["header-actions"]}>
+            <Link to="/program-kerja" className={styles["back-link"]}>
+              &larr; Kembali
+            </Link>
             {isAdmin && (
-              <Link to={`/admin/program-kerja/edit/${progja.id}`} className={styles['edit-button']} title="Edit Program Kerja">
-                <span role="img" aria-label="edit">✏️</span>
-              </Link>
+              <button
+                onClick={handleOpenEdit}
+                className={styles["edit-shortcut-btn"]}
+                style={{ border: "none", cursor: "pointer" }}
+              >
+                ✏️ Edit Program Ini
+              </button>
             )}
           </div>
-          {/* --- [AKHIR PERUBAHAN 2] --- */}
-
-          <h1 className={styles['progja-title']}>{progja.nama_acara}</h1>
-          <div className={styles['progja-meta']}>
-            <p><strong>Tanggal:</strong> {new Date(progja.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            <p><strong>Divisi:</strong> {progja.nama_divisi || 'N/A'}</p>
-            <p><strong>PJ:</strong> {progja.nama_penanggung_jawab || '-'}</p>
-          </div>
-
-          {/* --- [PERUBAHAN 3: Tombol Pintasan Dihapus] --- */}
-          {/* Blok isAdmin yang lama di sini sudah dihapus */}
-
-          <h2 className={styles['description-section-title']}>Deskripsi Lengkap</h2>
-          <div className={styles['markdown-content']}>
-            {progja.deskripsi ? (
-              <ReactMarkdown>{progja.deskripsi}</ReactMarkdown>
-            ) : (
-              <p className="info-text">Tidak ada deskripsi lengkap.</p>
-            )}
+          <div className={styles["title-row"]}>
+            <h1 className={styles.title}>{progja.nama_acara}</h1>
+            <span
+              className={`${styles["status-badge"]} ${
+                progja.status === "Selesai"
+                  ? styles["status-selesai"]
+                  : progja.status === "Akan Datang"
+                    ? styles["status-akan-datang"]
+                    : styles["status-rencana"]
+              }`}
+            >
+              {progja.status}
+            </span>
           </div>
         </div>
 
-        {/* Kolom Kanan (Tidak berubah) */}
-        <div className={styles['right-column']}>
-          <div className={styles['embed-container']}>
-            {progja.embed_html ? (
-              <div dangerouslySetInnerHTML={{ __html: progja.embed_html }} />
-            ) : (
-              <div className={styles['embed-placeholder']}>Tidak ada video</div>
-            )}
+        {progja.embed_html && (
+          <div className={styles["media-section"]}>
+            <div
+              className={styles["video-container"]}
+              dangerouslySetInnerHTML={{ __html: progja.embed_html }}
+            />
           </div>
+        )}
 
+        <div className={styles["info-box"]}>
+          <div className={styles["info-item"]}>
+            <span className={styles["info-label"]}>Divisi Pelaksana</span>
+            <div className={styles["info-value"]}>
+              🏢 {progja.divisi?.nama_divisi || "-"}
+            </div>
+          </div>
+          <div className={styles["info-item"]}>
+            <span className={styles["info-label"]}>Penanggung Jawab</span>
+            <div className={styles["info-value"]} style={{ color: "#2b6cb0" }}>
+              👤 {progja.anggota?.nama || "-"}
+            </div>
+          </div>
+          <div className={styles["info-item"]}>
+            <span className={styles["info-label"]}>Tanggal</span>
+            <div className={styles["info-value"]}>🗓️ {formattedDate}</div>
+          </div>
+        </div>
+
+        <div className={styles["content-section"]}>
+          <div className={styles["full-desc"]}>
+            {progja.deskripsi || "Tidak ada deskripsi."}
+          </div>
           {progja.link_dokumentasi && (
-            <div className={styles['document-link-card']}>
-              <h3 className={styles['document-link-title']}>Link Dokumentasi</h3>
-              <a 
-                href={progja.link_dokumentasi} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className={styles['document-link-item']}
+            <div className={styles["doc-link-container"]}>
+              <a
+                href={progja.link_dokumentasi}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles["doc-button"]}
               >
-                <span role="img" aria-label="file" style={{ marginRight: '0.25rem' }}>📄</span>
-                Lihat Dokumen
+                📂 Buka Link Dokumentasi
               </a>
             </div>
           )}
         </div>
       </div>
+
+      {/* MODAL */}
+      {isAdmin && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="Edit Program Kerja"
+        >
+          <ProgramKerjaForm
+            formData={formData}
+            onChange={handleFormChange}
+            onSubmit={handleSave}
+            onCancel={() => setIsEditModalOpen(false)}
+            loading={editLoading}
+            periodeList={periodeList}
+            divisiList={divisiList}
+            anggotaList={anggotaList}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

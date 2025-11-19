@@ -1,96 +1,323 @@
 /* src/pages/ProgramKerja.module.css */
-/* --- VERSI KEMBALI KE 3 BAGIAN (TIMELINE) --- */
+/* --- STANDARD PILL FILTER DESIGN --- */
 
+/* HEADER */
 .header-section {
   margin-bottom: 2rem;
 }
 
-/* FILTER BAR */
+/* FILTER BAR CONTAINER */
+/* src/pages/ProgramKerja.module.css */
+
+/* ... kode sebelumnya ... */
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-bottom: 2rem;
   align-items: center;
-  background: #f7fafc;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+
+  /* --- TAMBAHAN UNTUK STICKY --- */
+  position: sticky; /* Kunci utama */
+  top: 65px; /* Jarak dari atas layar. Ubah ke tinggi Navbar jika Navbar fixed (misal: 60px) */
+  z-index: 40; /* Agar muncul di atas kartu program kerja */
+
+  background-color: rgba(255, 255, 255, 0.9); /* Putih agak transparan */
+  backdrop-filter: blur(8px); /* Efek kaca buram (frosted glass) yang keren */
+
+  padding: 1rem 0; /* Beri nafas atas-bawah */
+  margin-left: -1rem; /* Trik visual agar background melebar */
+  margin-right: -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* Garis batas halus saat scroll */
+  transition: all 0.3s ease;
 }
+
+/* ... kode lainnya ... */
+
+/* --- THE PILL STYLE (Standard) --- */
 .filter-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-.filter-select {
-  padding: 0.4rem 2rem 0.4rem 1rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 0.375rem;
   background-color: white;
-  color: #2d3748;
-  font-weight: 600;
-  cursor: pointer;
+  border: 1px solid #cbd5e0; /* Border abu halus */
+  border-radius: 9999px; /* BENTUK PILL */
+  padding: 0.4rem 1rem; /* Padding dalam pill */
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s;
+}
+.filter-group:hover {
+  border-color: #a0aec0;
 }
 
-/* ADMIN CONTROLS */
+/* LABEL di dalam Pill */
+.filter-label {
+  font-weight: 600;
+  color: #4a5568; /* Abu gelap */
+  white-space: nowrap;
+}
+
+/* SELECT DROPDOWN di dalam Pill */
+.filter-select {
+  border: none;
+  background-color: transparent; /* Transparan agar menyatu dengan pill */
+  color: #2b6cb0; /* Teks Biru */
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  padding-right: 0.25rem;
+  /* Menghilangkan default arrow browser agar lebih rapi (opsional) */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* Custom Arrow SVG (Opsional, hapus jika ingin arrow default browser) */
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232b6cb0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 0.7em;
+  padding-right: 1.2rem; /* Ruang untuk arrow */
+}
+
+/* --- PREVIEW MODE PILL (CHECKBOX) --- */
+.preview-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto; /* Dorong ke kanan */
+  cursor: pointer;
+  /* Menggunakan style Pill yang sama */
+  background-color: white;
+  border: 1px solid #cbd5e0;
+  border-radius: 9999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  user-select: none;
+}
+.preview-toggle input {
+  accent-color: #ed8936; /* Warna checkbox orange */
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.preview-toggle span {
+  font-weight: 600;
+  color: #4a5568;
+}
+.preview-toggle.active {
+  border-color: #ed8936;
+  background-color: #fffaf0;
+}
+.preview-toggle.active span {
+  color: #c05621;
+}
+
+/* --- ADMIN CONTROLS (SWITCHES) --- */
 .admin-controls {
   background-color: white;
   border: 1px solid #e2e8f0;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
   margin-bottom: 2rem;
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 .admin-controls-title {
   font-size: 0.85rem;
   font-weight: 700;
   color: #2d3748;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin-right: 0.5rem;
 }
-/* Toggle Switch Style */
 .toggle-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   cursor: pointer;
+  padding: 0.25rem;
 }
 .toggle-switch {
   position: relative;
-  width: 36px;
-  height: 20px;
+  width: 40px;
+  height: 22px;
   background-color: #cbd5e0;
   border-radius: 99px;
   transition: 0.3s;
+  flex-shrink: 0;
 }
 .toggle-knob {
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   background-color: white;
   border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition: 0.3s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .toggle-wrapper.active .toggle-switch {
   background-color: #48bb78;
 }
 .toggle-wrapper.active .toggle-knob {
-  transform: translateX(16px);
+  transform: translateX(18px);
 }
 .toggle-label {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: #4a5568;
-  font-weight: 600;
+  user-select: none;
 }
 
-/* --- TIMELINE SECTIONS (PEMISAH 3 BAGIAN) --- */
+/* --- GRID & CARD --- */
+.progja-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .progja-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .progja-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-color: #bee3f8;
+}
+
+/* Media & Status */
+.media-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #f7fafc;
+  position: relative;
+}
+.embed-wrapper {
+  width: 100%;
+  height: 100%;
+}
+.embed-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.status-badge {
+  display: inline-block;
+  width: fit-content;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-selesai {
+  background-color: #c6f6d5;
+  color: #22543d;
+}
+.status-rencana {
+  background-color: #fefcbf;
+  color: #744210;
+}
+.status-akan-datang {
+  background-color: #bee3f8;
+  color: #2a4365;
+}
+
+/* Body */
+.card-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+.card-meta {
+  font-size: 0.85rem;
+  color: #718096;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.meta-item span:first-child {
+  width: 16px;
+  text-align: center;
+}
+.card-desc {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.6;
+}
+.card-footer {
+  margin-top: auto;
+  text-align: right;
+}
+.btn-detail {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3182ce;
+  background: #ebf8ff;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-detail:hover {
+  background: #bee3f8;
+  color: #2c5282;
+}
+
+/* SECTION TITLES */
 .timeline-section {
   margin-bottom: 3rem;
 }
@@ -116,8 +343,6 @@
   font-size: 0.8rem;
   font-weight: 700;
 }
-
-/* Warna Judul Per Bagian */
 .title-akan-datang {
   color: #2b6cb0;
   border-bottom-color: #bee3f8;
@@ -131,138 +356,16 @@
   border-bottom-color: #c6f6d5;
 }
 
-/* GRID */
-.progja-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-@media (min-width: 768px) {
-  .progja-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .preview-toggle {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
   }
-}
-@media (min-width: 1024px) {
-  .progja-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .filter-group {
+    flex-grow: 1;
+    justify-content: space-between;
   }
-}
-
-/* CARD */
-.card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border-color: #cbd5e0;
-}
-
-/* Area Media (Embed / No Image) */
-.media-container {
-  width: 100%;
-  height: 180px;
-  background: #2d3748;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.embed-wrapper {
-  width: 100%;
-  height: 100%;
-}
-.embed-wrapper iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-.no-media {
-  color: #718096;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 0.8rem;
-  gap: 0.5rem;
-}
-
-.card-body {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-.card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #4a5568;
-  margin-bottom: 1rem;
-}
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.card-desc {
-  font-size: 0.9rem;
-  color: #718096;
-  margin-bottom: 1.5rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.card-footer {
-  margin-top: auto;
-  text-align: right;
-}
-
-.btn-detail {
-  display: inline-block;
-  padding: 0.4rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #3182ce;
-  background: #ebf8ff;
-  border-radius: 0.375rem;
-  text-decoration: none;
-  transition: 0.2s;
-}
-.btn-detail:hover {
-  background: #bee3f8;
-}
-
-/* Helper untuk Checkbox Preview */
-.preview-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
-  cursor: pointer;
-  background: white;
-  padding: 0.4rem 1rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 0.375rem;
-}
-.preview-toggle input {
-  accent-color: #dd6b20;
-  cursor: pointer;
 }
