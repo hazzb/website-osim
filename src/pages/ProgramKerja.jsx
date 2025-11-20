@@ -1,5 +1,5 @@
 // src/pages/ProgramKerja.jsx
-// --- VERSI FINAL (Safe Mode: Default Tampil jika Pengaturan Error) ---
+// --- VERSI 11.2 (Status Filter Pill & Admin Toggle) ---
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
@@ -10,7 +10,9 @@ import styles from "./ProgramKerja.module.css";
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   return (
     <div
-      className={`${styles["toggle-wrapper"]} ${isEnabled ? styles.active : ""}`}
+      className={`${styles["toggle-wrapper"]} ${
+        isEnabled ? styles.active : ""
+      }`}
       onClick={() => !isSaving && onToggle(!isEnabled)}
     >
       <div className={styles["toggle-switch"]}>
@@ -24,13 +26,15 @@ function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
 function ProgramKerja() {
   const [progjaList, setProgjaList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Filter State
+  const [selectedStatus, setSelectedStatus] = useState("semua"); // Default 'semua'
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
   const [divisiOptions, setDivisiOptions] = useState([]);
 
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // Default Settings: TRUE (Agar jika fetch gagal, data tetap tampil)
   const [pengaturan, setPengaturan] = useState({
     tampilkan_progja_rencana: true,
     tampilkan_progja_akan_datang: true,
@@ -46,7 +50,6 @@ function ProgramKerja() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch Settings (Dengan Error Handling yang senyap)
       const { data: settings } = await supabase
         .from("pengaturan")
         .select("*")
@@ -54,36 +57,20 @@ function ProgramKerja() {
         .single();
       if (settings) setPengaturan(settings);
 
-      // 2. Fetch Program Kerja (Langsung dari tabel, bukan view)
       const { data: progja, error: err } = await supabase
-        .from("program_kerja")
-        .select(
-          `
-          *,
-          divisi ( nama_divisi ),
-          anggota ( nama )
-        `
-        )
+        .from("program_kerja_detail_view")
+        .select("*")
         .order("tanggal", { ascending: false });
 
       if (err) throw err;
+      setProgjaList(progja || []);
 
-      // Flatten Data
-      const formatted = (progja || []).map((p) => ({
-        ...p,
-        nama_divisi: p.divisi?.nama_divisi || "-",
-        nama_penanggung_jawab: p.anggota?.nama || "-",
-      }));
-
-      setProgjaList(formatted);
       const uniqueDivisi = [
-        ...new Set(
-          formatted.map((p) => p.nama_divisi).filter((d) => d !== "-")
-        ),
+        ...new Set(progja.map((p) => p.nama_divisi).filter(Boolean)),
       ];
       setDivisiOptions(uniqueDivisi.sort());
     } catch (err) {
-      console.error("Error loading data:", err.message);
+      console.error("Gagal memuat data:", err.message);
     } finally {
       setLoading(false);
     }
@@ -104,17 +91,20 @@ function ProgramKerja() {
     }
   };
 
-  // --- FILTER LOGIC ---
   const filterItem = (item) => {
+    // 1. Filter Divisi
     if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi)
       return false;
 
-    // Logic Publik / Preview
-    if (!isAdmin || viewPublicMode) {
-      // 1. Cek Hidden Individual (Jika NULL dianggap TRUE/Tampil)
-      if (item.tampilkan_di_publik === false) return false;
+    // 2. Filter Status (PILL) - Cek logic ini
+    if (selectedStatus !== "semua") {
+      // Pastikan casing huruf cocok (biasanya Title Case di DB)
+      if (item.status !== selectedStatus) return false;
+    }
 
-      // 2. Cek Global Settings (Jika undefined dianggap TRUE/Tampil)
+    // 3. Filter Publik/Admin
+    if (!isAdmin || viewPublicMode) {
+      if (item.tampilkan_di_publik === false) return false;
       const p = pengaturan || {};
       if (item.status === "Rencana" && p.tampilkan_progja_rencana === false)
         return false;
@@ -129,28 +119,28 @@ function ProgramKerja() {
     return true;
   };
 
-  const listAkanDatang = progjaList.filter(
-    (item) => item.status === "Akan Datang" && filterItem(item)
-  );
-  const listRencana = progjaList.filter(
-    (item) => item.status === "Rencana" && filterItem(item)
-  );
-  const listSelesai = progjaList.filter(
-    (item) => item.status === "Selesai" && filterItem(item)
-  );
+  // Karena kita punya filter status global (Pill), kita tidak perlu memisahkan list di renderSection
+  // Kita kirim list yang sudah terfilter penuh
+  const filteredList = progjaList.filter(filterItem);
+
+  // Kita perlu memisahkan list HANYA UNTUK RENDER SECTION, tapi tetap menghormati filter status
+  const getListBySection = (status) =>
+    filteredList.filter((item) => item.status === status);
 
   const renderSection = (title, list, statusKey, cssClass) => {
-    // Helper visibility
     const isGlobalVisible = pengaturan[statusKey] !== false;
     const isPreviewOrPublic = !isAdmin || viewPublicMode;
 
-    // Jika publik/preview, sembunyikan jika kosong atau dimatikan global
-    if (isPreviewOrPublic) {
-      if (list.length === 0) return null;
-      if (!isGlobalVisible) return null;
-    }
+    // Jika filter status aktif dan bukan status ini, jangan render section ini
+    if (
+      selectedStatus !== "semua" &&
+      selectedStatus !== list[0]?.status &&
+      list.length === 0
+    )
+      return null;
 
-    // Style redup untuk Admin
+    if (isPreviewOrPublic && list.length === 0) return null;
+
     const sectionStyle =
       isAdmin && !viewPublicMode && !isGlobalVisible
         ? {
@@ -173,15 +163,15 @@ function ProgramKerja() {
             <span
               style={{
                 marginLeft: "auto",
-                fontSize: "0.7rem",
+                fontSize: "0.75rem",
                 color: "red",
                 background: "#fff5f5",
                 padding: "2px 8px",
-                borderRadius: "4px",
                 border: "1px solid red",
+                borderRadius: "4px",
               }}
             >
-              Hidden Global
+              👁️ Hidden
             </span>
           )}
         </div>
@@ -190,7 +180,6 @@ function ProgramKerja() {
           <div className={styles["progja-grid"]}>
             {list.map((item) => (
               <div key={item.id} className={styles.card}>
-                {/* Media */}
                 {item.embed_html && (
                   <div className={styles["media-container"]}>
                     <div
@@ -199,16 +188,18 @@ function ProgramKerja() {
                     />
                   </div>
                 )}
-
                 <div className={styles["card-body"]}>
-                  {/* Badge Status */}
                   <span
-                    className={`${styles["status-badge"]} ${item.status === "Selesai" ? styles["status-selesai"] : item.status === "Akan Datang" ? styles["status-akan-datang"] : styles["status-rencana"]}`}
+                    className={`${styles["status-badge"]} ${
+                      item.status === "Selesai"
+                        ? styles["status-selesai"]
+                        : item.status === "Akan Datang"
+                        ? styles["status-akan-datang"]
+                        : styles["status-rencana"]
+                    }`}
                   >
                     {item.status}
                   </span>
-
-                  {/* Admin Hidden Label */}
                   {isAdmin &&
                     !viewPublicMode &&
                     item.tampilkan_di_publik === false && (
@@ -217,19 +208,16 @@ function ProgramKerja() {
                           fontSize: "0.7rem",
                           color: "red",
                           border: "1px solid red",
-                          padding: "1px 5px",
+                          padding: "2px 5px",
                           borderRadius: "4px",
                           display: "inline-block",
-                          marginBottom: "0.5rem",
                           marginLeft: "0.5rem",
                         }}
                       >
-                        🔒 Hidden Item
+                        🔒 Hidden
                       </div>
                     )}
-
                   <h3 className={styles["card-title"]}>{item.nama_acara}</h3>
-
                   <div className={styles["card-meta"]}>
                     <div className={styles["meta-item"]}>
                       <span>🗓️</span>
@@ -249,11 +237,9 @@ function ProgramKerja() {
                       <span>{item.nama_penanggung_jawab}</span>
                     </div>
                   </div>
-
                   <p className={styles["card-desc"]}>
                     {item.deskripsi || "Tidak ada deskripsi."}
                   </p>
-
                   <div className={styles["card-footer"]}>
                     <Link
                       to={`/program-kerja/${item.id}`}
@@ -267,7 +253,7 @@ function ProgramKerja() {
             ))}
           </div>
         ) : (
-          <p className="info-text" style={{ fontStyle: "italic" }}>
+          <p style={{ color: "#718096", fontStyle: "italic" }}>
             Tidak ada data.
           </p>
         )}
@@ -282,6 +268,8 @@ function ProgramKerja() {
       </div>
     );
 
+  const statusOptions = ["Semua", "Akan Datang", "Rencana", "Selesai"];
+
   return (
     <div className="main-content">
       <div className={styles["header-section"]}>
@@ -290,9 +278,7 @@ function ProgramKerja() {
 
       {isAdmin && (
         <div className={styles["admin-controls"]}>
-          <span className={styles["admin-controls-title"]}>
-            Tampilkan Status:
-          </span>
+          <span className={styles["admin-controls-title"]}>Tampilkan:</span>
           <AdminToggle
             label="Akan Datang"
             isEnabled={pengaturan.tampilkan_progja_akan_datang !== false}
@@ -317,7 +303,27 @@ function ProgramKerja() {
       )}
 
       <div className={styles["filter-bar"]}>
-        <div className={styles["filter-group"]}>
+        {/* 1. PILL STATUS FILTER (BARU) */}
+        <div className={styles["status-pills-container"]}>
+          {statusOptions.map((status) => (
+            <button
+              key={status}
+              className={`${styles["status-pill"]} ${
+                selectedStatus === (status === "Semua" ? "semua" : status)
+                  ? styles.active
+                  : ""
+              }`}
+              onClick={() =>
+                setSelectedStatus(status === "Semua" ? "semua" : status)
+              }
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        {/* 2. DIVISI DROPDOWN (Tetap Pill Style) */}
+        <div className={styles["filter-group"]} style={{ marginLeft: "auto" }}>
           <label className={styles["filter-label"]}>Divisi:</label>
           <select
             className={styles["filter-select"]}
@@ -332,35 +338,39 @@ function ProgramKerja() {
             ))}
           </select>
         </div>
+
+        {/* 3. PREVIEW MODE */}
         {isAdmin && (
           <label
-            className={`${styles["preview-toggle"]} ${viewPublicMode ? styles.active : ""}`}
+            className={`${styles["preview-toggle"]} ${
+              viewPublicMode ? styles.active : ""
+            }`}
           >
             <input
               type="checkbox"
               checked={viewPublicMode}
               onChange={() => setViewPublicMode(!viewPublicMode)}
             />
-            <span>Preview Publik</span>
+            <span>Preview</span>
           </label>
         )}
       </div>
 
       {renderSection(
         "🔥 Akan Datang",
-        listAkanDatang,
+        getListBySection("Akan Datang"),
         "tampilkan_progja_akan_datang",
         "title-akan-datang"
       )}
       {renderSection(
         "📌 Rencana Program",
-        listRencana,
+        getListBySection("Rencana"),
         "tampilkan_progja_rencana",
         "title-rencana"
       )}
       {renderSection(
         "✅ Terlaksana / Selesai",
-        listSelesai,
+        getListBySection("Selesai"),
         "tampilkan_progja_selesai",
         "title-selesai"
       )}

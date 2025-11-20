@@ -1,5 +1,5 @@
 // src/pages/ProgramKerjaDetail.jsx
-// --- VERSI DEBUGGING (Deep Inspection) ---
+// --- VERSI FINAL (Clean & Production Ready) ---
 
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -31,7 +31,6 @@ function ProgramKerjaDetail() {
 
   // 1. FETCH DETAIL
   const fetchDetail = async () => {
-    console.log("🔄 Fetching Detail ID:", id);
     try {
       const { data, error } = await supabase
         .from("program_kerja")
@@ -42,11 +41,10 @@ function ProgramKerjaDetail() {
       if (error) throw error;
       if (!data) throw new Error("Data tidak ditemukan");
 
-      console.log("✅ Data Diterima:", data);
       setProgja(data);
     } catch (err) {
-      console.error("❌ Error Fetch:", err);
-      // navigate('/program-kerja'); // Dimatikan dulu biar bisa liat error
+      console.error("Error:", err);
+      if (loading) navigate("/program-kerja");
     } finally {
       setLoading(false);
     }
@@ -84,21 +82,17 @@ function ProgramKerjaDetail() {
     setEditLoading(true);
     await fetchDropdowns();
 
-    // Pemetaan ketat sesuai Schema Database Anda
-    const initialData = {
+    setFormData({
       nama_acara: progja.nama_acara,
       tanggal: progja.tanggal,
       status: progja.status,
       deskripsi: progja.deskripsi || "",
       link_dokumentasi: progja.link_dokumentasi || "",
       divisi_id: progja.divisi_id,
-      penanggung_jawab_id: progja.penanggung_jawab_id, // Pastikan ini UUID
+      penanggung_jawab_id: progja.penanggung_jawab_id,
       periode_id: progja.periode_id,
       embed_html: progja.embed_html || "",
-    };
-
-    console.log("📝 Data Awal Form:", initialData);
-    setFormData(initialData);
+    });
 
     setEditLoading(false);
     setIsEditModalOpen(true);
@@ -108,52 +102,25 @@ function ProgramKerjaDetail() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- DEBUGGING DISINI ---
   const handleSave = async (e) => {
     e.preventDefault();
     setEditLoading(true);
 
-    console.log("================ DEBUG UPDATE ================");
-    console.log("1. Target ID:", id);
-    console.log("2. Payload (Data dikirim):", formData);
-
     try {
-      // Lakukan Update dan minta balikan data (.select())
-      const { data, error, status, statusText } = await supabase
+      const { error } = await supabase
         .from("program_kerja")
         .update(formData)
-        .eq("id", id)
-        .select();
-
-      console.log("3. Status Response:", status, statusText);
-      console.log("4. Error Object:", error);
-      console.log("5. Data Returned:", data);
+        .eq("id", id);
 
       if (error) throw error;
 
-      // PENGECEKAN KRUSIAL: Apakah ada baris yang ter-update?
-      if (!data || data.length === 0) {
-        console.warn(
-          "⚠️ PERINGATAN: Update sukses secara sintaks, TAPI data returned kosong!"
-        );
-        console.warn(
-          "Penyebab mungkin: Row Level Security (RLS) memblokir UPDATE, atau ID salah."
-        );
-        alert(
-          "Gagal Update: Database menolak perubahan (Cek Console: RLS Block?)."
-        );
-      } else {
-        console.log("✅ SUKSES: Data benar-benar berubah di database.");
-        alert("Berhasil diperbarui!");
-        setIsEditModalOpen(false);
-        await fetchDetail(); // Refresh UI
-      }
+      alert("Berhasil diperbarui!");
+      setIsEditModalOpen(false);
+      await fetchDetail(); // Refresh data
     } catch (err) {
-      console.error("❌ CRITICAL ERROR:", err);
-      alert("Error: " + err.message);
+      alert("Gagal update: " + err.message);
     } finally {
       setEditLoading(false);
-      console.log("==============================================");
     }
   };
 
@@ -197,8 +164,8 @@ function ProgramKerjaDetail() {
                 progja.status === "Selesai"
                   ? styles["status-selesai"]
                   : progja.status === "Akan Datang"
-                    ? styles["status-akan-datang"]
-                    : styles["status-rencana"]
+                  ? styles["status-akan-datang"]
+                  : styles["status-rencana"]
               }`}
             >
               {progja.status}
@@ -253,7 +220,6 @@ function ProgramKerjaDetail() {
         </div>
       </div>
 
-      {/* MODAL */}
       {isAdmin && (
         <Modal
           isOpen={isEditModalOpen}

@@ -1,23 +1,21 @@
 // src/pages/KelolaProgramKerja.jsx
-// --- VERSI 12.0 (Schema Strict & Auto-Open Modal) ---
+// --- VERSI 12.1 (Form Refactored) ---
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import { useAuth } from "../context/AuthContext";
+import { useLocation } from "react-router-dom";
 import { useAdminTable } from "../hooks/useAdminTable";
-import { useLocation } from "react-router-dom"; // Penting untuk menangkap state navigasi
 
 // Components
 import styles from "../components/admin/AdminTable.module.css";
-import formStyles from "../components/admin/AdminForm.module.css";
-import FormInput from "../components/admin/FormInput.jsx";
 import Modal from "../components/Modal.jsx";
+// Gunakan komponen form yang sama dengan halaman Detail (REUSABLE)
+import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
 function KelolaProgramKerja() {
-  const { user } = useAuth();
-  const location = useLocation(); // Untuk cek apakah ada request edit dari halaman detail
+  const location = useLocation();
 
-  // 1. SETUP HOOK TABEL (Sesuaikan select dengan relasi baru)
+  // 1. TABLE HOOK
   const {
     data: progjaList,
     loading,
@@ -31,7 +29,7 @@ function KelolaProgramKerja() {
     refreshData,
   } = useAdminTable({
     tableName: "program_kerja",
-    // Select join: divisi, periode, dan anggota (untuk nama PJ)
+    // Select lengkap dengan join
     select: `
       *, 
       divisi (id, nama_divisi), 
@@ -42,35 +40,29 @@ function KelolaProgramKerja() {
     defaultOrder: { column: "tanggal", ascending: false },
   });
 
-  // 2. STATE FORM
+  // 2. STATE
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [modalLoading, setModalLoading] = useState(false);
 
-  // State Dropdown
+  // Dropdowns
   const [periodeList, setPeriodeList] = useState([]);
   const [divisiList, setDivisiList] = useState([]);
-  const [anggotaList, setAnggotaList] = useState([]); // List Anggota untuk PJ
+  const [anggotaList, setAnggotaList] = useState([]);
 
-  // Fetch Dropdown Data
   useEffect(() => {
     const fetchDropdowns = async () => {
-      // Periode
       const { data: pData } = await supabase
         .from("periode_jabatan")
         .select("id, nama_kabinet")
         .order("tahun_mulai", { ascending: false });
       setPeriodeList(pData || []);
-
-      // Divisi
       const { data: dData } = await supabase
         .from("divisi")
         .select("id, nama_divisi")
         .order("nama_divisi");
       setDivisiList(dData || []);
-
-      // Anggota (Untuk Penanggung Jawab)
       const { data: aData } = await supabase
         .from("anggota")
         .select("id, nama")
@@ -80,26 +72,22 @@ function KelolaProgramKerja() {
     fetchDropdowns();
   }, []);
 
-  // --- 3. AUTO OPEN MODAL LOGIC ---
-  // Jika Admin datang dari halaman Detail membawa "editId", otomatis buka modal
+  // Auto Open Modal dari Navigasi
   useEffect(() => {
     if (location.state?.editId && progjaList.length > 0 && !isModalOpen) {
-      const targetId = parseInt(location.state.editId) || location.state.editId; // Handle string/int
+      const targetId = parseInt(location.state.editId) || location.state.editId;
       const itemToEdit = progjaList.find((p) => p.id === targetId);
-
       if (itemToEdit) {
         openModal(itemToEdit);
-        // Bersihkan state agar tidak terbuka lagi saat refresh
         window.history.replaceState({}, document.title);
       }
     }
-  }, [location.state, progjaList]); // Jalankan saat data tabel selesai dimuat
+  }, [location.state, progjaList]);
 
-  // 4. HANDLERS
+  // 3. HANDLERS
   const openModal = (item = null) => {
     if (item) {
       setEditingId(item.id);
-      // Mapping data tabel ke form (sesuai nama kolom DB)
       setFormData({
         nama_acara: item.nama_acara,
         tanggal: item.tanggal,
@@ -107,7 +95,7 @@ function KelolaProgramKerja() {
         deskripsi: item.deskripsi || "",
         link_dokumentasi: item.link_dokumentasi || "",
         divisi_id: item.divisi_id,
-        penanggung_jawab_id: item.penanggung_jawab_id, // UUID
+        penanggung_jawab_id: item.penanggung_jawab_id,
         periode_id: item.periode_id,
         embed_html: item.embed_html || "",
       });
@@ -136,7 +124,7 @@ function KelolaProgramKerja() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      // Payload Sesuai Schema SQL Anda
+      // Payload bersih sesuai schema
       const payload = {
         nama_acara: formData.nama_acara,
         tanggal: formData.tanggal,
@@ -144,7 +132,7 @@ function KelolaProgramKerja() {
         deskripsi: formData.deskripsi,
         link_dokumentasi: formData.link_dokumentasi,
         divisi_id: formData.divisi_id,
-        penanggung_jawab_id: formData.penanggung_jawab_id, // Harus UUID Anggota
+        penanggung_jawab_id: formData.penanggung_jawab_id,
         periode_id: formData.periode_id,
         embed_html: formData.embed_html,
       };
@@ -221,8 +209,7 @@ function KelolaProgramKerja() {
                     <strong>{item.nama_acara}</strong>
                   </td>
                   <td>{item.divisi?.nama_divisi || "-"}</td>
-                  <td>{item.anggota?.nama || "-"}</td>{" "}
-                  {/* Menampilkan Nama Anggota dari Relasi */}
+                  <td>{item.anggota?.nama || "-"}</td>
                   <td>{new Date(item.tanggal).toLocaleDateString("id-ID")}</td>
                   <td>
                     <span
@@ -235,14 +222,14 @@ function KelolaProgramKerja() {
                           item.status === "Selesai"
                             ? "#def7ec"
                             : item.status === "Akan Datang"
-                              ? "#e1effe"
-                              : "#fdf6b2",
+                            ? "#e1effe"
+                            : "#fdf6b2",
                         color:
                           item.status === "Selesai"
                             ? "#03543f"
                             : item.status === "Akan Datang"
-                              ? "#1e429f"
-                              : "#723b13",
+                            ? "#1e429f"
+                            : "#723b13",
                       }}
                     >
                       {item.status}
@@ -291,145 +278,22 @@ function KelolaProgramKerja() {
         </div>
       </div>
 
-      {/* MODAL FORM (Strict Sesuai Schema DB) */}
+      {/* MODAL MENGGUNAKAN KOMPONEN TERPISAH */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? "Edit Program Kerja" : "Tambah Program Kerja"}
       >
-        <form onSubmit={handleSubmit}>
-          <div className={formStyles["form-grid"]}>
-            <FormInput
-              label="Nama Acara"
-              name="nama_acara"
-              type="text"
-              value={formData.nama_acara || ""}
-              onChange={handleFormChange}
-              required
-              span="col-span-3"
-            />
-
-            <FormInput
-              label="Status"
-              name="status"
-              type="select"
-              value={formData.status || "Rencana"}
-              onChange={handleFormChange}
-              span="col-span-1"
-            >
-              <option value="Rencana">Rencana</option>
-              <option value="Akan Datang">Akan Datang</option>
-              <option value="Selesai">Selesai</option>
-            </FormInput>
-
-            <FormInput
-              label="Periode"
-              name="periode_id"
-              type="select"
-              value={formData.periode_id || ""}
-              onChange={handleFormChange}
-              required
-              span="col-span-1"
-            >
-              {periodeList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nama_kabinet}
-                </option>
-              ))}
-            </FormInput>
-
-            <FormInput
-              label="Tanggal"
-              name="tanggal"
-              type="date"
-              value={formData.tanggal || ""}
-              onChange={handleFormChange}
-              required
-              span="col-span-1"
-            />
-
-            <FormInput
-              label="Divisi Pelaksana"
-              name="divisi_id"
-              type="select"
-              value={formData.divisi_id || ""}
-              onChange={handleFormChange}
-              required
-              span="col-span-1"
-            >
-              <option value="">-- Pilih Divisi --</option>
-              {divisiList.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.nama_divisi}
-                </option>
-              ))}
-            </FormInput>
-
-            {/* DROPDOWN PJ (Relasi ke Anggota) */}
-            <FormInput
-              label="Penanggung Jawab"
-              name="penanggung_jawab_id"
-              type="select"
-              value={formData.penanggung_jawab_id || ""}
-              onChange={handleFormChange}
-              required
-              span="col-span-2"
-            >
-              <option value="">-- Pilih Anggota --</option>
-              {anggotaList.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nama}
-                </option>
-              ))}
-            </FormInput>
-
-            <FormInput
-              label="Deskripsi (Keterangan)"
-              name="deskripsi"
-              type="textarea"
-              value={formData.deskripsi || ""}
-              onChange={handleFormChange}
-              span="col-span-3"
-              style={{ height: "100px" }}
-            />
-
-            <FormInput
-              label="Embed HTML (Video YouTube)"
-              name="embed_html"
-              type="text"
-              value={formData.embed_html || ""}
-              onChange={handleFormChange}
-              span="col-span-3"
-              placeholder='<iframe src="..."></iframe>'
-            />
-
-            <FormInput
-              label="Link Dokumentasi (Drive/PDF)"
-              name="link_dokumentasi"
-              type="text"
-              value={formData.link_dokumentasi || ""}
-              onChange={handleFormChange}
-              span="col-span-3"
-            />
-          </div>
-
-          <div className={formStyles["form-footer"]}>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="button button-secondary"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={modalLoading}
-            >
-              {modalLoading ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
-        </form>
+        <ProgramKerjaForm
+          formData={formData}
+          onChange={handleFormChange}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+          loading={modalLoading}
+          periodeList={periodeList}
+          divisiList={divisiList}
+          anggotaList={anggotaList}
+        />
       </Modal>
     </div>
   );

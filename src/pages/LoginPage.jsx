@@ -1,98 +1,126 @@
-// src/pages/LoginPage.jsx
+// src/pages/Login.jsx
+// --- VERSI MODERN & RESPONSIF ---
 
-import React, { useState } from 'react';
-import { supabase } from '../supabaseClient'; // 1. Impor Supabase
-import { useNavigate } from 'react-router-dom'; // 2. Impor useNavigate
+import React, { useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useNavigate, Link } from "react-router-dom";
+import styles from "./LoginPage.module.css";
 
-function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // 3. Siapkan fungsi navigasi
+  const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  // 4. Ubah fungsi ini menjadi 'async'
   const handleLogin = async (e) => {
-    e.preventDefault(); // Mencegah halaman refresh
+    e.preventDefault();
     setLoading(true);
+    setErrorMsg("");
 
     try {
-      // 5. Ini adalah fungsi inti Supabase Auth
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email,
         password: password,
       });
 
-      // 6. Tangani jika ada error dari Supabase (misal: password salah)
       if (error) throw error;
 
-      // 7. Jika berhasil:
-      alert('Login Berhasil!');
-      navigate('/'); // 8. Arahkan pengguna kembali ke halaman Beranda
-      
+      // Login Sukses
+      if (data.user) {
+        navigate("/dashboard"); // Arahkan ke dashboard admin
+      }
     } catch (error) {
-      // 9. Tampilkan pesan error kepada pengguna
-      alert(error.error_description || error.message);
+      setErrorMsg("Email atau password salah. Silakan coba lagi.");
     } finally {
-      // 10. Apapun yang terjadi (sukses atau gagal), hentikan loading
       setLoading(false);
     }
   };
 
-  // --- Styling (tidak ada perubahan dari sebelumnya) ---
-  const formStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    maxWidth: '300px',
-    margin: '50px auto'
-  };
-  const inputStyle = {
-    padding: '10px',
-    margin: '5px 0 15px 0',
-    fontSize: '1em'
-  };
-  const buttonStyle = {
-    padding: '10px',
-    fontSize: '1em',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    cursor: 'pointer'
-  };
-
   return (
-    <div>
-      <h2>Login Admin</h2>
-      <form style={formStyle} onSubmit={handleLogin}>
-        <label htmlFor="email">Email:</label>
-        <input 
-          style={inputStyle}
-          type="email" 
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        
-        <label htmlFor="password">Password:</label>
-        <input 
-          style={inputStyle}
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        
-        <button 
-          style={buttonStyle} 
-          type="submit" 
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : 'Login'}
-        </button>
-      </form>
+    <div className={styles["login-container"]}>
+      <div className={styles["login-card"]}>
+        {/* Logo Organisasi */}
+        <div className={styles["logo-container"]}>
+          {/* Ganti src ini dengan path logo Anda yang sebenarnya */}
+          <img
+            src="/logo-osim.png"
+            alt="Logo OSIM"
+            className={styles.logo}
+            onError={(e) => {
+              e.target.style.display = "none";
+            }} // Sembunyikan jika gambar tidak ada
+          />
+        </div>
+
+        <h1 className={styles.title}>Selamat Datang</h1>
+        <p className={styles.subtitle}>
+          Silakan login untuk masuk ke panel admin
+        </p>
+
+        {errorMsg && <div className={styles["error-box"]}>⚠️ {errorMsg}</div>}
+
+        <form onSubmit={handleLogin}>
+          <div className={styles["form-group"]}>
+            <label className={styles.label} htmlFor="email">
+              Email
+            </label>
+            <div className={styles["input-wrapper"]}>
+              <input
+                id="email"
+                type="email"
+                className={styles.input}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@sekolah.sch.id"
+                required
+              />
+            </div>
+          </div>
+
+          <div className={styles["form-group"]}>
+            <label className={styles.label} htmlFor="password">
+              Password
+            </label>
+            <div className={styles["input-wrapper"]}>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                className={styles.input}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Masukkan password..."
+                required
+              />
+              {/* Tombol Mata (Show/Hide) */}
+              <button
+                type="button"
+                className={styles["toggle-password"]}
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex="-1" // Agar tidak bisa di-tab
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className={styles["btn-login"]}
+            disabled={loading}
+          >
+            {loading ? "Memproses..." : "Masuk Sekarang"}
+          </button>
+        </form>
+
+        <Link to="/" className={styles["home-link"]}>
+          &larr; Kembali ke Beranda
+        </Link>
+      </div>
     </div>
   );
 }
 
-export default LoginPage;
+export default Login;

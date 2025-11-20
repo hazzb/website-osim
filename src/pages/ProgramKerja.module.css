@@ -200,9 +200,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   overflow: hidden;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -369,3 +367,49 @@
     justify-content: space-between;
   }
 }
+
+/* src/pages/ProgramKerja.module.css */
+
+/* ... kode sebelumnya ... */
+
+/* --- STATUS FILTER PILLS --- */
+.status-pills-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto; /* Scroll jika layar sempit */
+  padding-bottom: 0.2rem; /* Ruang untuk scrollbar tipis */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.status-pills-container::-webkit-scrollbar {
+  display: none;
+}
+
+.status-pill {
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  background-color: white;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.status-pill:hover {
+  background-color: #f7fafc;
+  border-color: #cbd5e0;
+}
+
+/* State Active */
+.status-pill.active {
+  background-color: #3182ce; /* Biru Utama */
+  color: white;
+  border-color: #3182ce;
+  box-shadow: 0 2px 4px rgba(49, 130, 206, 0.3);
+}
+
+/* ... kode lainnya ... */
