@@ -181,9 +181,15 @@
 /* --- GRID & CARD --- */
 .progja-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(300px, 1fr) membuat kolom responsif */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
+
+  /* KUNCI PERBAIKAN CARD: */
+  /* 'start' membuat kartu TIDAK stretching ke bawah mengikuti kartu tertinggi */
+  align-items: start;
 }
+
 @media (min-width: 768px) {
   .progja-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -196,45 +202,93 @@
 }
 
 .card {
-  background: white;
+  background-color: white;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
-  overflow: hidden;
+  overflow: hidden; /* Agar konten tidak keluar border radius */
   transition: transform 0.2s, box-shadow 0.2s;
+
+  /* Hapus height: 100% agar tinggi kartu mengikuti isinya */
   display: flex;
   flex-direction: column;
-  height: 100%;
   position: relative;
+
+  /* Pastikan background putih agar tidak transparan */
+  background: #fff;
 }
+
 .card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
   border-color: #bee3f8;
 }
 
 /* Media & Status */
 .media-container {
   width: 100%;
-  aspect-ratio: 16/9;
-  background: #f7fafc;
+  /* HAPUS aspect-ratio: 16/9 agar Instagram tidak terpotong/gepeng */
+  /* aspect-ratio: 16/9;  <-- Dihapus */
+
+  background-color: #f7fafc;
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Tambahkan min-height agar tidak 'jump' saat loading, tapi biarkan auto tumbuh */
+  min-height: 50px;
 }
+
 .embed-wrapper {
   width: 100%;
-  height: 100%;
+  /* Jangan set height 100%, biarkan konten (instagram) menentukan tingginya */
+  overflow: hidden;
 }
-.embed-wrapper iframe {
-  width: 100%;
-  height: 100%;
+
+.embed-wrapper :global(iframe),
+.embed-wrapper :global(blockquote) {
+  width: 100% !important;
+  /* Max-width penting agar tidak merusak layout di HP */
+  max-width: 100% !important;
   border: none;
+  margin: 0 auto !important; /* Tengahkan */
+  display: block;
+}
+
+/* Khusus untuk YouTube agar tetap responsif 16:9 jika diperlukan */
+.embed-wrapper :global(iframe[src*="youtube.com"]),
+.embed-wrapper :global(iframe[src*="youtu.be"]) {
+  aspect-ratio: 16/9;
+  height: auto;
+}
+/* Style untuk card yang tidak memiliki media */
+.card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Jika card tidak punya media, beri border atas yang rapi */
+.card-no-media .card-body {
+  border-top: 4px solid #e2e8f0;
+}
+/* Opsional: Beri warna border beda berdasarkan status jika tidak ada gambar */
+.card-no-media:has(.status-selesai) .card-body {
+  border-top-color: #c6f6d5;
+}
+.card-no-media:has(.status-akan-datang) .card-body {
+  border-top-color: #bee3f8;
+}
+.card-no-media:has(.status-rencana) .card-body {
+  border-top-color: #fefcbf;
 }
 
 .status-badge {
   display: inline-block;
   width: fit-content;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -261,7 +315,7 @@
   flex-direction: column;
 }
 .card-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1a202c;
   margin-bottom: 0.75rem;
@@ -377,17 +431,30 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  overflow-x: auto; /* Scroll jika layar sempit */
-  padding-bottom: 0.2rem; /* Ruang untuk scrollbar tipis */
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+
+  /* Agar responsive di HP (Geser/Swipe ke samping) */
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
+
+  /* Styling Scrollbar */
+  padding-bottom: 0.2rem;
+  scrollbar-width: none; /* Firefox: Sembunyikan scrollbar */
+
+  /* Agar tidak mentok kiri/kanan di HP */
+  margin-right: auto;
+  max-width: 100%;
 }
+
 .status-pills-container::-webkit-scrollbar {
   display: none;
 }
 
 .status-pill {
-  padding: 0.4rem 1rem;
+  /* Agar tombol tidak mengecil di layar sempit */
+  flex-shrink: 0;
+
+  padding: 0.4rem 1.2rem;
   border-radius: 9999px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -404,12 +471,53 @@
   border-color: #cbd5e0;
 }
 
-/* State Active */
 .status-pill.active {
-  background-color: #3182ce; /* Biru Utama */
+  background-color: #3182ce;
   color: white;
   border-color: #3182ce;
   box-shadow: 0 2px 4px rgba(49, 130, 206, 0.3);
 }
 
-/* ... kode lainnya ... */
+/* Mobile Adjustment */
+@media (max-width: 640px) {
+  .status-pills-container {
+    width: 100%; /* Full width di HP */
+    padding-right: 1rem; /* Ruang napas di ujung */
+  }
+}
+
+/* src/pages/ProgramKerja.module.css */
+
+/* ... (kode CSS sebelumnya tetap sama) ... */
+
+/* --- EMPTY STATE (DATA KOSONG) --- */
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  border: 1px dashed #cbd5e0;
+  color: #718096;
+  margin-top: 2rem;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.empty-desc {
+  font-size: 0.95rem;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.5;
+}

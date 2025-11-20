@@ -1,12 +1,13 @@
 // src/pages/ProgramKerja.jsx
-// --- VERSI 11.2 (Status Filter Pill & Admin Toggle) ---
+// --- VERSI 11.5 (Instagram Embed Fix & Card Resizing) ---
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react"; // Tambah useRef
 import { supabase } from "../supabaseClient";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import styles from "./ProgramKerja.module.css";
 
+// Komponen Toggle (tetap sama)
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   return (
     <div
@@ -23,12 +24,44 @@ function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   );
 }
 
+// Fungsi untuk memicu Instagram Embeds. Ini penting!
+function processInstagramEmbeds() {
+  if (
+    window.instgrm &&
+    window.instgrm.Embeds &&
+    typeof window.instgrm.Embeds.process === "function"
+  ) {
+    window.instgrm.Embeds.process();
+    console.log("Instagram embeds processing triggered.");
+  } else {
+    // Jika script Instagram belum dimuat, coba muat
+    if (!document.getElementById("instagram-embed-script")) {
+      const script = document.createElement("script");
+      script.async = true;
+      script.defer = true;
+      script.id = "instagram-embed-script";
+      script.src = "https://www.instagram.com/embed.js";
+      document.head.appendChild(script);
+      script.onload = () => {
+        // Setelah script dimuat, panggil lagi process jika sudah siap
+        if (
+          window.instgrm &&
+          window.instgrm.Embeds &&
+          typeof window.instgrm.Embeds.process === "function"
+        ) {
+          window.instgrm.Embeds.process();
+          console.log("Instagram embeds script loaded and processed.");
+        }
+      };
+    }
+  }
+}
+
 function ProgramKerja() {
   const [progjaList, setProgjaList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filter State
-  const [selectedStatus, setSelectedStatus] = useState("semua"); // Default 'semua'
+  const [selectedStatus, setSelectedStatus] = useState("semua");
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
   const [divisiOptions, setDivisiOptions] = useState([]);
 
@@ -42,6 +75,16 @@ function ProgramKerja() {
   });
   const [isSavingSetting, setIsSavingSetting] = useState(false);
   const [viewPublicMode, setViewPublicMode] = useState(false);
+
+  // Ref untuk mendeteksi perubahan progjaList dan memicu Instagram Embeds
+  const progjaListRef = useRef(progjaList);
+  useEffect(() => {
+    progjaListRef.current = progjaList;
+    // Panggil proses Instagram embed setiap kali progjaList berubah
+    // Beri sedikit delay agar DOM sempat di-render
+    const timer = setTimeout(processInstagramEmbeds, 100);
+    return () => clearTimeout(timer);
+  }, [progjaList]);
 
   useEffect(() => {
     fetchData();
@@ -91,18 +134,31 @@ function ProgramKerja() {
     }
   };
 
+  const visibleStatusOptions = useMemo(() => {
+    const options = ["Semua"];
+    if (isAdmin || pengaturan.tampilkan_progja_akan_datang)
+      options.push("Akan Datang");
+    if (isAdmin || pengaturan.tampilkan_progja_rencana) options.push("Rencana");
+    if (isAdmin || pengaturan.tampilkan_progja_selesai) options.push("Selesai");
+    return options;
+  }, [isAdmin, pengaturan]);
+
+  useEffect(() => {
+    if (
+      !visibleStatusOptions.includes(
+        selectedStatus === "semua" ? "Semua" : selectedStatus
+      )
+    ) {
+      setSelectedStatus("semua");
+    }
+  }, [visibleStatusOptions, selectedStatus]);
+
   const filterItem = (item) => {
-    // 1. Filter Divisi
     if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi)
       return false;
+    if (selectedStatus !== "semua" && item.status !== selectedStatus)
+      return false;
 
-    // 2. Filter Status (PILL) - Cek logic ini
-    if (selectedStatus !== "semua") {
-      // Pastikan casing huruf cocok (biasanya Title Case di DB)
-      if (item.status !== selectedStatus) return false;
-    }
-
-    // 3. Filter Publik/Admin
     if (!isAdmin || viewPublicMode) {
       if (item.tampilkan_di_publik === false) return false;
       const p = pengaturan || {};
@@ -119,11 +175,7 @@ function ProgramKerja() {
     return true;
   };
 
-  // Karena kita punya filter status global (Pill), kita tidak perlu memisahkan list di renderSection
-  // Kita kirim list yang sudah terfilter penuh
   const filteredList = progjaList.filter(filterItem);
-
-  // Kita perlu memisahkan list HANYA UNTUK RENDER SECTION, tapi tetap menghormati filter status
   const getListBySection = (status) =>
     filteredList.filter((item) => item.status === status);
 
@@ -131,15 +183,8 @@ function ProgramKerja() {
     const isGlobalVisible = pengaturan[statusKey] !== false;
     const isPreviewOrPublic = !isAdmin || viewPublicMode;
 
-    // Jika filter status aktif dan bukan status ini, jangan render section ini
-    if (
-      selectedStatus !== "semua" &&
-      selectedStatus !== list[0]?.status &&
-      list.length === 0
-    )
-      return null;
-
-    if (isPreviewOrPublic && list.length === 0) return null;
+    if (list.length === 0) return null;
+    if (isPreviewOrPublic && !isGlobalVisible) return null;
 
     const sectionStyle =
       isAdmin && !viewPublicMode && !isGlobalVisible
@@ -176,87 +221,88 @@ function ProgramKerja() {
           )}
         </div>
 
-        {list.length > 0 ? (
-          <div className={styles["progja-grid"]}>
-            {list.map((item) => (
-              <div key={item.id} className={styles.card}>
-                {item.embed_html && (
-                  <div className={styles["media-container"]}>
+        <div className={styles["progja-grid"]}>
+          {list.map((item) => (
+            <div
+              key={item.id}
+              className={`${styles.card} ${
+                !item.embed_html ? styles["card-no-media"] : ""
+              }`}
+            >
+              {" "}
+              {/* Tambah class 'card-no-media' */}
+              {item.embed_html && (
+                <div className={styles["media-container"]}>
+                  <div
+                    className={styles["embed-wrapper"]}
+                    dangerouslySetInnerHTML={{ __html: item.embed_html }}
+                  />
+                </div>
+              )}
+              <div className={styles["card-body"]}>
+                <span
+                  className={`${styles["status-badge"]} ${
+                    item.status === "Selesai"
+                      ? styles["status-selesai"]
+                      : item.status === "Akan Datang"
+                      ? styles["status-akan-datang"]
+                      : styles["status-rencana"]
+                  }`}
+                >
+                  {item.status}
+                </span>
+                {isAdmin &&
+                  !viewPublicMode &&
+                  item.tampilkan_di_publik === false && (
                     <div
-                      className={styles["embed-wrapper"]}
-                      dangerouslySetInnerHTML={{ __html: item.embed_html }}
-                    />
+                      style={{
+                        fontSize: "0.7rem",
+                        color: "red",
+                        border: "1px solid red",
+                        padding: "2px 5px",
+                        borderRadius: "4px",
+                        display: "inline-block",
+                        marginLeft: "0.5rem",
+                      }}
+                    >
+                      🔒 Hidden
+                    </div>
+                  )}
+                <h3 className={styles["card-title"]}>{item.nama_acara}</h3>
+                <div className={styles["card-meta"]}>
+                  <div className={styles["meta-item"]}>
+                    <span>🗓️</span>
+                    <span>
+                      {new Date(item.tanggal).toLocaleDateString("id-ID")}
+                    </span>
                   </div>
-                )}
-                <div className={styles["card-body"]}>
-                  <span
-                    className={`${styles["status-badge"]} ${
-                      item.status === "Selesai"
-                        ? styles["status-selesai"]
-                        : item.status === "Akan Datang"
-                        ? styles["status-akan-datang"]
-                        : styles["status-rencana"]
-                    }`}
+                  <div className={styles["meta-item"]}>
+                    <span>🏢</span>
+                    <span>{item.nama_divisi}</span>
+                  </div>
+                  <div
+                    className={styles["meta-item"]}
+                    style={{ color: "#2b6cb0" }}
                   >
-                    {item.status}
-                  </span>
-                  {isAdmin &&
-                    !viewPublicMode &&
-                    item.tampilkan_di_publik === false && (
-                      <div
-                        style={{
-                          fontSize: "0.7rem",
-                          color: "red",
-                          border: "1px solid red",
-                          padding: "2px 5px",
-                          borderRadius: "4px",
-                          display: "inline-block",
-                          marginLeft: "0.5rem",
-                        }}
-                      >
-                        🔒 Hidden
-                      </div>
-                    )}
-                  <h3 className={styles["card-title"]}>{item.nama_acara}</h3>
-                  <div className={styles["card-meta"]}>
-                    <div className={styles["meta-item"]}>
-                      <span>🗓️</span>
-                      <span>
-                        {new Date(item.tanggal).toLocaleDateString("id-ID")}
-                      </span>
-                    </div>
-                    <div className={styles["meta-item"]}>
-                      <span>🏢</span>
-                      <span>{item.nama_divisi}</span>
-                    </div>
-                    <div
-                      className={styles["meta-item"]}
-                      style={{ color: "#2b6cb0" }}
-                    >
-                      <span>👤</span>
-                      <span>{item.nama_penanggung_jawab}</span>
-                    </div>
-                  </div>
-                  <p className={styles["card-desc"]}>
-                    {item.deskripsi || "Tidak ada deskripsi."}
-                  </p>
-                  <div className={styles["card-footer"]}>
-                    <Link
-                      to={`/program-kerja/${item.id}`}
-                      className={styles["btn-detail"]}
-                    >
-                      Detail &rarr;
-                    </Link>
+                    <span>👤</span>
+                    <span>{item.nama_penanggung_jawab}</span>
                   </div>
                 </div>
+                <p className={styles["card-desc"]}>
+                  {item.deskripsi || "Tidak ada deskripsi."}
+                </p>
+                <div className={styles["card-footer"]}>
+                  <Link
+                    to={`/program-kerja/${item.id}`}
+                    className={styles["btn-detail"]}
+                  >
+                    Detail &rarr;
+                  </Link>
+                </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p style={{ color: "#718096", fontStyle: "italic" }}>
-            Tidak ada data.
-          </p>
-        )}
+            </div>
+          ))}
+        </div>
       </section>
     );
   };
@@ -267,8 +313,6 @@ function ProgramKerja() {
         <p className="loading-text">Memuat...</p>
       </div>
     );
-
-  const statusOptions = ["Semua", "Akan Datang", "Rencana", "Selesai"];
 
   return (
     <div className="main-content">
@@ -303,9 +347,8 @@ function ProgramKerja() {
       )}
 
       <div className={styles["filter-bar"]}>
-        {/* 1. PILL STATUS FILTER (BARU) */}
         <div className={styles["status-pills-container"]}>
-          {statusOptions.map((status) => (
+          {visibleStatusOptions.map((status) => (
             <button
               key={status}
               className={`${styles["status-pill"]} ${
@@ -322,7 +365,6 @@ function ProgramKerja() {
           ))}
         </div>
 
-        {/* 2. DIVISI DROPDOWN (Tetap Pill Style) */}
         <div className={styles["filter-group"]} style={{ marginLeft: "auto" }}>
           <label className={styles["filter-label"]}>Divisi:</label>
           <select
@@ -339,7 +381,6 @@ function ProgramKerja() {
           </select>
         </div>
 
-        {/* 3. PREVIEW MODE */}
         {isAdmin && (
           <label
             className={`${styles["preview-toggle"]} ${
@@ -356,23 +397,36 @@ function ProgramKerja() {
         )}
       </div>
 
-      {renderSection(
-        "🔥 Akan Datang",
-        getListBySection("Akan Datang"),
-        "tampilkan_progja_akan_datang",
-        "title-akan-datang"
-      )}
-      {renderSection(
-        "📌 Rencana Program",
-        getListBySection("Rencana"),
-        "tampilkan_progja_rencana",
-        "title-rencana"
-      )}
-      {renderSection(
-        "✅ Terlaksana / Selesai",
-        getListBySection("Selesai"),
-        "tampilkan_progja_selesai",
-        "title-selesai"
+      {filteredList.length === 0 ? (
+        <div className={styles["empty-state"]}>
+          <span className={styles["empty-icon"]}>📭</span>
+          <h3 className={styles["empty-title"]}>Belum ada Program Kerja</h3>
+          <p className={styles["empty-desc"]}>
+            Saat ini belum ada program kerja yang ditampilkan untuk kategori
+            atau filter yang Anda pilih.
+          </p>
+        </div>
+      ) : (
+        <>
+          {renderSection(
+            "🔥 Akan Datang",
+            getListBySection("Akan Datang"),
+            "tampilkan_progja_akan_datang",
+            "title-akan-datang"
+          )}
+          {renderSection(
+            "📌 Rencana Program",
+            getListBySection("Rencana"),
+            "tampilkan_progja_rencana",
+            "title-rencana"
+          )}
+          {renderSection(
+            "✅ Terlaksana / Selesai",
+            getListBySection("Selesai"),
+            "tampilkan_progja_selesai",
+            "title-selesai"
+          )}
+        </>
       )}
     </div>
   );
