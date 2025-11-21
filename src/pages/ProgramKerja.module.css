@@ -20,7 +20,7 @@
 
   /* --- TAMBAHAN UNTUK STICKY --- */
   position: sticky; /* Kunci utama */
-  top: 65px; /* Jarak dari atas layar. Ubah ke tinggi Navbar jika Navbar fixed (misal: 60px) */
+  top: 70px; /* Jarak dari atas layar. Ubah ke tinggi Navbar jika Navbar fixed (misal: 60px) */
   z-index: 40; /* Agar muncul di atas kartu program kerja */
 
   background-color: rgba(255, 255, 255, 0.9); /* Putih agak transparan */

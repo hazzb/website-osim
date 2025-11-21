@@ -55,15 +55,7 @@ function DivisiForm({
           type="file"
           onChange={onFileChange}
           span="col-span-3"
-        />
-
-        <FormInput
-          label="Logo"
-          name="logo"
-          type="file"
-          onChange={handleFileChange}
-          span="col-span-3"
-          helper="Format: JPG/PNG. Max 200KB." // <-- Tambahkan ini
+          helper="Format: JPG/PNG. Max 200KB."
         />
       </div>
       <div className={formStyles["form-footer"]}>

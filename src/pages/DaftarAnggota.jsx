@@ -1,116 +1,50 @@
 // src/pages/DaftarAnggota.jsx
-// --- VERSI 9.2 (Refaktor: Menggunakan Komponen Form Terpisah) ---
+// --- VERSI FINAL: Filter Gender (Ikhwan/Akhwat) + Responsive ---
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
-// Styles & Components
 import styles from "./DaftarAnggota.module.css";
+import formStyles from "../components/admin/AdminForm.module.css";
+
 import Modal from "../components/Modal.jsx";
-
-// --- IMPORT FORM BARU ---
-import PeriodeForm from "../components/forms/PeriodeForm.jsx";
-import DivisiForm from "../components/forms/DivisiForm.jsx";
 import AnggotaForm from "../components/forms/AnggotaForm.jsx";
-
-// Komponen Kartu (Tidak Berubah)
-function AnggotaCard({ anggota, isAdmin, pengaturan, onEdit }) {
-  const showMotto = pengaturan?.tampilkan_anggota_motto && anggota.motto;
-  const showIg = pengaturan?.tampilkan_anggota_ig && anggota.instagram_username;
-  const showAlamat = pengaturan?.tampilkan_anggota_alamat && anggota.alamat;
-
-  const cardClasses = `${styles.card} ${
-    anggota.jenis_kelamin === "Ikhwan"
-      ? styles["card-ikhwan"]
-      : anggota.jenis_kelamin === "Akhwat"
-        ? styles["card-akhwat"]
-        : ""
-  }`;
-
-  return (
-    <div className={cardClasses}>
-      {isAdmin && (
-        <button
-          onClick={() => onEdit(anggota)}
-          title={`Edit ${anggota.nama}`}
-          className={styles["card-edit-button"]}
-        >
-          ✏️
-        </button>
-      )}
-      <img
-        src={
-          anggota.foto_url ||
-          "https://via.placeholder.com/150.png/eee/808080?text=Foto"
-        }
-        alt={`Foto ${anggota.nama}`}
-        className={styles["anggota-card-image"]}
-      />
-      <div className={styles["anggota-card-content"]}>
-        <h3 className={styles["anggota-card-nama"]}>{anggota.nama}</h3>
-        <p className={styles["anggota-card-jabatan"]}>
-          {anggota.jabatan_di_divisi}
-          {anggota.jenis_kelamin && (
-            <span style={{ fontSize: "0.75em", color: "#718096" }}>
-              {" "}
-              ({anggota.jenis_kelamin === "Ikhwan" ? "L" : "P"})
-            </span>
-          )}
-        </p>
-        {(showMotto || showIg || showAlamat) && (
-          <>
-            <hr
-              style={{
-                borderTop: "1px solid rgba(0,0,0,0.05)",
-                margin: "0.5rem 0",
-              }}
-            />
-            <div className={styles["anggota-card-info"]}>
-              {showMotto && (
-                <p style={{ fontStyle: "italic" }}>"{anggota.motto}"</p>
-              )}
-              {showIg && <p>📸 @{anggota.instagram_username}</p>}
-              {showAlamat && <p>🏠 {anggota.alamat}</p>}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+import DivisiForm from "../components/forms/DivisiForm.jsx";
+import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
+import AnggotaCard from "../components/cards/AnggotaCard.jsx";
+import FormInput from "../components/admin/FormInput.jsx";
 
 function DaftarAnggota() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // State Data
-  const [unfilteredAnggota, setUnfilteredAnggota] = useState([]);
+  // --- States ---
   const [periodeList, setPeriodeList] = useState([]);
-  const [selectedPeriodeId, setSelectedPeriodeId] = useState("");
-  const [divisiOptions, setDivisiOptions] = useState([]);
-  const [allDivisiList, setAllDivisiList] = useState([]); // Untuk dropdown form
-  const [jabatanList, setJabatanList] = useState([]); // Untuk dropdown form
-  const [pengaturan, setPengaturan] = useState(null);
+  const [divisiList, setDivisiList] = useState([]);
+  const [anggotaList, setAnggotaList] = useState([]);
+  const [jabatanList, setJabatanList] = useState([]);
 
-  // State UI
+  // Filter States
+  const [activeTab, setActiveTab] = useState(""); // Periode
+  const [selectedDivisi, setSelectedDivisi] = useState("semua");
+  const [selectedGender, setSelectedGender] = useState("all"); // <--- STATE BARU
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedDivisiFilter, setSelectedDivisiFilter] = useState("semua");
-  const [selectedGenderFilter, setSelectedGenderFilter] = useState("semua");
 
-  // State Modal & Form
+  // Modal States
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [formFile, setFormFile] = useState(null);
-  const [editingId, setEditingId] = useState(null);
   const [formPreview, setFormPreview] = useState(null);
   const [existingFotoUrl, setExistingFotoUrl] = useState(null);
 
-  // --- 1. Fetch Data Awal ---
-  const fetchInitialData = async () => {
+  // --- Data Fetching ---
+  const fetchInitialData = useCallback(async () => {
     setLoading(true);
     try {
       const { data: periodes } = await supabase
@@ -118,419 +52,564 @@ function DaftarAnggota() {
         .select("*")
         .order("tahun_mulai", { ascending: false });
       setPeriodeList(periodes || []);
-      if (!selectedPeriodeId && periodes?.length > 0) {
+
+      if (periodes?.length > 0) {
         const active = periodes.find((p) => p.is_active);
-        setSelectedPeriodeId(active ? active.id : periodes[0].id);
+        setActiveTab(active ? active.id : periodes[0].id);
       }
-      const { data: settings } = await supabase
-        .from("pengaturan")
+
+      const { data: divisis } = await supabase
+        .from("divisi")
         .select("*")
-        .single();
-      if (settings) setPengaturan(settings);
+        .order("urutan", { ascending: true });
+      setDivisiList(divisis || []);
+
+      const { data: jabatans } = await supabase
+        .from("master_jabatan")
+        .select("*");
+      setJabatanList(jabatans || []);
     } catch (err) {
-      setError(err.message);
+      console.error("Error fetching initial data:", err);
     } finally {
       setLoading(false);
     }
-  };
-  useEffect(() => {
-    fetchInitialData();
   }, []);
 
-  // --- 2. Fetch Anggota ---
-  const fetchAnggota = async () => {
-    if (!selectedPeriodeId) return;
-    setLoading(true);
-    setUnfilteredAnggota([]);
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  const fetchAnggota = useCallback(async (periodeId) => {
+    if (!periodeId) return;
     try {
       const { data, error } = await supabase
-        .from("anggota_detail_view")
-        .select("*")
-        .eq("periode_id", selectedPeriodeId)
-        .order("urutan", { ascending: true })
-        .order("nama", { ascending: true });
+        .from("anggota")
+        .select("*, divisi(nama_divisi, urutan)")
+        .eq("periode_id", periodeId)
+        .order("created_at", { ascending: true });
       if (error) throw error;
-      setUnfilteredAnggota(data || []);
-      const uniqueDivisi = [
-        ...new Map(
-          data.map((item) => [
-            item.divisi_id,
-            {
-              id: item.divisi_id,
-              nama_divisi: item.nama_divisi,
-              urutan: item.urutan,
-            },
-          ])
-        ).values(),
-      ];
-      uniqueDivisi.sort((a, b) => a.urutan - b.urutan);
-      setDivisiOptions(uniqueDivisi);
+      setAnggotaList(data || []);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching anggota:", err);
     }
-  };
+  }, []);
+
   useEffect(() => {
-    fetchAnggota();
-  }, [selectedPeriodeId]);
+    fetchAnggota(activeTab);
+  }, [activeTab, fetchAnggota]);
 
-  // --- 3. Filter Logic ---
-  const filteredDivisiList = useMemo(() => {
-    if (unfilteredAnggota.length === 0) return [];
-    let result = unfilteredAnggota;
-    if (selectedGenderFilter !== "semua")
-      result = result.filter((a) => a.jenis_kelamin === selectedGenderFilter);
-    if (selectedDivisiFilter !== "semua")
-      result = result.filter((a) => a.divisi_id == selectedDivisiFilter);
-
-    const groups = new Map();
-    result.forEach((anggota) => {
-      const { nama_divisi, urutan, divisi_id, periode_id, logo_url } = anggota;
-      if (!groups.has(nama_divisi)) {
-        groups.set(nama_divisi, {
-          nama: nama_divisi || "Tanpa Divisi",
-          urutan: urutan || 99,
-          divisi_id,
-          periode_id,
-          logo_url,
-          anggota: [],
-        });
-      }
-      groups.get(nama_divisi).anggota.push(anggota);
-    });
-    return Array.from(groups.values()).sort((a, b) => a.urutan - b.urutan);
-  }, [unfilteredAnggota, selectedDivisiFilter, selectedGenderFilter]);
-
-  // --- 4. Handlers ---
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (name === "divisi_id" && activeModal === "anggota") {
-      setFormData((prev) => ({ ...prev, jabatan_di_divisi: "" }));
-      fetchJabatanForDivisi(value);
-    }
-  };
-
+  // --- Event Handlers ---
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-
-      // Cek ukuran (200KB = 204800 bytes)
-      if (file.size > 204800) {
-        alert("Ukuran file terlalu besar! Maksimal 200KB.");
-        e.target.value = null; // Reset input agar user bisa pilih ulang
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500000) {
+        alert("Maksimal ukuran file 500KB");
         return;
       }
-
       setFormFile(file);
       setFormPreview(URL.createObjectURL(file));
     }
   };
 
-  const fetchJabatanForDivisi = async (divisiId) => {
-    if (!divisiId) return;
-    const { data } = await supabase
-      .from("divisi_jabatan_link")
-      .select("master_jabatan (id, nama_jabatan)")
-      .eq("divisi_id", divisiId);
-    if (data) setJabatanList(data.map((i) => i.master_jabatan));
+  const handleFormChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Fetch Divisi List untuk Dropdown Form
-  useEffect(() => {
-    if (activeModal === "anggota" && formData.periode_id) {
-      const fetchAllDivisi = async () => {
-        const { data } = await supabase
-          .from("divisi")
-          .select("id, nama_divisi")
-          .eq("periode_id", formData.periode_id)
-          .order("urutan");
-        setAllDivisiList(data || []);
-      };
-      fetchAllDivisi();
-    }
-  }, [activeModal, formData.periode_id]);
-
-  const openAddModal = (type, specificDivisiId = null) => {
-    setEditingId(null);
-    setFormData({});
+  const openModal = (type, item = null) => {
+    setActiveModal(type);
     setFormFile(null);
     setFormPreview(null);
     setExistingFotoUrl(null);
-    setJabatanList([]);
 
-    if (type === "anggota") {
-      setFormData({
-        periode_id: selectedPeriodeId,
-        divisi_id: specificDivisiId || "",
-        jenis_kelamin: "Ikhwan",
-      });
-      if (specificDivisiId) fetchJabatanForDivisi(specificDivisiId);
-    } else if (type === "divisi") {
-      setFormData({ periode_id: selectedPeriodeId, urutan: 10 });
-    } else if (type === "periode") {
-      setFormData({
-        tahun_mulai: new Date().getFullYear(),
-        tahun_selesai: new Date().getFullYear() + 1,
-        is_active: false,
-      });
+    if (type === "reorder_divisi") {
+      setIsModalOpen(true);
+      return;
     }
-    setActiveModal(type);
+
+    if (item) {
+      setEditingId(item.id);
+      setFormData(item);
+      if (type === "anggota") {
+        setExistingFotoUrl(item.foto_url);
+        setFormPreview(item.foto_url);
+      } else if (type === "divisi") {
+        setExistingFotoUrl(item.logo_url);
+        setFormPreview(item.logo_url);
+      }
+    } else {
+      setEditingId(null);
+      const defaults = {
+        periode: {
+          tahun_mulai: "",
+          tahun_selesai: "",
+          nama_kabinet: "",
+          motto_kabinet: "",
+        },
+        divisi: {
+          nama_divisi: "",
+          deskripsi: "",
+          urutan: 10,
+          periode_id: activeTab,
+        },
+        anggota: {
+          nama: "",
+          motto: "",
+          instagram_username: "",
+          jenis_kelamin: "Ikhwan",
+          divisi_id:
+            selectedDivisi !== "semua"
+              ? selectedDivisi
+              : divisiList[0]?.id || "",
+          periode_id: activeTab,
+          jabatan_di_divisi: "",
+        },
+      };
+      setFormData(defaults[type] || {});
+    }
+    setIsModalOpen(true);
   };
 
-  const openEditModal = async (anggota) => {
-    setEditingId(anggota.id);
-    setFormFile(null);
-    setFormData({
-      nama: anggota.nama,
-      jenis_kelamin: anggota.jenis_kelamin,
-      alamat: anggota.alamat || "",
-      motto: anggota.motto || "",
-      instagram_username: anggota.instagram_username || "",
-      periode_id: anggota.periode_id,
-      divisi_id: anggota.divisi_id,
-      jabatan_di_divisi: anggota.jabatan_di_divisi,
-    });
-    setExistingFotoUrl(anggota.foto_url);
-    setFormPreview(anggota.foto_url);
-    await fetchJabatanForDivisi(anggota.divisi_id);
-    setActiveModal("anggota");
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setActiveModal(null);
+    setFormData({});
   };
 
-  const closeModal = () => setActiveModal(null);
+  const uploadFile = async (file, folder) => {
+    const ext = file.name.split(".").pop();
+    const fileName = `${folder}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(`${folder}/${fileName}`, file, { upsert: true });
 
-  // SUBMIT
+    if (error) throw new Error(`Gagal upload ${folder}: ${error.message}`);
+
+    const { data } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(`${folder}/${fileName}`);
+    return data.publicUrl;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
     try {
+      let payload = { ...formData };
+
       if (activeModal === "periode") {
-        await supabase.from("periode_jabatan").insert({ ...formData });
-        alert("Periode ditambahkan!");
+        if (editingId)
+          await supabase
+            .from("periode_jabatan")
+            .update(payload)
+            .eq("id", editingId);
+        else await supabase.from("periode_jabatan").insert(payload);
         fetchInitialData();
       } else if (activeModal === "divisi") {
-        let logoUrl = null;
         if (formFile) {
-          const fileName = `divisi_${Date.now()}.${formFile.name.split(".").pop()}`;
-          const { data } = await supabase.storage
-            .from("gambar-osim")
-            .upload(`divisi/${fileName}`, formFile);
-          if (data)
-            logoUrl = supabase.storage
-              .from("gambar-osim")
-              .getPublicUrl(`divisi/${fileName}`).data.publicUrl;
-        }
-        await supabase
-          .from("divisi")
-          .insert({ ...formData, logo_url: logoUrl });
-        alert("Divisi ditambahkan!");
-        window.location.reload();
-      } else if (activeModal === "anggota") {
-        let finalFotoUrl = existingFotoUrl;
-        if (formFile) {
-          const fileName = `anggota_${Date.now()}.${formFile.name.split(".").pop()}`;
-          const { data } = await supabase.storage
-            .from("gambar-osim")
-            .upload(`anggota/${fileName}`, formFile);
-          if (data)
-            finalFotoUrl = supabase.storage
-              .from("gambar-osim")
-              .getPublicUrl(`anggota/${fileName}`).data.publicUrl;
-        }
-        const payload = { ...formData, foto_url: finalFotoUrl };
-        if (editingId) {
-          await supabase.from("anggota").update(payload).eq("id", editingId);
-          alert("Data diperbarui!");
+          payload.logo_url = await uploadFile(formFile, "divisi");
         } else {
-          await supabase.from("anggota").insert(payload);
-          alert("Anggota ditambahkan!");
+          payload.logo_url = existingFotoUrl;
         }
-        fetchAnggota();
+
+        if (editingId)
+          await supabase.from("divisi").update(payload).eq("id", editingId);
+        else await supabase.from("divisi").insert(payload);
+        fetchInitialData();
+      } else if (activeModal === "anggota") {
+        if (formFile) {
+          payload.foto_url = await uploadFile(formFile, "anggota");
+        } else {
+          payload.foto_url = existingFotoUrl;
+        }
+
+        // Clean up empty fields
+        if (!payload.motto) delete payload.motto;
+        if (!payload.instagram_username) delete payload.instagram_username;
+
+        if (editingId)
+          await supabase.from("anggota").update(payload).eq("id", editingId);
+        else await supabase.from("anggota").insert(payload);
+
+        alert(
+          editingId ? "Berhasil update anggota!" : "Berhasil tambah anggota!"
+        );
+        fetchAnggota(activeTab);
       }
       closeModal();
     } catch (err) {
-      alert("Error: " + err.message);
+      console.error(err);
+      alert("Gagal: " + err.message);
     } finally {
       setModalLoading(false);
     }
   };
 
-  // --- RENDER UI ---
+  const handleDelete = async (type, id) => {
+    if (!window.confirm("Yakin hapus data ini?")) return;
+    try {
+      const tableMap = {
+        anggota: "anggota",
+        divisi: "divisi",
+        periode: "periode_jabatan",
+      };
+
+      await supabase.from(tableMap[type]).delete().eq("id", id);
+
+      if (type === "anggota") fetchAnggota(activeTab);
+      else fetchInitialData();
+    } catch (err) {
+      alert("Gagal hapus: " + err.message);
+    }
+  };
+
+  const getModalTitle = () => {
+    const titles = {
+      periode: editingId ? "Edit Periode" : "Tambah Periode",
+      divisi: editingId ? "Edit Divisi" : "Tambah Divisi",
+      anggota: editingId ? "Edit Anggota" : "Tambah Anggota",
+      reorder_divisi: "Atur Urutan Divisi",
+    };
+    return titles[activeModal] || "";
+  };
+
+  // --- FILTERING & GROUPING LOGIC (UPDATED) ---
+  const filteredAnggota = anggotaList.filter((anggota) => {
+    // 1. Filter Divisi
+    const matchDivisi =
+      selectedDivisi === "semua" ||
+      anggota.divisi_id === parseInt(selectedDivisi);
+
+    // 2. Filter Gender
+    const matchGender =
+      selectedGender === "all" || anggota.jenis_kelamin === selectedGender;
+
+    return matchDivisi && matchGender;
+  });
+
+  const sortedDivisiList = [...divisiList].sort(
+    (a, b) => (a.urutan || 99) - (b.urutan || 99)
+  );
+
+  const memberMap = {};
+  filteredAnggota.forEach((member) => {
+    const divId = member.divisi_id || "others";
+    if (!memberMap[divId]) memberMap[divId] = [];
+    memberMap[divId].push(member);
+  });
+
+  // --- JSX Render ---
   return (
     <div className="main-content">
-      <h1 className="page-title">Daftar Anggota</h1>
+      <div className={styles["header-section"]}>
+        <h1 className="page-title">Daftar Anggota</h1>
+      </div>
 
       {isAdmin && (
         <div className={styles["action-buttons"]}>
           <button
-            onClick={() => openAddModal("periode")}
-            className={`${styles["modern-button"]} ${styles["btn-purple"]}`}
-          >
-            📅 Tambah Periode
-          </button>
-          <button
-            onClick={() => openAddModal("divisi")}
-            className={`${styles["modern-button"]} ${styles["btn-orange"]}`}
-          >
-            🏢 Tambah Divisi
-          </button>
-          <button
-            onClick={() => openAddModal("anggota")}
+            onClick={() => openModal("anggota")}
             className={`${styles["modern-button"]} ${styles["btn-blue"]}`}
           >
-            👤 Tambah Anggota
+            + Tambah Anggota
+          </button>
+          <button
+            onClick={() => openModal("divisi")}
+            className={`${styles["modern-button"]} ${styles["btn-orange"]}`}
+          >
+            + Tambah Divisi
+          </button>
+          <button
+            onClick={() => openModal("periode")}
+            className={`${styles["modern-button"]} ${styles["btn-purple"]}`}
+          >
+            + Tambah Periode
+          </button>
+          <button
+            onClick={() => openModal("reorder_divisi")}
+            className={`${styles["modern-button"]}`}
+            style={{ backgroundColor: "#319795" }}
+          >
+            Atur Urutan Divisi
           </button>
         </div>
       )}
 
+      {/* --- FILTER BAR (STICKY) --- */}
       <div className={styles["filter-bar"]}>
-        {/* (Filter Period, Divisi, Gender - Sama seperti sebelumnya) */}
+        {/* 1. PERIODE */}
         <div className={styles["filter-group"]}>
           <label className={styles["filter-label"]}>Periode:</label>
           <select
             className={styles["filter-select"]}
-            value={selectedPeriodeId}
-            onChange={(e) => setSelectedPeriodeId(e.target.value)}
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
           >
             {periodeList.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.nama_kabinet || `${p.tahun_mulai}/${p.tahun_selesai}`}
+                {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
               </option>
             ))}
           </select>
+          {isAdmin && activeTab && (
+            <button
+              onClick={() =>
+                openModal(
+                  "periode",
+                  periodeList.find((p) => p.id == activeTab)
+                )
+              }
+              className={styles["icon-btn"]}
+            >
+              ✏️
+            </button>
+          )}
         </div>
+
+        {/* 2. DIVISI */}
         <div className={styles["filter-group"]}>
           <label className={styles["filter-label"]}>Divisi:</label>
           <select
             className={styles["filter-select"]}
-            value={selectedDivisiFilter}
-            onChange={(e) => setSelectedDivisiFilter(e.target.value)}
+            value={selectedDivisi}
+            onChange={(e) => setSelectedDivisi(e.target.value)}
           >
             <option value="semua">Semua Divisi</option>
-            {divisiOptions.map((d) => (
+            {divisiList.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.nama_divisi}
               </option>
             ))}
           </select>
         </div>
+
+        {/* 3. GENDER (FILTER BARU) */}
         <div className={styles["filter-group"]}>
           <label className={styles["filter-label"]}>Gender:</label>
           <select
             className={styles["filter-select"]}
-            value={selectedGenderFilter}
-            onChange={(e) => setSelectedGenderFilter(e.target.value)}
+            value={selectedGender}
+            onChange={(e) => setSelectedGender(e.target.value)}
           >
-            <option value="semua">Semua</option>
-            <option value="Ikhwan">Ikhwan</option>
-            <option value="Akhwat">Akhwat</option>
+            <option value="all">Semua</option>
+            <option value="Ikhwan">Ikhwan (Putra)</option>
+            <option value="Akhwat">Akhwat (Putri)</option>
           </select>
         </div>
       </div>
 
-      {loading && <p className="loading-text">Memuat...</p>}
+      {loading ? (
+        <p className="loading-text">Memuat data...</p>
+      ) : (
+        <>
+          {sortedDivisiList.map((divisi) => {
+            const members = memberMap[divisi.id];
+            if (!members || members.length === 0) return null;
 
-      {!loading && (
-        <div className={styles["divisi-list"]}>
-          {filteredDivisiList.length > 0 ? (
-            filteredDivisiList.map((divisi) => (
-              <section key={divisi.nama} className={styles["divisi-section"]}>
+            return (
+              <section key={divisi.id} className={styles["divisi-section"]}>
                 <div className={styles["divisi-header"]}>
                   {divisi.logo_url && (
                     <img
                       src={divisi.logo_url}
-                      alt="Logo"
+                      alt="logo"
                       className={styles["divisi-logo"]}
                     />
                   )}
-                  <h2 className={styles["divisi-title"]}>{divisi.nama}</h2>
-                  {isAdmin && (
-                    <button
-                      className={styles["btn-add-circle"]}
-                      onClick={() => openAddModal("anggota", divisi.divisi_id)}
-                      title="Tambah Anggota"
-                    >
-                      +
-                    </button>
-                  )}
+                  <h2 className={styles["divisi-title"]}>
+                    {divisi.nama_divisi}
+                  </h2>
+
                   <Link
-                    to={`/divisi/${divisi.divisi_id}`}
-                    className={styles["btn-detail-outline"]}
+                    to={`/divisi/${divisi.id}`}
+                    className={styles["btn-detail-divisi"]}
                   >
-                    Lihat Detail Divisi &rarr;
+                    Lihat Detail &rarr;
                   </Link>
+
+                  {isAdmin && (
+                    <div className={styles["divisi-controls"]}>
+                      <button
+                        onClick={() => openModal("divisi", divisi)}
+                        className={styles["icon-btn"]}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDelete("divisi", divisi.id)}
+                        className={`${styles["icon-btn"]} ${styles["danger"]}`}
+                      >
+                        🗑️
+                      </button>
+                      <button
+                        className={styles["btn-add-circle"]}
+                        onClick={() => {
+                          openModal("anggota");
+                          setFormData((prev) => ({
+                            ...prev,
+                            divisi_id: divisi.id,
+                          }));
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                 </div>
+
                 <div className={styles["card-grid"]}>
-                  {divisi.anggota.map((anggota) => (
+                  {members.map((anggota) => (
                     <AnggotaCard
                       key={anggota.id}
-                      anggota={anggota}
+                      data={anggota}
                       isAdmin={isAdmin}
-                      pengaturan={pengaturan || {}}
-                      onEdit={openEditModal}
+                      onEdit={(item) => openModal("anggota", item)}
+                      onDelete={(id) => handleDelete("anggota", id)}
                     />
                   ))}
                 </div>
               </section>
-            ))
-          ) : (
-            <p className="info-text">Tidak ada data anggota.</p>
+            );
+          })}
+
+          {memberMap["others"]?.length > 0 && (
+            <section className={styles["divisi-section"]}>
+              <div className={styles["divisi-header"]}>
+                <h2 className={styles["divisi-title"]}>
+                  Lainnya / Tanpa Divisi
+                </h2>
+              </div>
+              <div className={styles["card-grid"]}>
+                {memberMap["others"].map((anggota) => (
+                  <AnggotaCard
+                    key={anggota.id}
+                    data={anggota}
+                    isAdmin={isAdmin}
+                    onEdit={(item) => openModal("anggota", item)}
+                    onDelete={(id) => handleDelete("anggota", id)}
+                  />
+                ))}
+              </div>
+            </section>
           )}
-        </div>
+
+          {Object.keys(memberMap).length === 0 && (
+            <p
+              style={{
+                textAlign: "center",
+                padding: "3rem",
+                color: "#718096",
+                background: "#f9fafb",
+                borderRadius: "0.5rem",
+                border: "1px dashed #e2e8f0",
+              }}
+            >
+              Tidak ditemukan data anggota dengan filter ini.
+            </p>
+          )}
+        </>
       )}
 
-      {/* --- MODALS MENGGUNAKAN KOMPONEN FORM TERPISAH --- */}
-      <Modal
-        isOpen={activeModal === "anggota"}
-        onClose={closeModal}
-        title={editingId ? "Edit Anggota" : "Tambah Anggota Baru"}
-      >
-        <AnggotaForm
-          formData={formData}
-          onChange={handleFormChange}
-          onFileChange={handleFileChange}
-          onSubmit={handleSubmit}
-          onCancel={closeModal}
-          loading={modalLoading}
-          periodeList={periodeList}
-          divisiList={allDivisiList}
-          jabatanList={jabatanList}
-          preview={formPreview}
-        />
-      </Modal>
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
+        {activeModal === "periode" && (
+          <form onSubmit={handleSubmit}>
+            <div className={formStyles["form-grid"]}>
+              <FormInput
+                label="Nama Kabinet"
+                name="nama_kabinet"
+                type="text"
+                value={formData.nama_kabinet || ""}
+                onChange={handleFormChange}
+                required
+                span="col-span-3"
+              />
+              <FormInput
+                label="Mulai"
+                name="tahun_mulai"
+                type="number"
+                value={formData.tahun_mulai || ""}
+                onChange={handleFormChange}
+                required
+                span="col-span-1"
+              />
+              <FormInput
+                label="Selesai"
+                name="tahun_selesai"
+                type="number"
+                value={formData.tahun_selesai || ""}
+                onChange={handleFormChange}
+                required
+                span="col-span-1"
+              />
+              <FormInput
+                label="Aktif?"
+                name="is_active"
+                type="select"
+                value={formData.is_active}
+                onChange={handleFormChange}
+                span="col-span-1"
+              >
+                <option value={false}>Tidak</option>
+                <option value={true}>Ya</option>
+              </FormInput>
+            </div>
+            <div className={formStyles["form-footer"]}>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="button button-secondary"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="button button-primary"
+                disabled={modalLoading}
+              >
+                {modalLoading ? "Simpan..." : "Simpan"}
+              </button>
+            </div>
+          </form>
+        )}
 
-      <Modal
-        isOpen={activeModal === "divisi"}
-        onClose={closeModal}
-        title="Tambah Divisi"
-      >
-        <DivisiForm
-          formData={formData}
-          onChange={handleFormChange}
-          onFileChange={handleFileChange}
-          onSubmit={handleSubmit}
-          onCancel={closeModal}
-          loading={modalLoading}
-          periodeList={periodeList}
-        />
-      </Modal>
+        {activeModal === "divisi" && (
+          <DivisiForm
+            formData={formData}
+            onChange={handleFormChange}
+            onFileChange={handleFileChange}
+            onSubmit={handleSubmit}
+            onCancel={closeModal}
+            loading={modalLoading}
+            periodeList={periodeList}
+          />
+        )}
 
-      <Modal
-        isOpen={activeModal === "periode"}
-        onClose={closeModal}
-        title="Tambah Periode"
-      >
-        <PeriodeForm
-          formData={formData}
-          onChange={handleFormChange}
-          onSubmit={handleSubmit}
-          onCancel={closeModal}
-          loading={modalLoading}
-        />
+        {activeModal === "anggota" && (
+          <AnggotaForm
+            formData={formData}
+            onChange={handleFormChange}
+            onFileChange={handleFileChange}
+            onSubmit={handleSubmit}
+            onCancel={closeModal}
+            loading={modalLoading}
+            periodeList={periodeList}
+            divisiList={divisiList}
+            jabatanList={jabatanList}
+            preview={formPreview}
+          />
+        )}
+
+        {activeModal === "reorder_divisi" && (
+          <DivisiReorderModal
+            isOpen={true}
+            onClose={closeModal}
+            divisiList={divisiList}
+            activePeriodeId={activeTab}
+            onSuccess={fetchInitialData}
+          />
+        )}
       </Modal>
     </div>
   );
 }
+
 export default DaftarAnggota;

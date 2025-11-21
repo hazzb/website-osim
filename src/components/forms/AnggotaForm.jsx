@@ -97,6 +97,7 @@ function AnggotaForm({
           type="file"
           onChange={onFileChange}
           span="col-span-3"
+          helper="Format: JPG/PNG. Max 200KB."
         />
 
         {preview && (
@@ -113,29 +114,12 @@ function AnggotaForm({
         )}
 
         <FormInput
-          label="Instagram"
-          name="instagram_username"
-          type="text"
-          value={formData.instagram_username || ""}
-          onChange={onChange}
-          span="col-span-3"
-        />
-        <FormInput
           label="Motto"
           name="motto"
           type="textarea"
           value={formData.motto || ""}
           onChange={onChange}
           span="col-span-3"
-        />
-
-        <FormInput
-          label="Foto"
-          name="foto"
-          type="file"
-          onChange={handleFileChange}
-          span="col-span-3"
-          helper="Format: JPG/PNG. Max 200KB." // <-- Tambahkan ini
         />
 
         <FormInput
@@ -146,7 +130,7 @@ function AnggotaForm({
           onChange={onChange}
           span="col-span-3"
           placeholder="username"
-          helper="Masukkan username tanpa awalan @" // <-- INI BARU
+          // helper="Masukkan username tanpa awalan @" // <-- INI BARU
         />
       </div>
 

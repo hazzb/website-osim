@@ -1,154 +1,271 @@
 /* src/pages/DivisiDetail.module.css */
 
-.detail-header {
+/* =========================================
+   1. LAYOUT & NAVIGATION
+   ========================================= */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+}
+
+.navBar {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #718096;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.backLink:hover {
+  color: #3182ce;
+}
+
+/* =========================================
+   2. HERO SECTION (Corporate Split Style)
+   ========================================= */
+.heroSection {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 3rem;
+  background: white;
+  padding: 3rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 3rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 }
-.detail-logo {
-  height: 80px; /* Logo lebih besar */
-  width: 80px;
+
+/* Decorative line top */
+.heroSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3182ce, #4299e1);
+}
+
+/* Logo Container (Left) */
+.visualContainer {
+  flex-shrink: 0;
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+  border-radius: 1rem;
+  border: 1px dashed #cbd5e0;
+  padding: 1rem;
+}
+
+.logoWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));
 }
 
-.deskripsi-card {
-  background-color: white;
-  border-radius: 0.5rem;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  margin-bottom: 2.5rem;
+/* Info Container (Right) */
+.infoContainer {
+  flex-grow: 1;
 }
 
-.section-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #1a202c;
+.periodeBadge {
+  display: inline-block;
+  background: #ebf8ff;
+  color: #2b6cb0;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
   margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin: 0 0 1rem 0;
+  line-height: 1.1;
+}
+
+.description {
+  font-size: 1.1rem;
+  color: #4a5568;
+  line-height: 1.7;
+  max-width: 700px;
+}
+
+/* =========================================
+   3. FILTER & SEARCH SECTION
+   ========================================= */
+.filterSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
-/* --- Style Markdown (dari ProgjaDetail) --- */
-.markdown-content {
-  color: #2d3748;
-  line-height: 1.75;
-}
-.markdown-content > * + * {
-  margin-top: 1.25em;
-}
-.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+.sectionTitle {
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0.8em;
-  margin-top: 1.6em;
-}
-.markdown-content p {
-  margin: 1.25em 0;
-}
-.markdown-content a {
-  color: #2b6cb0;
-  text-decoration: underline;
-}
-.markdown-content ul, .markdown-content ol {
-  margin-left: 1.5em;
-  padding-left: 0.5em;
+  color: #2d3748;
+  margin: 0;
 }
 
-/* --- Style Grid Anggota (salin dari DaftarAnggota.module.css) --- */
-.card-grid {
+.searchWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 99px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #fff;
+}
+
+.searchInput:focus {
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+}
+
+/* =========================================
+   4. MEMBER GRID
+   ========================================= */
+.cardGrid {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(1, 1fr);
 }
+
+/* Responsive Grid */
 @media (min-width: 640px) {
-  .card-grid {
+  .cardGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 @media (min-width: 1024px) {
-  .card-grid {
+  .cardGrid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 @media (min-width: 1280px) {
-  .card-grid {
+  .cardGrid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
-/* --- Style AnggotaCard (salin dari DaftarAnggota.module.css) --- */
-.card {
-  position: relative;
-  background-color: #ebf8ff;
-  border: 1px solid #bee3f8;
-  border-radius: 0.5rem;
-  padding: 1rem;
+.emptyState {
   text-align: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  padding: 3rem;
+  color: #718096;
+  font-style: italic;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px dashed #cbd5e0;
 }
-.card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  transform: translateY(-2px);
+
+/* =========================================
+   5. MOBILE OPTIMIZATION
+   ========================================= */
+@media (max-width: 768px) {
+  .heroSection {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 2rem 1.5rem;
+  }
+
+  .visualContainer {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .filterSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .searchWrapper {
+    max-width: 100%;
+  }
 }
-.card-edit-button {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background-color: #2b6cb0;
-  color: white;
-  border-radius: 9999px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  text-decoration: none;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-.card-edit-button:hover {
-  background-color: #2c5282;
-}
-.anggota-card-image {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #f7fafc;
-  margin: 0 auto 1rem auto;
-}
-.anggota-card-content {
+
+.filterSelect {
+  padding: 0.6rem 1rem;
+  padding-right: 2rem; /* Ruang untuk panah dropdown */
+  border: 1px solid #e2e8f0;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  outline: none;
   background-color: white;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  width: 100%;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-.anggota-card-nama {
-  font-size: 1rem;
-  font-weight: bold;
-}
-.anggota-card-jabatan {
-  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
   color: #4a5568;
-  font-style: italic;
-  margin-bottom: 0.5rem;
+
+  /* Custom Arrow (Optional, biar lebih rapi) */
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a0aec0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem top 50%;
+  background-size: 0.65rem auto;
+
+  min-width: 140px;
 }
-.anggota-card-info {
-  font-size: 0.75rem;
-  color: #2d3748;
-  text-align: center;
-  word-wrap: break-word;
+
+.filterSelect:focus {
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
-.anggota-card-info p {
-  margin-bottom: 0.25rem;
-}
-.anggota-card-info .info-motto {
-  font-style: italic;
+
+.filterSelect:hover {
+  background-color: #f7fafc;
 }
