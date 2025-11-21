@@ -1,62 +1,75 @@
 // src/components/Breadcrumbs.jsx
-// --- KOMPONEN BARU ---
 
-import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import styles from './Breadcrumbs.module.css'; // Kita akan buat file style-nya
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import styles from "./Breadcrumbs.module.css";
 
-// Peta untuk menerjemahkan path URL ke nama yang mudah dibaca
-const breadcrumbNameMap = {
-  'anggota': 'Anggota',
-  'program-kerja': 'Program Kerja',
-  'visi-misi': 'Visi & Misi',
-  'divisi': 'Detail Divisi',
-  'admin': 'Admin',
-  'dashboard': 'Dashboard',
-  'tambah': 'Tambah',
-  'edit': 'Edit',
-  // Tambahkan path admin lain jika perlu
-  'kelola-anggota': 'Kelola Anggota', 
-  'kelola-program-kerja': 'Kelola Program Kerja',
-  'kelola-divisi': 'Kelola Divisi',
-};
-
-function Breadcrumbs() {
+const Breadcrumbs = () => {
   const location = useLocation();
-  const pathnames = location.pathname.split('/').filter(x => x); // Pecah URL
 
-  // Jangan tampilkan di Halaman Beranda
-  if (pathnames.length === 0) {
+  // 1. Sembunyikan di halaman Home atau Login
+  if (location.pathname === "/" || location.pathname === "/login") {
     return null;
   }
 
+  // 2. Pecah URL menjadi array
+  const pathnames = location.pathname.split("/").filter((x) => x);
+
+  // 3. Kamus untuk mengubah URL slug menjadi teks yang cantik
+  const routeNameMap = {
+    "visi-misi": "Visi & Misi",
+    anggota: "Daftar Anggota",
+    "program-kerja": "Program Kerja",
+    dashboard: "Dashboard Admin",
+    pengaturan: "Pengaturan",
+    divisi: "Divisi",
+  };
+
+  // Fungsi helper untuk cek apakah string adalah ID (angka atau UUID panjang)
+  const isId = (str) => {
+    // Cek jika angka atau string panjang (>10 char biasanya UUID)
+    return !isNaN(str) || str.length > 15;
+  };
+
   return (
-    // Kita gunakan class 'main-content' global agar posisinya selaras
-    <div className="main-content" style={{ paddingTop: 0, paddingBottom: 0, marginBottom: '-1.5rem' }}>
-      <nav className={styles.breadcrumb} aria-label="breadcrumbs">
-        <ol>
-          <li><Link to="/">Home</Link></li>
+    <div className={styles.container}>
+      <nav className={styles.nav} aria-label="Breadcrumb">
+        <ol className={styles.list}>
+          {/* Item 1: Beranda (Selalu ada) */}
+          <li className={styles.item}>
+            <Link to="/" className={styles.link}>
+              Beranda
+            </Link>
+          </li>
+
+          {/* Item Loop: Sisa URL */}
           {pathnames.map((value, index) => {
-            const last = index === pathnames.length - 1;
-            const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-            
-            // Cek apakah 'value' adalah angka (seperti ID)
-            const isDynamic = !isNaN(Number(value)); 
-            
-            // Tentukan nama
-            let name = breadcrumbNameMap[value];
-            if (isDynamic) {
-              name = "Detail"; // Untuk path seperti /program-kerja/123
-            } else if (!name) {
-              name = value.charAt(0).toUpperCase() + value.slice(1); // Kapitalisasi
+            const isLast = index === pathnames.length - 1;
+            const to = `/${pathnames.slice(0, index + 1).join("/")}`;
+
+            // Tentukan label: Gunakan map, atau "Detail" jika itu ID, atau format biasa
+            let displayName = routeNameMap[value] || value.replace(/-/g, " ");
+
+            // Jika ini adalah segmen ID (misal: /divisi/123), ubah teks jadi "Detail"
+            if (isId(value)) {
+              displayName = "Detail";
             }
 
+            // Kapitalisasi huruf pertama
+            displayName =
+              displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
             return (
-              <li key={to}>
-                {last ? (
-                  <span aria-current="page">{name}</span>
+              <li key={to} className={styles.item}>
+                <span className={styles.separator}>/</span>
+                {isLast ? (
+                  <span className={styles.active} aria-current="page">
+                    {displayName}
+                  </span>
                 ) : (
-                  <Link to={to}>{name}</Link>
+                  <Link to={to} className={styles.link}>
+                    {displayName}
+                  </Link>
                 )}
               </li>
             );
@@ -65,6 +78,6 @@ function Breadcrumbs() {
       </nav>
     </div>
   );
-}
+};
 
 export default Breadcrumbs;

@@ -1,158 +1,136 @@
-/* src/pages/DashboardAdmin.module.css */
-
-/* Header yang lebih tipis */
-.header-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-.welcome-text {
-  color: #4a5568;
-  font-size: 0.95rem;
-  margin: 0;
-}
-.admin-badge {
-  background-color: #ebf8ff;
-  color: #2b6cb0;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-weight: bold;
-  font-size: 0.75rem;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
 }
 
-/* --- GRID LAYOUT UTAMA --- */
-.dashboard-container {
+/* HEADER & WELCOME */
+.welcomeSection {
+  margin-bottom: 3rem;
+}
+
+.greeting {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.subGreeting {
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+/* STATS GRID */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.statCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  transition: transform 0.2s;
 }
 
-/* --- 1. STATS WIDGETS (Compact) --- */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-}
-@media (min-width: 640px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.statCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e0;
 }
 
-.stat-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem; /* Padding lebih kecil */
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: transform 0.1s, box-shadow 0.1s;
-  text-decoration: none; /* Karena dibungkus Link */
-}
-.stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  border-color: #bee3f8;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.stat-info h3 {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #718096;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
+/* Warna Icon */
+.icon-blue {
+  background: #ebf8ff;
+  color: #3182ce;
 }
-.stat-value {
-  font-size: 1.75rem; /* Angka besar tapi compact */
+.icon-green {
+  background: #f0fff4;
+  color: #38a169;
+}
+.icon-orange {
+  background: #fffaf0;
+  color: #dd6b20;
+}
+.icon-purple {
+  background: #faf5ff;
+  color: #805ad5;
+}
+
+.statValue {
+  font-size: 2.5rem;
   font-weight: 800;
   color: #2d3748;
   line-height: 1;
-}
-.stat-icon {
-  font-size: 1.5rem;
-  opacity: 0.8;
-  background-color: #f7fafc;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  margin-bottom: 0.25rem;
 }
 
-/* Warna spesifik untuk ikon stat */
-.icon-blue { color: #3182ce; background-color: #ebf8ff; }
-.icon-green { color: #38a169; background-color: #f0fff4; }
-.icon-purple { color: #805ad5; background-color: #faf5ff; }
+.statLabel {
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-/* --- 2. QUICK ACTIONS (Tiles) --- */
-.section-title {
-  font-size: 1.1rem;
+/* SHORTCUTS */
+.sectionTitle {
+  font-size: 1.25rem;
   font-weight: 700;
   color: #2d3748;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.actions-grid {
+.shortcutGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 kolom di HP */
-  gap: 0.75rem;
-}
-@media (min-width: 768px) {
-  .actions-grid {
-    grid-template-columns: repeat(4, 1fr); /* 4 kolom di Tablet */
-  }
-}
-@media (min-width: 1024px) {
-  .actions-grid {
-    grid-template-columns: repeat(5, 1fr); /* 5 kolom di Desktop */
-  }
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
-.action-tile {
+.shortcutCard {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background-color: white;
+  gap: 1rem;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 1.25rem 0.5rem;
-  text-align: center;
   text-decoration: none;
-  transition: all 0.2s ease;
   color: #4a5568;
-  height: 100%;
-}
-.action-tile:hover {
-  background-color: #f7fafc;
-  border-color: #cbd5e0;
-  color: #2b6cb0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
-.tile-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+.shortcutCard:hover {
+  border-color: #3182ce;
+  color: #3182ce;
+  background: #f7fafc;
 }
-.tile-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.2;
-}
-.tile-sub {
-  font-size: 0.7rem;
-  color: #a0aec0;
-  margin-top: 0.25rem;
-  font-weight: normal;
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .greeting {
+    font-size: 1.5rem;
+  }
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
 }

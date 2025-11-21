@@ -66,7 +66,7 @@ const VisiMisiForm = ({ formData, onChange, onSubmit, onCancel, loading }) => {
             </span>
 
             <a
-              href="https://www.markdownguide.org/basic-syntax/"
+              href="https://www.markdownguide.org/basic-syntax/ "
               target="_blank"
               rel="noreferrer"
               style={{

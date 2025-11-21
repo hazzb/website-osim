@@ -1,0 +1,130 @@
+/* src/pages/Pengaturan.module.css */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #2d3748;
+  margin: 0;
+}
+.subtitle {
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+/* SETTING CARD GROUP */
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.cardHeader {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+.cardIcon {
+  font-size: 1.25rem;
+}
+
+/* GRID PILIHAN LAYOUT */
+.layoutGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.layoutOption {
+  border: 2px solid #edf2f7;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.layoutOption:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+.layoutOption.active {
+  border-color: #3182ce;
+  background: #ebf8ff;
+  color: #2b6cb0;
+  font-weight: 700;
+}
+
+/* TOGGLE ROW (Reuse logic) */
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f7fafc;
+}
+.toggleRow:last-child {
+  border-bottom: none;
+}
+
+.toggleLabel {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+/* Reuse Toggle Switch Style from ProgramKerja if possible, or redefine here */
+.toggleSwitch {
+  width: 44px;
+  height: 24px;
+  background: #cbd5e0;
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggleSwitch.active {
+  background: #3182ce;
+}
+.toggleKnob {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.toggleSwitch.active .toggleKnob {
+  transform: translateX(20px);
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  .layoutGrid {
+    grid-template-columns: 1fr;
+  }
+}

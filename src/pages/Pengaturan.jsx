@@ -1,136 +1,177 @@
-// src/pages/Pengaturan.jsx
-// --- VERSI SEDERHANA (TANPA MASTER SWITCH) ---
+import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+import styles from "./Pengaturan.module.css";
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+// Komponen Toggle Switch Internal
+const ToggleItem = ({ label, checked, onChange }) => (
+  <div className={styles.toggleRow}>
+    <span className={styles.toggleLabel}>{label}</span>
+    <div
+      className={`${styles.toggleSwitch} ${checked ? styles.active : ""}`}
+      onClick={() => onChange(!checked)}
+    >
+      <div className={styles.toggleKnob}></div>
+    </div>
+  </div>
+);
 
 function Pengaturan() {
-  // State kita sekarang HANYA 3 tombol
   const [settings, setSettings] = useState({
-    tampilkan_kolom_rencana: true,
-    tampilkan_kolom_akan_datang: true,
-    tampilkan_kolom_selesai: true
+    visi_misi_layout: "modular",
+    tampilkan_progja_rencana: true,
+    tampilkan_progja_akan_datang: true,
+    tampilkan_progja_selesai: true,
   });
-  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // useEffect untuk MENGAMBIL (FETCH) pengaturan
   useEffect(() => {
-    async function fetchPengaturan() {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('pengaturan')
-          .select('tampilkan_kolom_rencana, tampilkan_kolom_akan_datang, tampilkan_kolom_selesai') // Hanya ambil 3
-          .eq('id', 1)
-          .single();
-
-        if (error) throw error;
-        if (data) setSettings(data);
-        
-      } catch (error) {
-        alert("Gagal mengambil pengaturan: " + error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPengaturan();
+    fetchSettings();
   }, []);
 
-  // Fungsi untuk MENYIMPAN pengaturan
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
+  const fetchSettings = async () => {
     try {
-      const { error } = await supabase
-        .from('pengaturan')
-        .update(settings) // Kirim object state (yang berisi 3 tombol)
-        .eq('id', 1); 
-      
-      if (error) throw error;
-      alert("Pengaturan berhasil disimpan!");
-
-    } catch (error) {
-      alert("Gagal menyimpan pengaturan: " + error.message);
+      const { data } = await supabase
+        .from("pengaturan")
+        .select("*")
+        .eq("id", 1)
+        .single();
+      if (data) setSettings(data);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  // Helper untuk mengubah state object
-  const handleCheckboxChange = (e) => {
-    const { name, checked } = e.target;
-    setSettings(prev => ({
-      ...prev,
-      [name]: checked
-    }));
+  // Generic Update Function
+  const updateSetting = async (key, value) => {
+    // Optimistic Update
+    setSettings((prev) => ({ ...prev, [key]: value }));
+    setSaving(true);
+    try {
+      await supabase
+        .from("pengaturan")
+        .update({ [key]: value })
+        .eq("id", 1);
+    } catch (err) {
+      console.error("Gagal simpan:", err);
+      alert("Gagal menyimpan perubahan.");
+      // Revert logic could be added here
+    } finally {
+      setTimeout(() => setSaving(false), 500); // Delay dikit biar keliatan
+    }
   };
 
-  // --- Styling ---
-  const formStyle = { maxWidth: '600px', margin: '20px auto', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' };
-  const inputGroupStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' };
-  const labelStyle = { fontWeight: 'bold', marginRight: '10px' };
-  const buttonStyle = { padding: '10px 15px', fontSize: '1em', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' };
-
-  if (loading) {
-    return <p>Memuat pengaturan...</p>;
-  }
+  if (loading)
+    return (
+      <div className="main-content">
+        <p className="loading-text">Memuat pengaturan...</p>
+      </div>
+    );
 
   return (
-    <div style={formStyle}>
-      <h2>Pengaturan Papan Program Kerja</h2>
-      <p>Pilih kolom mana yang ingin Anda tampilkan di halaman Program Kerja publik.</p>
-      
-      <form onSubmit={handleSave}>
-        
-        {/* --- HANYA 3 TOMBOL PENGATURAN --- */}
-        <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="tampilkan_kolom_rencana">
-            Tampilkan Kolom "Rencana"?
-          </label>
-          <input 
-            type="checkbox"
-            id="tampilkan_kolom_rencana"
-            name="tampilkan_kolom_rencana"
-            checked={settings.tampilkan_kolom_rencana}
-            onChange={handleCheckboxChange}
-            style={{ transform: 'scale(1.5)' }}
-          />
-        </div>
-        <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="tampilkan_kolom_akan_datang">
-            Tampilkan Kolom "Akan Datang"?
-          </label>
-          <input 
-            type="checkbox"
-            id="tampilkan_kolom_akan_datang"
-            name="tampilkan_kolom_akan_datang"
-            checked={settings.tampilkan_kolom_akan_datang}
-            onChange={handleCheckboxChange}
-            style={{ transform: 'scale(1.5)' }}
-          />
-        </div>
-        <div style={inputGroupStyle}>
-          <label style={labelStyle} htmlFor="tampilkan_kolom_selesai">
-            Tampilkan Kolom "Selesai"?
-          </label>
-          <input 
-            type="checkbox"
-            id="tampilkan_kolom_selesai"
-            name="tampilkan_kolom_selesai"
-            checked={settings.tampilkan_kolom_selesai}
-            onChange={handleCheckboxChange}
-            style={{ transform: 'scale(1.5)' }}
-          />
+    <div className="main-content">
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Pengaturan Website</h1>
+          <p className={styles.subtitle}>
+            Kelola tampilan dan konfigurasi global website.
+          </p>
         </div>
 
-        <hr style={{ margin: '20px 0' }} />
+        {/* 1. PENGATURAN VISI MISI */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>🎨</span>
+            <h3 className={styles.cardTitle}>Tata Letak Visi & Misi</h3>
+          </div>
 
-        <button style={buttonStyle} type="submit" disabled={saving}>
-          {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}
-        </button>
-      </form>
+          <p
+            style={{
+              fontSize: "0.9rem",
+              color: "#718096",
+              marginBottom: "1rem",
+            }}
+          >
+            Pilih gaya tampilan untuk konten di halaman Visi & Misi.
+          </p>
+
+          <div className={styles.layoutGrid}>
+            {["modular", "split", "zigzag"].map((mode) => (
+              <div
+                key={mode}
+                className={`${styles.layoutOption} ${settings.visi_misi_layout === mode ? styles.active : ""}`}
+                onClick={() => updateSetting("visi_misi_layout", mode)}
+              >
+                <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+                  {mode === "modular" ? "▦" : mode === "split" ? "◫" : "↯"}
+                </div>
+                <div style={{ textTransform: "capitalize" }}>{mode}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. PENGATURAN PROGJA */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>📅</span>
+            <h3 className={styles.cardTitle}>Visibilitas Program Kerja</h3>
+          </div>
+
+          <p
+            style={{
+              fontSize: "0.9rem",
+              color: "#718096",
+              marginBottom: "1rem",
+            }}
+          >
+            Atur status program kerja apa saja yang boleh dilihat oleh
+            pengunjung (Tamu).
+          </p>
+
+          <div>
+            <ToggleItem
+              label="Tampilkan 'Akan Datang'"
+              checked={settings.tampilkan_progja_akan_datang}
+              onChange={(val) =>
+                updateSetting("tampilkan_progja_akan_datang", val)
+              }
+            />
+            <ToggleItem
+              label="Tampilkan 'Rencana Program'"
+              checked={settings.tampilkan_progja_rencana}
+              onChange={(val) => updateSetting("tampilkan_progja_rencana", val)}
+            />
+            <ToggleItem
+              label="Tampilkan 'Selesai / Terlaksana'"
+              checked={settings.tampilkan_progja_selesai}
+              onChange={(val) => updateSetting("tampilkan_progja_selesai", val)}
+            />
+          </div>
+        </div>
+
+        {/* SAVING INDICATOR (Fixed Bottom Right) */}
+        {saving && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: "20px",
+              right: "20px",
+              background: "#2d3748",
+              color: "white",
+              padding: "10px 20px",
+              borderRadius: "99px",
+              fontSize: "0.85rem",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              animation: "fadeIn 0.2s",
+            }}
+          >
+            💾 Menyimpan...
+          </div>
+        )}
+      </div>
     </div>
   );
 }

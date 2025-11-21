@@ -1,39 +1,57 @@
 /* src/components/Breadcrumbs.module.css */
-/* --- STYLE BARU --- */
 
-.breadcrumb {
-  padding-top: 0.5rem;
-  font-size: 0.875rem; /* text-sm */
-  color: #718096; /* gray.500 */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  /* Padding kiri/kanan disamakan dengan konten utama agar segaris */
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+  width: 100%;
 }
-.breadcrumb ol {
+
+.nav {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: flex-start; /* Paksa ke kiri */
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.list {
+  display: flex;
+  align-items: center;
   list-style: none;
   padding: 0;
   margin: 0;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
-.breadcrumb li {
+
+/* ... (Sisanya sama) ... */
+.item {
   display: flex;
   align-items: center;
 }
-/* Separator (garis miring) */
-.breadcrumb li + li::before {
-  content: '/';
-  display: inline-block;
-  margin: 0 0.5rem; /* 8px space */
-  color: #a0aec0; /* gray.400 */
+.separator {
+  margin: 0 0.5rem;
+  color: #cbd5e0;
+  font-size: 0.7rem;
 }
-.breadcrumb a {
-  color: #718096; /* gray.500 */
+.link {
   text-decoration: none;
+  color: #718096;
+  transition: color 0.2s;
 }
-.breadcrumb a:hover {
-  color: #2b6cb0; /* blue.600 */
+.link:hover {
+  color: #2a9df4;
   text-decoration: underline;
+} /* Sesuaikan hover dengan biru baru */
+.active {
+  color: #2d3748;
+  font-weight: 700;
+  pointer-events: none;
 }
-/* Halaman saat ini (terakhir) */
-.breadcrumb span {
-  font-weight: 600;
-  color: #2d3748; /* gray.700 */
+
+@media (max-width: 640px) {
+  .container {
+    display: none;
+  } /* Sembunyi di HP biar hemat tempat */
 }
