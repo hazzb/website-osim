@@ -1,19 +1,20 @@
-// src/pages/ProgramKerja.jsx
-// --- VERSI 11.5 (Instagram Embed Fix & Card Resizing) ---
-
-import React, { useState, useEffect, useMemo, useRef } from "react"; // Tambah useRef
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "../supabaseClient";
-import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import styles from "./ProgramKerja.module.css";
+import {
+  FilterBar,
+  FilterSelect,
+  FilterPill,
+} from "../components/ui/FilterBar.jsx";
+import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
+import Modal from "../components/Modal.jsx";
+import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
-// Komponen Toggle (tetap sama)
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   return (
     <div
-      className={`${styles["toggle-wrapper"]} ${
-        isEnabled ? styles.active : ""
-      }`}
+      className={`${styles["toggle-wrapper"]} ${isEnabled ? styles.active : ""}`}
       onClick={() => !isSaving && onToggle(!isEnabled)}
     >
       <div className={styles["toggle-switch"]}>
@@ -24,49 +25,31 @@ function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   );
 }
 
-// Fungsi untuk memicu Instagram Embeds. Ini penting!
 function processInstagramEmbeds() {
-  if (
-    window.instgrm &&
-    window.instgrm.Embeds &&
-    typeof window.instgrm.Embeds.process === "function"
-  ) {
+  if (window.instgrm?.Embeds?.process) {
     window.instgrm.Embeds.process();
-    console.log("Instagram embeds processing triggered.");
-  } else {
-    // Jika script Instagram belum dimuat, coba muat
-    if (!document.getElementById("instagram-embed-script")) {
-      const script = document.createElement("script");
-      script.async = true;
-      script.defer = true;
-      script.id = "instagram-embed-script";
-      script.src = "https://www.instagram.com/embed.js";
-      document.head.appendChild(script);
-      script.onload = () => {
-        // Setelah script dimuat, panggil lagi process jika sudah siap
-        if (
-          window.instgrm &&
-          window.instgrm.Embeds &&
-          typeof window.instgrm.Embeds.process === "function"
-        ) {
-          window.instgrm.Embeds.process();
-          console.log("Instagram embeds script loaded and processed.");
-        }
-      };
-    }
+  } else if (!document.getElementById("instagram-embed-script")) {
+    const script = document.createElement("script");
+    script.async = true;
+    script.defer = true;
+    script.id = "instagram-embed-script";
+    script.src = "https://www.instagram.com/embed.js";
+    document.head.appendChild(script);
+    script.onload = () => {
+      if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
+    };
   }
 }
 
 function ProgramKerja() {
-  const [progjaList, setProgjaList] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [selectedStatus, setSelectedStatus] = useState("semua");
-  const [selectedDivisi, setSelectedDivisi] = useState("semua");
-  const [divisiOptions, setDivisiOptions] = useState([]);
-
   const { session } = useAuth();
   const isAdmin = !!session;
+
+  const [progjaList, setProgjaList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [divisiOptions, setDivisiOptions] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState("semua");
+  const [selectedDivisi, setSelectedDivisi] = useState("semua");
 
   const [pengaturan, setPengaturan] = useState({
     tampilkan_progja_rencana: true,
@@ -76,15 +59,14 @@ function ProgramKerja() {
   const [isSavingSetting, setIsSavingSetting] = useState(false);
   const [viewPublicMode, setViewPublicMode] = useState(false);
 
-  // Ref untuk mendeteksi perubahan progjaList dan memicu Instagram Embeds
-  const progjaListRef = useRef(progjaList);
-  useEffect(() => {
-    progjaListRef.current = progjaList;
-    // Panggil proses Instagram embed setiap kali progjaList berubah
-    // Beri sedikit delay agar DOM sempat di-render
-    const timer = setTimeout(processInstagramEmbeds, 100);
-    return () => clearTimeout(timer);
-  }, [progjaList]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({});
+
+  const [formPeriodeList, setFormPeriodeList] = useState([]);
+  const [formDivisiList, setFormDivisiList] = useState([]);
+  const [formAnggotaList, setFormAnggotaList] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -99,25 +81,48 @@ function ProgramKerja() {
         .eq("id", 1)
         .single();
       if (settings) setPengaturan(settings);
-
-      const { data: progja, error: err } = await supabase
+      const { data: progja, error } = await supabase
         .from("program_kerja_detail_view")
         .select("*")
         .order("tanggal", { ascending: false });
-
-      if (err) throw err;
+      if (error) throw error;
       setProgjaList(progja || []);
-
       const uniqueDivisi = [
         ...new Set(progja.map((p) => p.nama_divisi).filter(Boolean)),
       ];
       setDivisiOptions(uniqueDivisi.sort());
     } catch (err) {
-      console.error("Gagal memuat data:", err.message);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const fetchFormDropdowns = async () => {
+    if (formPeriodeList.length > 0) return;
+    const { data: p } = await supabase
+      .from("periode_jabatan")
+      .select("id, nama_kabinet")
+      .order("tahun_mulai", { ascending: false });
+    setFormPeriodeList(p || []);
+    const { data: d } = await supabase
+      .from("divisi")
+      .select("id, nama_divisi")
+      .order("nama_divisi");
+    setFormDivisiList(d || []);
+    const { data: a } = await supabase
+      .from("anggota")
+      .select("id, nama")
+      .order("nama");
+    setFormAnggotaList(a || []);
+  };
+
+  const progjaListRef = useRef(progjaList);
+  useEffect(() => {
+    progjaListRef.current = progjaList;
+    const timer = setTimeout(processInstagramEmbeds, 100);
+    return () => clearTimeout(timer);
+  }, [progjaList, selectedStatus, selectedDivisi]);
 
   const handleToggleSetting = async (key, newValue) => {
     setIsSavingSetting(true);
@@ -134,6 +139,75 @@ function ProgramKerja() {
     }
   };
 
+  const openModal = async (item = null) => {
+    setModalLoading(true);
+    await fetchFormDropdowns();
+    setModalLoading(false);
+    if (item) {
+      setEditingId(item.id);
+      setFormData({
+        nama_acara: item.nama_acara,
+        tanggal: item.tanggal,
+        status: item.status,
+        deskripsi: item.deskripsi || "",
+        link_dokumentasi: item.link_dokumentasi || "",
+        divisi_id: item.divisi_id,
+        penanggung_jawab_id: item.penanggung_jawab_id,
+        periode_id: item.periode_id,
+        embed_html: item.embed_html || "",
+      });
+    } else {
+      setEditingId(null);
+      setFormData({
+        status: "Rencana",
+        nama_acara: "",
+        tanggal: "",
+        deskripsi: "",
+        link_dokumentasi: "",
+        embed_html: "",
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Yakin hapus?")) return;
+    try {
+      const { error } = await supabase
+        .from("program_kerja")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+      setProgjaList((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    try {
+      if (editingId)
+        await supabase
+          .from("program_kerja")
+          .update(formData)
+          .eq("id", editingId);
+      else await supabase.from("program_kerja").insert(formData);
+      alert("Berhasil disimpan!");
+      setIsModalOpen(false);
+      fetchData();
+    } catch (err) {
+      alert("Gagal: " + err.message);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   const visibleStatusOptions = useMemo(() => {
     const options = ["Semua"];
     if (isAdmin || pengaturan.tampilkan_progja_akan_datang)
@@ -146,46 +220,39 @@ function ProgramKerja() {
   useEffect(() => {
     if (
       !visibleStatusOptions.includes(
-        selectedStatus === "semua" ? "Semua" : selectedStatus
+        selectedStatus === "Semua" ? "Semua" : selectedStatus
       )
-    ) {
+    )
       setSelectedStatus("semua");
-    }
   }, [visibleStatusOptions, selectedStatus]);
 
-  const filterItem = (item) => {
+  const filteredList = progjaList.filter((item) => {
     if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi)
       return false;
     if (selectedStatus !== "semua" && item.status !== selectedStatus)
       return false;
-
     if (!isAdmin || viewPublicMode) {
       if (item.tampilkan_di_publik === false) return false;
-      const p = pengaturan || {};
-      if (item.status === "Rencana" && p.tampilkan_progja_rencana === false)
+      if (item.status === "Rencana" && !pengaturan.tampilkan_progja_rencana)
         return false;
       if (
         item.status === "Akan Datang" &&
-        p.tampilkan_progja_akan_datang === false
+        !pengaturan.tampilkan_progja_akan_datang
       )
         return false;
-      if (item.status === "Selesai" && p.tampilkan_progja_selesai === false)
+      if (item.status === "Selesai" && !pengaturan.tampilkan_progja_selesai)
         return false;
     }
     return true;
-  };
+  });
 
-  const filteredList = progjaList.filter(filterItem);
   const getListBySection = (status) =>
     filteredList.filter((item) => item.status === status);
 
   const renderSection = (title, list, statusKey, cssClass) => {
     const isGlobalVisible = pengaturan[statusKey] !== false;
-    const isPreviewOrPublic = !isAdmin || viewPublicMode;
-
     if (list.length === 0) return null;
-    if (isPreviewOrPublic && !isGlobalVisible) return null;
-
+    if ((!isAdmin || viewPublicMode) && !isGlobalVisible) return null;
     const sectionStyle =
       isAdmin && !viewPublicMode && !isGlobalVisible
         ? {
@@ -208,99 +275,26 @@ function ProgramKerja() {
             <span
               style={{
                 marginLeft: "auto",
-                fontSize: "0.75rem",
+                fontSize: "0.7rem",
                 color: "red",
-                background: "#fff5f5",
-                padding: "2px 8px",
                 border: "1px solid red",
+                padding: "2px 6px",
                 borderRadius: "4px",
               }}
             >
-              👁️ Hidden
+              Hidden
             </span>
           )}
         </div>
-
         <div className={styles["progja-grid"]}>
           {list.map((item) => (
-            <div
+            <ProgramKerjaCard
               key={item.id}
-              className={`${styles.card} ${
-                !item.embed_html ? styles["card-no-media"] : ""
-              }`}
-            >
-              {" "}
-              {/* Tambah class 'card-no-media' */}
-              {item.embed_html && (
-                <div className={styles["media-container"]}>
-                  <div
-                    className={styles["embed-wrapper"]}
-                    dangerouslySetInnerHTML={{ __html: item.embed_html }}
-                  />
-                </div>
-              )}
-              <div className={styles["card-body"]}>
-                <span
-                  className={`${styles["status-badge"]} ${
-                    item.status === "Selesai"
-                      ? styles["status-selesai"]
-                      : item.status === "Akan Datang"
-                      ? styles["status-akan-datang"]
-                      : styles["status-rencana"]
-                  }`}
-                >
-                  {item.status}
-                </span>
-                {isAdmin &&
-                  !viewPublicMode &&
-                  item.tampilkan_di_publik === false && (
-                    <div
-                      style={{
-                        fontSize: "0.7rem",
-                        color: "red",
-                        border: "1px solid red",
-                        padding: "2px 5px",
-                        borderRadius: "4px",
-                        display: "inline-block",
-                        marginLeft: "0.5rem",
-                      }}
-                    >
-                      🔒 Hidden
-                    </div>
-                  )}
-                <h3 className={styles["card-title"]}>{item.nama_acara}</h3>
-                <div className={styles["card-meta"]}>
-                  <div className={styles["meta-item"]}>
-                    <span>🗓️</span>
-                    <span>
-                      {new Date(item.tanggal).toLocaleDateString("id-ID")}
-                    </span>
-                  </div>
-                  <div className={styles["meta-item"]}>
-                    <span>🏢</span>
-                    <span>{item.nama_divisi}</span>
-                  </div>
-                  <div
-                    className={styles["meta-item"]}
-                    style={{ color: "#2b6cb0" }}
-                  >
-                    <span>👤</span>
-                    <span>{item.nama_penanggung_jawab}</span>
-                  </div>
-                </div>
-                <p className={styles["card-desc"]}>
-                  {item.deskripsi || "Tidak ada deskripsi."}
-                </p>
-                <div className={styles["card-footer"]}>
-                  <Link
-                    to={`/program-kerja/${item.id}`}
-                    className={styles["btn-detail"]}
-                  >
-                    Detail &rarr;
-                  </Link>
-                </div>
-              </div>
-            </div>
+              data={item}
+              isAdmin={isAdmin && !viewPublicMode}
+              onEdit={() => openModal(item)}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       </section>
@@ -322,7 +316,9 @@ function ProgramKerja() {
 
       {isAdmin && (
         <div className={styles["admin-controls"]}>
-          <span className={styles["admin-controls-title"]}>Tampilkan:</span>
+          <span className={styles["admin-controls-title"]}>
+            Tampilkan di Publik:
+          </span>
           <AdminToggle
             label="Akan Datang"
             isEnabled={pengaturan.tampilkan_progja_akan_datang !== false}
@@ -343,68 +339,73 @@ function ProgramKerja() {
             onToggle={(v) => handleToggleSetting("tampilkan_progja_selesai", v)}
             isSaving={isSavingSetting}
           />
+          <button
+            onClick={() => openModal()}
+            className="button button-primary"
+            style={{
+              marginLeft: "auto",
+              fontSize: "0.85rem",
+              padding: "0.4rem 1rem",
+            }}
+          >
+            + Tambah Program
+          </button>
         </div>
       )}
 
-      <div className={styles["filter-bar"]}>
-        <div className={styles["status-pills-container"]}>
+      <FilterBar>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {visibleStatusOptions.map((status) => (
-            <button
+            <FilterPill
               key={status}
-              className={`${styles["status-pill"]} ${
+              label={status}
+              active={
                 selectedStatus === (status === "Semua" ? "semua" : status)
-                  ? styles.active
-                  : ""
-              }`}
+              }
               onClick={() =>
                 setSelectedStatus(status === "Semua" ? "semua" : status)
               }
-            >
-              {status}
-            </button>
+            />
           ))}
         </div>
-
-        <div className={styles["filter-group"]} style={{ marginLeft: "auto" }}>
-          <label className={styles["filter-label"]}>Divisi:</label>
-          <select
-            className={styles["filter-select"]}
-            value={selectedDivisi}
-            onChange={(e) => setSelectedDivisi(e.target.value)}
-          >
-            <option value="semua">Semua Divisi</option>
-            {divisiOptions.map((div, idx) => (
-              <option key={idx} value={div}>
-                {div}
-              </option>
-            ))}
-          </select>
-        </div>
-
+        <FilterSelect
+          label="Divisi"
+          value={selectedDivisi}
+          onChange={(e) => setSelectedDivisi(e.target.value)}
+        >
+          <option value="semua">Semua Divisi</option>
+          {divisiOptions.map((div, idx) => (
+            <option key={idx} value={div}>
+              {div}
+            </option>
+          ))}
+        </FilterSelect>
         {isAdmin && (
-          <label
-            className={`${styles["preview-toggle"]} ${
-              viewPublicMode ? styles.active : ""
-            }`}
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
           >
-            <input
-              type="checkbox"
-              checked={viewPublicMode}
-              onChange={() => setViewPublicMode(!viewPublicMode)}
-            />
-            <span>Preview</span>
-          </label>
+            <label className={styles["preview-toggle"]}>
+              <input
+                type="checkbox"
+                checked={viewPublicMode}
+                onChange={() => setViewPublicMode(!viewPublicMode)}
+              />
+              <span>Preview Tamu</span>
+            </label>
+          </div>
         )}
-      </div>
+      </FilterBar>
 
       {filteredList.length === 0 ? (
         <div className={styles["empty-state"]}>
           <span className={styles["empty-icon"]}>📭</span>
           <h3 className={styles["empty-title"]}>Belum ada Program Kerja</h3>
-          <p className={styles["empty-desc"]}>
-            Saat ini belum ada program kerja yang ditampilkan untuk kategori
-            atau filter yang Anda pilih.
-          </p>
+          <p className={styles["empty-desc"]}>Tidak ada data sesuai filter.</p>
         </div>
       ) : (
         <>
@@ -428,8 +429,26 @@ function ProgramKerja() {
           )}
         </>
       )}
+
+      {isAdmin && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingId ? "Edit Program Kerja" : "Tambah Program Kerja"}
+        >
+          <ProgramKerjaForm
+            formData={formData}
+            onChange={handleFormChange}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+            loading={modalLoading}
+            periodeList={formPeriodeList}
+            divisiList={formDivisiList}
+            anggotaList={formAnggotaList}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
-
 export default ProgramKerja;

@@ -1,20 +1,25 @@
 // src/pages/DaftarAnggota.jsx
-// --- VERSI FINAL: Filter Gender (Ikhwan/Akhwat) + Responsive ---
+// --- VERSI FINAL UTUH: Refactored UI (FilterBar), Bucket Fix, Reorder, & Clean Code ---
 
 import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
+// Styles
 import styles from "./DaftarAnggota.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
 
+// Components
 import Modal from "../components/Modal.jsx";
 import AnggotaForm from "../components/forms/AnggotaForm.jsx";
 import DivisiForm from "../components/forms/DivisiForm.jsx";
 import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import FormInput from "../components/admin/FormInput.jsx";
+
+// UI Components (New)
+import { FilterBar, FilterSelect } from "../components/ui/FilterBar.jsx";
 
 function DaftarAnggota() {
   const { session } = useAuth();
@@ -27,15 +32,15 @@ function DaftarAnggota() {
   const [jabatanList, setJabatanList] = useState([]);
 
   // Filter States
-  const [activeTab, setActiveTab] = useState(""); // Periode
+  const [activeTab, setActiveTab] = useState(""); // Periode ID
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
-  const [selectedGender, setSelectedGender] = useState("all"); // <--- STATE BARU
+  const [selectedGender, setSelectedGender] = useState("all");
 
   const [loading, setLoading] = useState(true);
 
-  // Modal States
+  // Modal & Form States
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeModal, setActiveModal] = useState(null);
+  const [activeModal, setActiveModal] = useState(null); // 'periode', 'divisi', 'anggota', 'reorder_divisi'
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
@@ -47,23 +52,27 @@ function DaftarAnggota() {
   const fetchInitialData = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Fetch Periode
       const { data: periodes } = await supabase
         .from("periode_jabatan")
         .select("*")
         .order("tahun_mulai", { ascending: false });
       setPeriodeList(periodes || []);
 
+      // Auto-select Periode Aktif
       if (periodes?.length > 0) {
         const active = periodes.find((p) => p.is_active);
         setActiveTab(active ? active.id : periodes[0].id);
       }
 
+      // 2. Fetch Divisi (Urutkan berdasarkan 'urutan')
       const { data: divisis } = await supabase
         .from("divisi")
         .select("*")
         .order("urutan", { ascending: true });
       setDivisiList(divisis || []);
 
+      // 3. Fetch Master Jabatan
       const { data: jabatans } = await supabase
         .from("master_jabatan")
         .select("*");
@@ -97,6 +106,33 @@ function DaftarAnggota() {
   useEffect(() => {
     fetchAnggota(activeTab);
   }, [activeTab, fetchAnggota]);
+
+  // --- Helper Functions ---
+  const getModalTitle = () => {
+    if (activeModal === "reorder_divisi") return "Atur Urutan Divisi";
+    const action = editingId ? "Edit" : "Tambah";
+    const typeMap = {
+      periode: "Periode",
+      divisi: "Divisi",
+      anggota: "Anggota",
+    };
+    return `${action} ${typeMap[activeModal] || ""}`;
+  };
+
+  const uploadFile = async (file, folder) => {
+    const ext = file.name.split(".").pop();
+    const fileName = `${folder}_${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(`${folder}/${fileName}`, file, { upsert: true });
+
+    if (error) throw new Error(`Gagal upload ${folder}: ${error.message}`);
+
+    const { data } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(`${folder}/${fileName}`);
+    return data.publicUrl;
+  };
 
   // --- Event Handlers ---
   const handleFileChange = (e) => {
@@ -175,21 +211,6 @@ function DaftarAnggota() {
     setFormData({});
   };
 
-  const uploadFile = async (file, folder) => {
-    const ext = file.name.split(".").pop();
-    const fileName = `${folder}_${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from("avatars")
-      .upload(`${folder}/${fileName}`, file, { upsert: true });
-
-    if (error) throw new Error(`Gagal upload ${folder}: ${error.message}`);
-
-    const { data } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(`${folder}/${fileName}`);
-    return data.publicUrl;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
@@ -205,24 +226,17 @@ function DaftarAnggota() {
         else await supabase.from("periode_jabatan").insert(payload);
         fetchInitialData();
       } else if (activeModal === "divisi") {
-        if (formFile) {
-          payload.logo_url = await uploadFile(formFile, "divisi");
-        } else {
-          payload.logo_url = existingFotoUrl;
-        }
+        if (formFile) payload.logo_url = await uploadFile(formFile, "divisi");
+        else payload.logo_url = existingFotoUrl;
 
         if (editingId)
           await supabase.from("divisi").update(payload).eq("id", editingId);
         else await supabase.from("divisi").insert(payload);
         fetchInitialData();
       } else if (activeModal === "anggota") {
-        if (formFile) {
-          payload.foto_url = await uploadFile(formFile, "anggota");
-        } else {
-          payload.foto_url = existingFotoUrl;
-        }
+        if (formFile) payload.foto_url = await uploadFile(formFile, "anggota");
+        else payload.foto_url = existingFotoUrl;
 
-        // Clean up empty fields
         if (!payload.motto) delete payload.motto;
         if (!payload.instagram_username) delete payload.instagram_username;
 
@@ -230,9 +244,7 @@ function DaftarAnggota() {
           await supabase.from("anggota").update(payload).eq("id", editingId);
         else await supabase.from("anggota").insert(payload);
 
-        alert(
-          editingId ? "Berhasil update anggota!" : "Berhasil tambah anggota!"
-        );
+        alert(editingId ? "Data anggota diperbarui!" : "Anggota ditambahkan!");
         fetchAnggota(activeTab);
       }
       closeModal();
@@ -252,7 +264,6 @@ function DaftarAnggota() {
         divisi: "divisi",
         periode: "periode_jabatan",
       };
-
       await supabase.from(tableMap[type]).delete().eq("id", id);
 
       if (type === "anggota") fetchAnggota(activeTab);
@@ -262,27 +273,13 @@ function DaftarAnggota() {
     }
   };
 
-  const getModalTitle = () => {
-    const titles = {
-      periode: editingId ? "Edit Periode" : "Tambah Periode",
-      divisi: editingId ? "Edit Divisi" : "Tambah Divisi",
-      anggota: editingId ? "Edit Anggota" : "Tambah Anggota",
-      reorder_divisi: "Atur Urutan Divisi",
-    };
-    return titles[activeModal] || "";
-  };
-
-  // --- FILTERING & GROUPING LOGIC (UPDATED) ---
+  // --- Filtering & Grouping Logic ---
   const filteredAnggota = anggotaList.filter((anggota) => {
-    // 1. Filter Divisi
     const matchDivisi =
       selectedDivisi === "semua" ||
       anggota.divisi_id === parseInt(selectedDivisi);
-
-    // 2. Filter Gender
     const matchGender =
       selectedGender === "all" || anggota.jenis_kelamin === selectedGender;
-
     return matchDivisi && matchGender;
   });
 
@@ -297,13 +294,15 @@ function DaftarAnggota() {
     memberMap[divId].push(member);
   });
 
-  // --- JSX Render ---
+  // --- Render JSX ---
   return (
     <div className="main-content">
+      {/* 1. HEADER */}
       <div className={styles["header-section"]}>
         <h1 className="page-title">Daftar Anggota</h1>
       </div>
 
+      {/* 2. ADMIN ACTIONS */}
       {isAdmin && (
         <div className={styles["action-buttons"]}>
           <button
@@ -334,13 +333,12 @@ function DaftarAnggota() {
         </div>
       )}
 
-      {/* --- FILTER BAR (STICKY) --- */}
-      <div className={styles["filter-bar"]}>
-        {/* 1. PERIODE */}
-        <div className={styles["filter-group"]}>
-          <label className={styles["filter-label"]}>Periode:</label>
-          <select
-            className={styles["filter-select"]}
+      {/* 3. FILTER BAR (NEW COMPONENT) */}
+      <FilterBar>
+        {/* A. Filter Periode */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <FilterSelect
+            label="Periode"
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value)}
           >
@@ -349,7 +347,9 @@ function DaftarAnggota() {
                 {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
               </option>
             ))}
-          </select>
+          </FilterSelect>
+
+          {/* PERBAIKAN: Tambahkan className styles["icon-btn"] agar transparan & rapi */}
           {isAdmin && activeTab && (
             <button
               onClick={() =>
@@ -359,44 +359,41 @@ function DaftarAnggota() {
                 )
               }
               className={styles["icon-btn"]}
+              title="Edit Periode Ini"
+              style={{ fontSize: "1rem", padding: "6px", color: "#718096" }} // Style inline tambahan biar pas
             >
               ✏️
             </button>
           )}
         </div>
 
-        {/* 2. DIVISI */}
-        <div className={styles["filter-group"]}>
-          <label className={styles["filter-label"]}>Divisi:</label>
-          <select
-            className={styles["filter-select"]}
-            value={selectedDivisi}
-            onChange={(e) => setSelectedDivisi(e.target.value)}
-          >
-            <option value="semua">Semua Divisi</option>
-            {divisiList.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.nama_divisi}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* B. Filter Divisi */}
+        <FilterSelect
+          label="Divisi"
+          value={selectedDivisi}
+          onChange={(e) => setSelectedDivisi(e.target.value)}
+        >
+          <option value="semua">Semua Divisi</option>
+          {divisiList.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.nama_divisi}
+            </option>
+          ))}
+        </FilterSelect>
 
-        {/* 3. GENDER (FILTER BARU) */}
-        <div className={styles["filter-group"]}>
-          <label className={styles["filter-label"]}>Gender:</label>
-          <select
-            className={styles["filter-select"]}
-            value={selectedGender}
-            onChange={(e) => setSelectedGender(e.target.value)}
-          >
-            <option value="all">Semua</option>
-            <option value="Ikhwan">Ikhwan (Putra)</option>
-            <option value="Akhwat">Akhwat (Putri)</option>
-          </select>
-        </div>
-      </div>
+        {/* C. Filter Gender */}
+        <FilterSelect
+          label="Gender"
+          value={selectedGender}
+          onChange={(e) => setSelectedGender(e.target.value)}
+        >
+          <option value="all">Semua</option>
+          <option value="Ikhwan">Ikhwan</option>
+          <option value="Akhwat">Akhwat</option>
+        </FilterSelect>
+      </FilterBar>
 
+      {/* 4. CONTENT GRID */}
       {loading ? (
         <p className="loading-text">Memuat data...</p>
       ) : (
@@ -471,6 +468,7 @@ function DaftarAnggota() {
             );
           })}
 
+          {/* Orphan Members (Tanpa Divisi) */}
           {memberMap["others"]?.length > 0 && (
             <section className={styles["divisi-section"]}>
               <div className={styles["divisi-header"]}>
@@ -503,12 +501,13 @@ function DaftarAnggota() {
                 border: "1px dashed #e2e8f0",
               }}
             >
-              Tidak ditemukan data anggota dengan filter ini.
+              Tidak ada data anggota.
             </p>
           )}
         </>
       )}
 
+      {/* 5. MODALS */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
         {activeModal === "periode" && (
           <form onSubmit={handleSubmit}>

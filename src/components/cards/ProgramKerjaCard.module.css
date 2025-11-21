@@ -1,0 +1,190 @@
+/* CONTAINER KARTU */
+.card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%; /* Penting agar tinggi seragam dalam grid */
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  border-color: #bee3f8;
+}
+
+/* MEDIA / EMBED */
+.mediaContainer {
+  width: 100%;
+  background-color: #f7fafc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 150px; /* Tinggi minimal agar tidak gepeng */
+  border-bottom: 1px solid #edf2f7;
+  overflow: hidden;
+}
+
+.embedWrapper {
+  width: 100%;
+}
+
+/* Paksa elemen embed (iframe/blockquote) agar responsif penuh */
+.embedWrapper :global(iframe),
+.embedWrapper :global(blockquote) {
+  width: 100% !important;
+  max-width: 100% !important;
+  border: none;
+  margin: 0 auto !important;
+  display: block;
+}
+
+/* BODY & CONTENT */
+.cardBody {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Isi ruang kosong agar footer rata bawah */
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+/* STATUS BADGES */
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-selesai {
+  background-color: #c6f6d5;
+  color: #22543d;
+} /* Hijau */
+.status-akan-datang {
+  background-color: #bee3f8;
+  color: #2c5282;
+} /* Biru */
+.status-rencana {
+  background-color: #fefcbf;
+  color: #744210;
+} /* Kuning/Emas */
+
+.hiddenBadge {
+  font-size: 0.7rem;
+  color: #e53e3e;
+  background-color: #fff5f5;
+  border: 1px solid #feb2b2;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* TYPOGRAPHY */
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #718096;
+  margin-bottom: 1rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.textPj {
+  color: #3182ce;
+  font-weight: 600;
+}
+
+.cardDesc {
+  font-size: 0.9rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  /* Truncate Text (Maksimal 3 baris) */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* FOOTER LINK */
+.btnDetail {
+  margin-top: auto; /* Dorong ke paling bawah sebelum tombol admin */
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3182ce;
+  text-decoration: none;
+  transition: color 0.2s;
+  display: inline-block;
+}
+
+.btnDetail:hover {
+  color: #2b6cb0;
+  text-decoration: underline;
+}
+
+/* ADMIN BUTTONS */
+.adminActions {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btnAction {
+  flex: 1;
+  padding: 0.4rem 0;
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 0.2s;
+}
+
+.btnEdit {
+  background-color: #ebf8ff;
+  color: #3182ce;
+}
+.btnEdit:hover {
+  background-color: #bee3f8;
+}
+
+.btnDelete {
+  background-color: #fff5f5;
+  color: #e53e3e;
+}
+.btnDelete:hover {
+  background-color: #fed7d7;
+}

@@ -1,0 +1,130 @@
+/* src/pages/VisiMisi.module.css */
+
+/* Container Utama */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 6rem;
+}
+
+/* Header Section (Judul Halaman Dinamis) */
+.headerSection {
+  text-align: center;
+  padding: 4rem 1rem;
+  margin-bottom: 4rem;
+  background: linear-gradient(to bottom, #fff, #f7fafc);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.pageTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.pageSubtitle {
+  font-size: 1.2rem;
+  color: #718096;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Top Bar (Tombol Setting) */
+.topBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+}
+
+.settingBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #cbd5e0;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.settingBtn:hover {
+  background: #f7fafc;
+  border-color: #a0aec0;
+}
+
+/* Icon Button (Untuk Edit Judul Utama) */
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.iconBtn:hover {
+  background: #3182ce;
+  color: white;
+  border-color: #3182ce;
+}
+
+/* Big Add Button (Tombol Tambah Seksi) */
+.addBtn {
+  width: 100%;
+  padding: 2rem;
+  border: 2px dashed #cbd5e0;
+  background: #f7fafc;
+  color: #718096;
+  font-weight: 600;
+  border-radius: 1rem;
+  cursor: pointer;
+  margin-top: 3rem;
+  transition: all 0.2s;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.addBtn:hover {
+  border-color: #3182ce;
+  color: #3182ce;
+  background: #ebf8ff;
+}
+
+/* Settings Modal Options */
+.layoutOptionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.layoutOption {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+  color: #718096;
+}
+
+.layoutOption:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.layoutOption.active {
+  border-color: #3182ce;
+  background: #ebf8ff;
+  color: #2b6cb0;
+  font-weight: 700;
+}

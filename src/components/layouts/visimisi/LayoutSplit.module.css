@@ -1,0 +1,77 @@
+/* src/components/layouts/visimisi/LayoutSplit.module.css */
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.card {
+  display: grid;
+  gap: 1.5rem;
+  padding: 2.5rem;
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  position: relative;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .card {
+    grid-template-columns: 220px 1fr;
+  }
+}
+
+.cardTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #2d3748;
+  text-transform: uppercase;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.cardBody {
+  font-size: 1.1rem;
+  color: #4a5568;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+/* Admin Floating Top Right */
+.adminAbsolute {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.card:hover .adminAbsolute {
+  opacity: 1;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.iconBtn:hover {
+  background: #3182ce;
+  color: white;
+  border-color: #3182ce;
+}
+.deleteBtn:hover {
+  background: #e53e3e;
+  color: white;
+  border-color: #e53e3e;
+}

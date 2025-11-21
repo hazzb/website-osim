@@ -1,6 +1,3 @@
-// src/pages/DivisiDetail.jsx
-// --- VERSI UPDATE: Filter Gender Ikhwan/Akhwat ---
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -11,6 +8,11 @@ import styles from "./DivisiDetail.module.css";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import Modal from "../components/Modal.jsx";
 import AnggotaForm from "../components/forms/AnggotaForm.jsx";
+import {
+  FilterBar,
+  FilterSelect,
+  FilterSearch,
+} from "../components/ui/FilterBar.jsx"; // Import UI Baru
 
 function DivisiDetail() {
   const { id } = useParams();
@@ -18,16 +20,16 @@ function DivisiDetail() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // --- States ---
+  // State
   const [divisi, setDivisi] = useState(null);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // FILTER STATES
+  // Filters
   const [searchTerm, setSearchTerm] = useState("");
-  const [genderFilter, setGenderFilter] = useState("all"); // 'all', 'Ikhwan', 'Akhwat'
+  const [genderFilter, setGenderFilter] = useState("all");
 
-  // Modal & Form States
+  // Modal & Form
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -36,17 +38,15 @@ function DivisiDetail() {
   const [formPreview, setFormPreview] = useState(null);
   const [existingFotoUrl, setExistingFotoUrl] = useState(null);
 
-  // Dropdown Data
+  // Dropdowns
   const [periodeList, setPeriodeList] = useState([]);
   const [divisiList, setDivisiList] = useState([]);
   const [jabatanList, setJabatanList] = useState([]);
 
-  // --- Fetching Data ---
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 1. Get Divisi Info
         const { data: divData, error: divError } = await supabase
           .from("divisi")
           .select(
@@ -54,18 +54,14 @@ function DivisiDetail() {
           )
           .eq("id", id)
           .single();
-
-        if (divError) throw divError;
-        if (!divData) throw new Error("Divisi tidak ditemukan");
+        if (divError || !divData) throw new Error("Divisi tidak ditemukan");
         setDivisi(divData);
 
-        // 2. Get Members
         const { data: memData } = await supabase
           .from("anggota")
           .select("*")
           .eq("divisi_id", id)
           .order("created_at", { ascending: true });
-
         setMembers(memData || []);
       } catch (err) {
         console.error(err);
@@ -93,20 +89,14 @@ function DivisiDetail() {
     setJabatanList(j || []);
   };
 
-  // --- Handlers ---
-
-  // LOGIC FILTER (SEARCH + GENDER)
+  // Handlers
   const filteredMembers = members.filter((m) => {
-    // 1. Cek Search Text
     const matchSearch =
       m.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (m.jabatan_di_divisi &&
         m.jabatan_di_divisi.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    // 2. Cek Gender
     const matchGender =
       genderFilter === "all" || m.jenis_kelamin === genderFilter;
-
     return matchSearch && matchGender;
   });
 
@@ -137,14 +127,9 @@ function DivisiDetail() {
   };
 
   const handleDelete = async (memberId) => {
-    if (!window.confirm("Yakin ingin menghapus anggota ini dari divisi?"))
-      return;
+    if (!window.confirm("Hapus anggota ini?")) return;
     try {
-      const { error } = await supabase
-        .from("anggota")
-        .delete()
-        .eq("id", memberId);
-      if (error) throw error;
+      await supabase.from("anggota").delete().eq("id", memberId);
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
     } catch (err) {
       alert("Gagal hapus: " + err.message);
@@ -167,34 +152,27 @@ function DivisiDetail() {
           .getPublicUrl(`anggota/${name}`);
         fotoUrl = data.publicUrl;
       }
-
       const payload = { ...formData, foto_url: fotoUrl };
       if (!payload.motto) delete payload.motto;
       if (!payload.instagram_username) delete payload.instagram_username;
 
-      const { error } = await supabase
-        .from("anggota")
-        .update(payload)
-        .eq("id", editingId);
-      if (error) throw error;
-
-      alert("Data berhasil diperbarui!");
+      await supabase.from("anggota").update(payload).eq("id", editingId);
+      alert("Berhasil update!");
       setIsModalOpen(false);
 
-      const { data: updatedMembers } = await supabase
+      const { data: updated } = await supabase
         .from("anggota")
         .select("*")
         .eq("divisi_id", id)
         .order("created_at", { ascending: true });
-      setMembers(updatedMembers || []);
+      setMembers(updated || []);
     } catch (err) {
-      alert("Gagal update: " + err.message);
+      alert("Gagal: " + err.message);
     } finally {
       setModalLoading(false);
     }
   };
 
-  // --- Render ---
   if (loading)
     return (
       <div className="main-content">
@@ -206,27 +184,24 @@ function DivisiDetail() {
   return (
     <div className="main-content">
       <div className={styles.container}>
+        {/* Nav */}
         <div className={styles.navBar}>
           <Link to="/daftar-anggota" className={styles.backLink}>
             &larr; Kembali ke Daftar
           </Link>
         </div>
 
+        {/* Hero Section (Profile Divisi) */}
         <div className={styles.heroSection}>
           <div className={styles.visualContainer}>
             <div className={styles.logoWrapper}>
               {divisi.logo_url ? (
-                <img
-                  src={divisi.logo_url}
-                  alt={divisi.nama_divisi}
-                  className={styles.logo}
-                />
+                <img src={divisi.logo_url} alt="logo" className={styles.logo} />
               ) : (
                 <span style={{ fontSize: "3rem" }}>🏢</span>
               )}
             </div>
           </div>
-
           <div className={styles.infoContainer}>
             {divisi.periode_jabatan && (
               <span className={styles.periodeBadge}>
@@ -237,52 +212,48 @@ function DivisiDetail() {
             )}
             <h1 className={styles.title}>{divisi.nama_divisi}</h1>
             <p className={styles.description}>
-              {divisi.deskripsi || "Belum ada deskripsi divisi."}
+              {divisi.deskripsi || "Belum ada deskripsi."}
             </p>
           </div>
         </div>
 
-        {/* FILTER SECTION */}
-        <div className={styles.filterSection}>
-          <h3 className={styles.sectionTitle}>
-            Anggota ({filteredMembers.length})
-          </h3>
-
+        {/* Filter Bar (New UI) */}
+        <FilterBar>
+          <FilterSelect
+            label="Gender"
+            value={genderFilter}
+            onChange={(e) => setGenderFilter(e.target.value)}
+          >
+            <option value="all">Semua Gender</option>
+            <option value="Ikhwan">Ikhwan</option>
+            <option value="Akhwat">Akhwat</option>
+          </FilterSelect>
           <div
             style={{
+              marginLeft: "auto",
               display: "flex",
-              gap: "0.75rem",
-              flexWrap: "wrap",
-              flexGrow: 1,
-              justifyContent: "flex-end",
+              alignItems: "center",
+              gap: "1rem",
             }}
           >
-            {/* FILTER GENDER (BARU) */}
-            <select
-              className={styles.filterSelect}
-              value={genderFilter}
-              onChange={(e) => setGenderFilter(e.target.value)}
+            <span
+              style={{
+                fontSize: "0.85rem",
+                fontWeight: "600",
+                color: "#718096",
+              }}
             >
-              <option value="all">Semua Gender</option>
-              <option value="Ikhwan">Ikhwan (Putra)</option>
-              <option value="Akhwat">Akhwat (Putri)</option>
-            </select>
-
-            {/* SEARCH BAR */}
-            <div className={styles.searchWrapper}>
-              <span className={styles.searchIcon}>🔍</span>
-              <input
-                type="text"
-                placeholder="Cari nama..."
-                className={styles.searchInput}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+              Total: {filteredMembers.length}
+            </span>
+            <FilterSearch
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cari anggota..."
+            />
           </div>
-        </div>
+        </FilterBar>
 
-        {/* Members Grid */}
+        {/* Grid */}
         {filteredMembers.length > 0 ? (
           <div className={styles.cardGrid}>
             {filteredMembers.map((anggota) => (
@@ -296,15 +267,10 @@ function DivisiDetail() {
             ))}
           </div>
         ) : (
-          <div className={styles.emptyState}>
-            {members.length === 0
-              ? "Belum ada anggota di divisi ini."
-              : "Tidak ditemukan anggota yang cocok."}
-          </div>
+          <div className={styles.emptyState}>Tidak ditemukan anggota.</div>
         )}
       </div>
 
-      {/* Modal Edit */}
       {isAdmin && (
         <Modal
           isOpen={isModalOpen}
@@ -328,5 +294,4 @@ function DivisiDetail() {
     </div>
   );
 }
-
 export default DivisiDetail;

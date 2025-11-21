@@ -1,21 +1,15 @@
-/* src/pages/DivisiDetail.module.css */
-
-/* =========================================
-   1. LAYOUT & NAVIGATION
-   ========================================= */
 .container {
   max-width: 1100px;
   margin: 0 auto;
   padding-bottom: 4rem;
 }
 
+/* NAV */
 .navBar {
   margin-bottom: 2rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
-
 .backLink {
   display: inline-flex;
   align-items: center;
@@ -29,9 +23,7 @@
   color: #3182ce;
 }
 
-/* =========================================
-   2. HERO SECTION (Corporate Split Style)
-   ========================================= */
+/* HERO SECTION */
 .heroSection {
   display: flex;
   align-items: center;
@@ -40,13 +32,11 @@
   padding: 3rem;
   border-radius: 1rem;
   border: 1px solid #e2e8f0;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
 }
-
-/* Decorative line top */
 .heroSection::before {
   content: "";
   position: absolute;
@@ -57,11 +47,10 @@
   background: linear-gradient(90deg, #3182ce, #4299e1);
 }
 
-/* Logo Container (Left) */
 .visualContainer {
   flex-shrink: 0;
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,7 +59,6 @@
   border: 1px dashed #cbd5e0;
   padding: 1rem;
 }
-
 .logoWrapper {
   width: 100%;
   height: 100%;
@@ -78,7 +66,6 @@
   align-items: center;
   justify-content: center;
 }
-
 .logo {
   width: 100%;
   height: 100%;
@@ -86,11 +73,9 @@
   filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));
 }
 
-/* Info Container (Right) */
 .infoContainer {
   flex-grow: 1;
 }
-
 .periodeBadge {
   display: inline-block;
   background: #ebf8ff;
@@ -103,7 +88,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 .title {
   font-size: 2.5rem;
   font-weight: 800;
@@ -111,7 +95,6 @@
   margin: 0 0 1rem 0;
   line-height: 1.1;
 }
-
 .description {
   font-size: 1.1rem;
   color: #4a5568;
@@ -119,97 +102,25 @@
   max-width: 700px;
 }
 
-/* =========================================
-   3. FILTER & SEARCH SECTION
-   ========================================= */
-.filterSection {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.sectionTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin: 0;
-}
-
-.searchWrapper {
-  position: relative;
-  width: 100%;
-  max-width: 320px;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #a0aec0;
-  pointer-events: none;
-}
-
-.searchInput {
-  width: 100%;
-  padding: 0.6rem 1rem 0.6rem 2.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 99px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: all 0.2s;
-  background-color: #fff;
-}
-
-.searchInput:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-}
-
-/* =========================================
-   4. MEMBER GRID
-   ========================================= */
+/* GRID */
 .cardGrid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(1, 1fr);
-}
-
-/* Responsive Grid */
-@media (min-width: 640px) {
-  .cardGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 1024px) {
-  .cardGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (min-width: 1280px) {
-  .cardGrid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 
 .emptyState {
   text-align: center;
-  padding: 3rem;
+  padding: 4rem;
   color: #718096;
   font-style: italic;
   background: #f9fafb;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px dashed #cbd5e0;
+  margin-top: 2rem;
 }
 
-/* =========================================
-   5. MOBILE OPTIMIZATION
-   ========================================= */
+/* MOBILE */
 @media (max-width: 768px) {
   .heroSection {
     flex-direction: column;
@@ -217,55 +128,12 @@
     gap: 1.5rem;
     padding: 2rem 1.5rem;
   }
-
   .visualContainer {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     margin: 0 auto;
   }
-
   .title {
     font-size: 1.75rem;
   }
-
-  .filterSection {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .searchWrapper {
-    max-width: 100%;
-  }
-}
-
-.filterSelect {
-  padding: 0.6rem 1rem;
-  padding-right: 2rem; /* Ruang untuk panah dropdown */
-  border: 1px solid #e2e8f0;
-  border-radius: 99px;
-  font-size: 0.9rem;
-  outline: none;
-  background-color: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #4a5568;
-
-  /* Custom Arrow (Optional, biar lebih rapi) */
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a0aec0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem top 50%;
-  background-size: 0.65rem auto;
-
-  min-width: 140px;
-}
-
-.filterSelect:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-}
-
-.filterSelect:hover {
-  background-color: #f7fafc;
 }

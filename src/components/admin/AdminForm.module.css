@@ -43,16 +43,28 @@
 }
 
 /* Utilitas Col-Span */
-.col-span-1 { grid-column: span 1; }
-.col-span-2 { grid-column: span 1; } /* Di HP tetap 1 kolom */
-.col-span-3 { grid-column: span 1; }
+.col-span-1 {
+  grid-column: span 1;
+}
+.col-span-2 {
+  grid-column: span 1;
+} /* Di HP tetap 1 kolom */
+.col-span-3 {
+  grid-column: span 1;
+}
 
 @media (min-width: 640px) {
-  .col-span-2 { grid-column: span 2; }
-  .col-span-3 { grid-column: span 2; }
+  .col-span-2 {
+    grid-column: span 2;
+  }
+  .col-span-3 {
+    grid-column: span 2;
+  }
 }
 @media (min-width: 1024px) {
-  .col-span-3 { grid-column: span 3; }
+  .col-span-3 {
+    grid-column: span 3;
+  }
 }
 
 /* Styling Input Group */
@@ -80,7 +92,9 @@
   border: 1px solid #cbd5e0;
   border-radius: 0.375rem;
   background-color: #fff;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
   color: #2d3748;
 }
 
@@ -163,4 +177,91 @@
   border: 0;
   border-top: 1px solid #edf2f7;
   margin: 0.5rem 0;
+}
+
+/* src/components/admin/AdminForm.module.css */
+
+/* Grid Layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Label Styling */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4a5568;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --- MODERN INPUT & TEXTAREA STYLE --- */
+.input-field {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-family: inherit; /* Mengikuti font website (bukan Courier/Default) */
+  font-size: 0.95rem;
+  color: #2d3748;
+
+  /* Background sedikit abu agar terlihat seperti "field" */
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.6rem;
+
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+/* Placeholder styling */
+.input-field::placeholder {
+  color: #a0aec0;
+  font-weight: 400;
+}
+
+/* Focus State (Saat diklik) */
+.input-field:focus {
+  background-color: #ffffff; /* Jadi putih bersih */
+  border-color: #3182ce; /* Border biru */
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); /* Glow halus */
+}
+
+/* Khusus TEXTAREA (Isi Konten) */
+textarea.input-field {
+  min-height: 200px; /* Lebih tinggi */
+  line-height: 1.7; /* Jarak antar baris lebih lega (enak dibaca) */
+  resize: vertical;
+
+  /* Typography mirip editor dokumen */
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Helper Text (Tips di bawah) */
+.helper-text {
+  font-size: 0.8rem;
+  color: #718096;
+  background-color: #f0fff4; /* Background hijau sangat muda */
+  color: #2f855a;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #c6f6d5;
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+
+/* Footer Buttons */
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #edf2f7;
 }

@@ -1,0 +1,88 @@
+/* src/components/layouts/visimisi/LayoutZigZag.module.css */
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  padding: 2.5rem;
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+}
+
+@media (min-width: 768px) {
+  .card {
+    flex-direction: row;
+    align-items: center;
+    gap: 4rem;
+  }
+
+  /* Item Genap Dibalik (Kanan -> Kiri) */
+  .card:nth-child(even) {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+
+  .cardHeader {
+    flex: 0 0 35%;
+  }
+  .cardBody {
+    flex: 1;
+  }
+
+  /* Tombol admin ikut align */
+  .card:nth-child(even) .adminActions {
+    justify-content: flex-end;
+  }
+}
+
+.cardTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #3182ce; /* Aksen Biru */
+  line-height: 1;
+  margin: 0 0 1rem 0;
+}
+
+.cardBody {
+  font-size: 1.1rem;
+  color: #4a5568;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
+/* Admin Buttons */
+.adminActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd5e0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.iconBtn:hover {
+  background: #2d3748;
+  color: white;
+  border-color: #2d3748;
+}
+.deleteBtn:hover {
+  background: #e53e3e;
+  border-color: #e53e3e;
+}

@@ -1,496 +1,180 @@
 /* src/pages/ProgramKerja.module.css */
-/* --- STANDARD PILL FILTER DESIGN --- */
 
-/* HEADER */
+/* =========================================
+   1. HEADER & PAGE TITLE
+   ========================================= */
 .header-section {
-  margin-bottom: 2rem;
-}
-
-/* FILTER BAR CONTAINER */
-/* src/pages/ProgramKerja.module.css */
-
-/* ... kode sebelumnya ... */
-
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  align-items: center;
-
-  /* --- TAMBAHAN UNTUK STICKY --- */
-  position: sticky; /* Kunci utama */
-  top: 70px; /* Jarak dari atas layar. Ubah ke tinggi Navbar jika Navbar fixed (misal: 60px) */
-  z-index: 40; /* Agar muncul di atas kartu program kerja */
-
-  background-color: rgba(255, 255, 255, 0.9); /* Putih agak transparan */
-  backdrop-filter: blur(8px); /* Efek kaca buram (frosted glass) yang keren */
-
-  padding: 1rem 0; /* Beri nafas atas-bawah */
-  margin-left: -1rem; /* Trik visual agar background melebar */
-  margin-right: -1rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* Garis batas halus saat scroll */
-  transition: all 0.3s ease;
-}
-
-/* ... kode lainnya ... */
-
-/* --- THE PILL STYLE (Standard) --- */
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: white;
-  border: 1px solid #cbd5e0; /* Border abu halus */
-  border-radius: 9999px; /* BENTUK PILL */
-  padding: 0.4rem 1rem; /* Padding dalam pill */
-  font-size: 0.875rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.2s;
-}
-.filter-group:hover {
-  border-color: #a0aec0;
-}
-
-/* LABEL di dalam Pill */
-.filter-label {
-  font-weight: 600;
-  color: #4a5568; /* Abu gelap */
-  white-space: nowrap;
-}
-
-/* SELECT DROPDOWN di dalam Pill */
-.filter-select {
-  border: none;
-  background-color: transparent; /* Transparan agar menyatu dengan pill */
-  color: #2b6cb0; /* Teks Biru */
-  font-weight: 700;
-  cursor: pointer;
-  outline: none;
-  padding-right: 0.25rem;
-  /* Menghilangkan default arrow browser agar lebih rapi (opsional) */
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  /* Custom Arrow SVG (Opsional, hapus jika ingin arrow default browser) */
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232b6cb0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: 0.7em;
-  padding-right: 1.2rem; /* Ruang untuk arrow */
-}
-
-/* --- PREVIEW MODE PILL (CHECKBOX) --- */
-.preview-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto; /* Dorong ke kanan */
-  cursor: pointer;
-  /* Menggunakan style Pill yang sama */
-  background-color: white;
-  border: 1px solid #cbd5e0;
-  border-radius: 9999px;
-  padding: 0.4rem 1rem;
-  font-size: 0.875rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  user-select: none;
-}
-.preview-toggle input {
-  accent-color: #ed8936; /* Warna checkbox orange */
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-.preview-toggle span {
-  font-weight: 600;
-  color: #4a5568;
-}
-.preview-toggle.active {
-  border-color: #ed8936;
-  background-color: #fffaf0;
-}
-.preview-toggle.active span {
-  color: #c05621;
-}
-
-/* --- ADMIN CONTROLS (SWITCHES) --- */
-.admin-controls {
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  padding: 1rem 1.5rem;
-  border-radius: 0.75rem;
-  margin-bottom: 2rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-.admin-controls-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #2d3748;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 0.5rem;
-}
-.toggle-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.25rem;
-}
-.toggle-switch {
-  position: relative;
-  width: 40px;
-  height: 22px;
-  background-color: #cbd5e0;
-  border-radius: 99px;
-  transition: 0.3s;
-  flex-shrink: 0;
-}
-.toggle-knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  background-color: white;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: 0.3s;
-}
-.toggle-wrapper.active .toggle-switch {
-  background-color: #48bb78;
-}
-.toggle-wrapper.active .toggle-knob {
-  transform: translateX(18px);
-}
-.toggle-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #4a5568;
-  user-select: none;
-}
-
-/* --- GRID & CARD --- */
-.progja-grid {
-  display: grid;
-  /* minmax(300px, 1fr) membuat kolom responsif */
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-
-  /* KUNCI PERBAIKAN CARD: */
-  /* 'start' membuat kartu TIDAK stretching ke bawah mengikuti kartu tertinggi */
-  align-items: start;
-}
-
-@media (min-width: 768px) {
-  .progja-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 1024px) {
-  .progja-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.card {
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  overflow: hidden; /* Agar konten tidak keluar border radius */
-  transition: transform 0.2s, box-shadow 0.2s;
-
-  /* Hapus height: 100% agar tinggi kartu mengikuti isinya */
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-  /* Pastikan background putih agar tidak transparan */
-  background: #fff;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-  border-color: #bee3f8;
-}
-
-/* Media & Status */
-.media-container {
-  width: 100%;
-  /* HAPUS aspect-ratio: 16/9 agar Instagram tidak terpotong/gepeng */
-  /* aspect-ratio: 16/9;  <-- Dihapus */
-
-  background-color: #f7fafc;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  /* Tambahkan min-height agar tidak 'jump' saat loading, tapi biarkan auto tumbuh */
-  min-height: 50px;
-}
-
-.embed-wrapper {
-  width: 100%;
-  /* Jangan set height 100%, biarkan konten (instagram) menentukan tingginya */
-  overflow: hidden;
-}
-
-.embed-wrapper :global(iframe),
-.embed-wrapper :global(blockquote) {
-  width: 100% !important;
-  /* Max-width penting agar tidak merusak layout di HP */
-  max-width: 100% !important;
-  border: none;
-  margin: 0 auto !important; /* Tengahkan */
-  display: block;
-}
-
-/* Khusus untuk YouTube agar tetap responsif 16:9 jika diperlukan */
-.embed-wrapper :global(iframe[src*="youtube.com"]),
-.embed-wrapper :global(iframe[src*="youtu.be"]) {
-  aspect-ratio: 16/9;
-  height: auto;
-}
-/* Style untuk card yang tidak memiliki media */
-.card-body {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Jika card tidak punya media, beri border atas yang rapi */
-.card-no-media .card-body {
-  border-top: 4px solid #e2e8f0;
-}
-/* Opsional: Beri warna border beda berdasarkan status jika tidak ada gambar */
-.card-no-media:has(.status-selesai) .card-body {
-  border-top-color: #c6f6d5;
-}
-.card-no-media:has(.status-akan-datang) .card-body {
-  border-top-color: #bee3f8;
-}
-.card-no-media:has(.status-rencana) .card-body {
-  border-top-color: #fefcbf;
-}
-
-.status-badge {
-  display: inline-block;
-  width: fit-content;
-  margin-bottom: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.status-selesai {
-  background-color: #c6f6d5;
-  color: #22543d;
-}
-.status-rencana {
-  background-color: #fefcbf;
-  color: #744210;
-}
-.status-akan-datang {
-  background-color: #bee3f8;
-  color: #2a4365;
-}
-
-/* Body */
-.card-body {
-  padding: 1.5rem;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-.card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.75rem;
-  line-height: 1.4;
-}
-.card-meta {
-  font-size: 0.85rem;
-  color: #718096;
-  margin-bottom: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.meta-item span:first-child {
-  width: 16px;
-  text-align: center;
-}
-.card-desc {
-  font-size: 0.9rem;
-  color: #4a5568;
   margin-bottom: 1.5rem;
-  flex-grow: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.6;
-}
-.card-footer {
-  margin-top: auto;
-  text-align: right;
-}
-.btn-detail {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #3182ce;
-  background: #ebf8ff;
-  border-radius: 0.375rem;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-.btn-detail:hover {
-  background: #bee3f8;
-  color: #2c5282;
-}
-
-/* SECTION TITLES */
-.timeline-section {
-  margin-bottom: 3rem;
-}
-.section-header {
   display: flex;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #edf2f7;
+  justify-content: space-between;
 }
-.section-title {
-  font-size: 1.5rem;
+
+.page-title {
+  font-size: 1.75rem;
   font-weight: 800;
   color: #2d3748;
   margin: 0;
 }
+
+/* =========================================
+   2. ADMIN CONTROLS (PANEL TOGGLE)
+   ========================================= */
+.admin-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+
+  flex-wrap: wrap;
+}
+
+.admin-controls-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+}
+
+/* Toggle Switch Style */
+.toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.toggle-wrapper.active {
+  opacity: 1;
+}
+
+.toggle-switch {
+  width: 36px;
+  height: 20px;
+  background-color: #cbd5e0;
+  border-radius: 99px;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-wrapper.active .toggle-switch {
+  background-color: #3182ce;
+}
+
+.toggle-knob {
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-wrapper.active .toggle-knob {
+  transform: translateX(16px);
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+/* Checkbox Preview Tamu */
+.preview-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.preview-toggle input {
+  accent-color: #3182ce;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* =========================================
+   3. TIMELINE SECTIONS
+   ========================================= */
+.timeline-section {
+  margin-bottom: 3rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 0.75rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  margin-right: 0.75rem;
+}
+
+.title-akan-datang {
+  color: #3182ce;
+}
+.title-rencana {
+  color: #d69e2e;
+}
+.title-selesai {
+  color: #38a169;
+}
+
 .section-count {
-  margin-left: 1rem;
-  background: #edf2f7;
+  background-color: #edf2f7;
   color: #718096;
-  padding: 0.2rem 0.6rem;
+  padding: 0.15rem 0.6rem;
   border-radius: 99px;
   font-size: 0.8rem;
   font-weight: 700;
 }
-.title-akan-datang {
-  color: #2b6cb0;
-  border-bottom-color: #bee3f8;
-}
-.title-rencana {
-  color: #d69e2e;
-  border-bottom-color: #fefcbf;
-}
-.title-selesai {
-  color: #2f855a;
-  border-bottom-color: #c6f6d5;
+
+/* =========================================
+   4. MASONRY GRID LAYOUT (PINTEREST STYLE)
+   ========================================= */
+/* Kunci Layout Pinterest: Gunakan 'column-count' bukan 'grid' */
+.progja-grid {
+  column-count: 3; /* Default Desktop: 3 Kolom */
+  column-gap: 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
-/* RESPONSIVE */
-@media (max-width: 640px) {
-  .preview-toggle {
-    margin-left: 0;
-    width: 100%;
-    justify-content: center;
-    margin-top: 0.5rem;
-  }
-  .filter-group {
-    flex-grow: 1;
-    justify-content: space-between;
-  }
+/* Targetkan elemen anak (kartu) di dalam grid ini */
+.progja-grid > div {
+  /* Mencegah kartu terpotong di tengah-tengah kolom */
+  break-inside: avoid-column;
+  /* Jarak vertikal antar kartu */
+  margin-bottom: 1.5rem;
 }
 
-/* src/pages/ProgramKerja.module.css */
-
-/* ... kode sebelumnya ... */
-
-/* --- STATUS FILTER PILLS --- */
-.status-pills-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  /* Agar responsive di HP (Geser/Swipe ke samping) */
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
-
-  /* Styling Scrollbar */
-  padding-bottom: 0.2rem;
-  scrollbar-width: none; /* Firefox: Sembunyikan scrollbar */
-
-  /* Agar tidak mentok kiri/kanan di HP */
-  margin-right: auto;
-  max-width: 100%;
-}
-
-.status-pills-container::-webkit-scrollbar {
-  display: none;
-}
-
-.status-pill {
-  /* Agar tombol tidak mengecil di layar sempit */
-  flex-shrink: 0;
-
-  padding: 0.4rem 1.2rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid #e2e8f0;
-  background-color: white;
-  color: #718096;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.status-pill:hover {
-  background-color: #f7fafc;
-  border-color: #cbd5e0;
-}
-
-.status-pill.active {
-  background-color: #3182ce;
-  color: white;
-  border-color: #3182ce;
-  box-shadow: 0 2px 4px rgba(49, 130, 206, 0.3);
-}
-
-/* Mobile Adjustment */
-@media (max-width: 640px) {
-  .status-pills-container {
-    width: 100%; /* Full width di HP */
-    padding-right: 1rem; /* Ruang napas di ujung */
-  }
-}
-
-/* src/pages/ProgramKerja.module.css */
-
-/* ... (kode CSS sebelumnya tetap sama) ... */
-
-/* --- EMPTY STATE (DATA KOSONG) --- */
+/* =========================================
+   5. EMPTY STATE
+   ========================================= */
 .empty-state {
   text-align: center;
   padding: 4rem 1rem;
@@ -503,9 +187,9 @@
 
 .empty-icon {
   font-size: 3rem;
-  margin-bottom: 1rem;
   display: block;
-  opacity: 0.6;
+  margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
 .empty-title {
@@ -519,5 +203,45 @@
   font-size: 0.95rem;
   max-width: 400px;
   margin: 0 auto;
-  line-height: 1.5;
+}
+
+/* =========================================
+   6. MOBILE & TABLET RESPONSIVE
+   ========================================= */
+@media (max-width: 1024px) {
+  /* Tablet: 2 Kolom */
+  .progja-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .admin-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .admin-controls button {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0 !important;
+    margin-top: 0.5rem;
+  }
+
+  /* Mobile: 1 Kolom */
+  .progja-grid {
+    column-count: 1;
+  }
+
+  .toggle-label {
+    font-size: 0.85rem;
+  }
 }

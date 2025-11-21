@@ -1,19 +1,14 @@
-// src/components/admin/DivisiReorderModal.jsx
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
 
-// Import CSS Module Baru yang Compact
+// Kita REUSE CSS yang sudah bagus dari DivisiReorder
 import styles from "./DivisiReorderModal.module.css";
-
-// Kita pakai style button global hanya untuk footer save/cancel
 import globalFormStyles from "./AdminForm.module.css";
 
-export default function DivisiReorderModal({
+export default function KontenReorderModal({
   isOpen,
   onClose,
-  divisiList,
-  activePeriodeId,
+  contentList,
   onSuccess,
 }) {
   const [reorderList, setReorderList] = useState([]);
@@ -21,17 +16,15 @@ export default function DivisiReorderModal({
 
   useEffect(() => {
     if (isOpen) {
-      const filtered = divisiList.filter(
-        (d) => d.periode_id == activePeriodeId
-      );
-      const sorted = [...filtered].sort(
+      // Sort berdasarkan urutan saat ini
+      const sorted = [...contentList].sort(
         (a, b) => (a.urutan || 99) - (b.urutan || 99)
       );
       setReorderList(sorted);
     }
-  }, [isOpen, divisiList, activePeriodeId]);
+  }, [isOpen, contentList]);
 
-  const moveDivisi = (index, direction) => {
+  const moveItem = (index, direction) => {
     const newList = [...reorderList];
     if (direction === "up" && index > 0) {
       [newList[index], newList[index - 1]] = [
@@ -54,13 +47,14 @@ export default function DivisiReorderModal({
     }
     setLoading(true);
     try {
+      // Update Sequential
       for (let i = 0; i < reorderList.length; i++) {
-        const div = reorderList[i];
-        const urutanBaru = i + 1;
+        const item = reorderList[i];
+        const urutanBaru = i + 1; // 1, 2, 3...
         const { error } = await supabase
-          .from("divisi")
+          .from("konten_halaman")
           .update({ urutan: urutanBaru })
-          .eq("id", div.id);
+          .eq("id", item.id);
         if (error) throw error;
       }
       alert("Urutan berhasil disimpan!");
@@ -78,36 +72,52 @@ export default function DivisiReorderModal({
   return (
     <div>
       <p className={styles.instruction}>
-        Gunakan panah untuk mengatur posisi. No. 1 tampil paling awal.
+        <strong>Catatan Penting:</strong> Item urutan <strong>No. 1</strong>{" "}
+        akan otomatis menjadi <strong>Judul Utama (Hero)</strong> halaman.
       </p>
 
       {reorderList.length === 0 ? (
-        <div className={styles.empty}>Tidak ada divisi di periode ini.</div>
+        <div className={styles.empty}>Tidak ada konten.</div>
       ) : (
         <div className={styles.list}>
-          {reorderList.map((div, index) => (
-            <div key={div.id} className={styles.item}>
+          {reorderList.map((item, index) => (
+            <div key={item.id} className={styles.item}>
               <div className={styles.info}>
                 <div className={styles.number}>{index + 1}</div>
-                <span className={styles.name}>{div.nama_divisi}</span>
+                <span className={styles.name}>
+                  {item.judul}
+                  {index === 0 && (
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        color: "#3182ce",
+                        marginLeft: "5px",
+                        background: "#ebf8ff",
+                        padding: "1px 4px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {" "}
+                      (Header)
+                    </span>
+                  )}
+                </span>
               </div>
 
               <div className={styles.controls}>
                 <button
                   type="button"
                   className={styles.btnArrow}
-                  onClick={() => moveDivisi(index, "up")}
+                  onClick={() => moveItem(index, "up")}
                   disabled={index === 0}
-                  title="Naikkan"
                 >
                   ▲
                 </button>
                 <button
                   type="button"
                   className={styles.btnArrow}
-                  onClick={() => moveDivisi(index, "down")}
+                  onClick={() => moveItem(index, "down")}
                   disabled={index === reorderList.length - 1}
-                  title="Turunkan"
                 >
                   ▼
                 </button>
@@ -131,7 +141,7 @@ export default function DivisiReorderModal({
           className="button button-primary"
           disabled={loading}
         >
-          {loading ? "Menyimpan..." : "Simpan Urutan"}
+          {loading ? "Simpan Urutan" : "Simpan Urutan"}
         </button>
       </div>
     </div>
