@@ -1,136 +1,109 @@
+/* Container: Lebih rapat */
 .container {
-  max-width: 1200px;
+  max-width: 1000px; /* Lebar dikurangi agar fokus */
   margin: 0 auto;
-  padding-bottom: 4rem;
+  padding-bottom: 3rem;
 }
 
-/* HEADER & WELCOME */
-.welcomeSection {
-  margin-bottom: 3rem;
+/* --- HEADER --- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
 }
+.greeting { font-size: 1.2rem; font-weight: 800; color: #2d3748; margin: 0; }
+.dateBadge { font-size: 0.85rem; color: #718096; font-weight: 600; background: #f7fafc; padding: 0.25rem 0.75rem; border-radius: 6px; }
 
-.greeting {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-
-.subGreeting {
-  color: #718096;
-  font-size: 1.1rem;
-}
-
-/* STATS GRID */
+/* --- STATS ROW (Slim) --- */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(4, 1fr); /* 4 Kolom sejajar */
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .statCard {
   background: white;
-  padding: 2rem;
-  border-radius: 1rem;
+  padding: 1rem; /* Padding kecil */
+  border-radius: 0.5rem;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s;
-}
-
-.statCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-  border-color: #cbd5e0;
-}
-
-.statIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+}
+
+.statIconBox {
+  width: 40px; height: 40px; /* Icon kecil */
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 /* Warna Icon */
-.icon-blue {
-  background: #ebf8ff;
-  color: #3182ce;
-}
-.icon-green {
-  background: #f0fff4;
-  color: #38a169;
-}
-.icon-orange {
-  background: #fffaf0;
-  color: #dd6b20;
-}
-.icon-purple {
-  background: #faf5ff;
-  color: #805ad5;
-}
+.blue { background: #ebf8ff; color: #2b6cb0; }
+.orange { background: #fffaf0; color: #dd6b20; }
+.green { background: #f0fff4; color: #2f855a; }
+.purple { background: #faf5ff; color: #6b46c1; }
 
-.statValue {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #2d3748;
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
+.statInfo { display: flex; flex-direction: column; }
+.statValue { font-size: 1.25rem; font-weight: 800; color: #2d3748; line-height: 1; }
+.statLabel { font-size: 0.7rem; color: #718096; font-weight: 700; text-transform: uppercase; }
 
-.statLabel {
-  font-size: 0.9rem;
-  color: #718096;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* SHORTCUTS */
+/* --- MENU GRID (TILES) --- */
 .sectionTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 1.5rem;
+  font-size: 0.95rem; font-weight: 700; color: #4a5568;
+  margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
 }
 
-.shortcutGrid {
+.menuGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Responsif & Padat */
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.shortcutCard {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+/* Tampilan Tile/Tombol */
+.menuTile {
   background: white;
-  padding: 1.25rem;
-  border-radius: 0.75rem;
   border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem 1rem;
   text-decoration: none;
-  color: #4a5568;
-  font-weight: 600;
-  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  transition: all 0.15s ease;
+  height: 100%;
 }
 
-.shortcutCard:hover {
+.menuTile:hover {
   border-color: #3182ce;
-  color: #3182ce;
-  background: #f7fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.15);
 }
 
-/* MOBILE */
-@media (max-width: 640px) {
-  .greeting {
-    font-size: 1.5rem;
-  }
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
+.tileIcon { font-size: 1.75rem; color: #4a5568; transition: color 0.2s; }
+.menuTile:hover .tileIcon { color: #3182ce; }
+
+.tileTitle {
+  font-size: 0.9rem; font-weight: 700; color: #2d3748;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); } /* 2x2 di Tablet */
+}
+
+@media (max-width: 480px) {
+  .header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .menuGrid { grid-template-columns: repeat(2, 1fr); } /* 2 kolom di HP biar hemat scroll */
 }

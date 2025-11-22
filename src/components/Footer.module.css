@@ -1,143 +1,91 @@
-/* Container Utama Footer */
+/* src/components/Footer.module.css */
+
 .footer {
-  background-color: #2a9df4; /* Warna Biru Pilihan */
-  color: #ffffff; /* Teks Putih */
+  background-color: #2a9df4; /* Biru Cerah Informatif */
+  color: #ffffff;
   padding-top: 4rem;
-  margin-top: auto; /* Dorong ke bawah (Sticky Footer) */
-  font-family: "Inter", sans-serif;
-  border-top: 5px solid rgba(0, 0, 0, 0.05); /* Garis halus di atas */
+  margin-top: auto;
+  font-family: 'Inter', sans-serif;
+  border-top: 5px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Grid Layout 3 Kolom */
 .container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 1.5rem;
-
+  
   display: grid;
-  /* Kolom 1 (Info) lebih lebar, Kolom 2 & 3 menyesuaikan */
-  grid-template-columns: 2fr 1fr 1.2fr;
+  grid-template-columns: 2fr 1fr 1.3fr; /* Kiri Lebar */
   gap: 4rem;
   margin-bottom: 4rem;
 }
 
-/* --- KOLOM 1: IDENTITAS --- */
-.infoSection {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+/* --- KOLOM 1 --- */
+.infoSection { display: flex; flex-direction: column; gap: 0.8rem; }
+
+.logoRow { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+.logoImg { height: 48px; object-fit: contain; background: white; padding: 4px; border-radius: 8px; }
+
+.brandRow { display: flex; align-items: center; gap: 0.8rem; }
 
 .brandName {
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin: 0;
-  text-transform: uppercase;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 1.5rem; font-weight: 800; margin: 0; text-transform: uppercase;
+  letter-spacing: -0.02em; line-height: 1.2;
 }
 
-.brandDesc {
-  font-size: 0.95rem;
-  line-height: 1.7;
-  opacity: 0.95;
-  max-width: 380px; /* Batasi lebar teks agar enak dibaca */
+/* Tombol Edit Bulat */
+.editBtn {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+  color: white; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
 }
+.editBtn:hover { background: white; color: #2a9df4; transform: rotate(45deg); }
 
-/* --- KOLOM 2 & 3: HEADINGS --- */
+.schoolName { font-weight: 600; margin: 0; opacity: 0.9; font-size: 0.95rem; }
+.brandDesc { font-size: 0.9rem; line-height: 1.6; opacity: 0.9; max-width: 350px; margin: 0; }
+
+/* Social Icons */
+.socialRow { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
+.socialIcon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(255,255,255,0.15); color: white;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; border: 1px solid transparent;
+}
+.socialIcon:hover { background: white; color: #2a9df4; transform: translateY(-3px); }
+
+/* --- KOLOM 2 & 3 HEADINGS --- */
 .columnTitle {
-  font-size: 0.9rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.8;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-  padding-bottom: 0.5rem;
-  display: inline-block;
+  font-size: 0.9rem; font-weight: 700; margin-bottom: 1.5rem;
+  text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8;
+  border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 0.5rem; display: inline-block;
 }
 
-/* --- LINK LIST --- */
-.linkGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
+/* --- LINKS --- */
+.linkGroup { display: flex; flex-direction: column; gap: 0.8rem; }
 .footerLink {
-  color: white;
-  text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
-  opacity: 0.9;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  width: fit-content;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  color: white; text-decoration: none; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 0.75rem; /* Jarak Ikon & Teks */
+  opacity: 0.9; transition: all 0.2s;
 }
+.footerLink:hover { opacity: 1; transform: translateX(5px); }
 
-.footerLink:hover {
-  opacity: 1;
-  transform: translateX(6px); /* Efek geser ke kanan saat hover */
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-}
-
-/* --- CONTACT ITEMS --- */
-.contactSection {
-  display: flex;
-  flex-direction: column;
-}
-
+/* --- CONTACT --- */
 .contactItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.5;
 }
+.contactIcon { flex-shrink: 0; margin-top: 3px; opacity: 0.8; }
 
-.contactItem span:first-child {
-  font-size: 1.2rem; /* Ikon lebih besar */
-  opacity: 0.8;
-}
-
-/* --- COPYRIGHT BAR --- */
+/* --- COPYRIGHT --- */
 .copyright {
-  background-color: rgba(0, 0, 0, 0.15); /* Warna sedikit lebih gelap */
-  text-align: center;
-  padding: 1.5rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1); text-align: center; padding: 1.5rem;
+  font-size: 0.85rem; font-weight: 500; border-top: 1px solid rgba(255,255,255,0.1);
 }
 
-/* --- RESPONSIVE (TABLET & MOBILE) --- */
-@media (max-width: 1024px) {
-  .container {
-    gap: 2rem;
-  }
-}
-
+/* MOBILE */
 @media (max-width: 768px) {
-  .footer {
-    padding-top: 3rem;
-  }
-
-  .container {
-    grid-template-columns: 1fr; /* Tumpuk jadi 1 kolom */
-    gap: 3rem;
-  }
-
-  .brandDesc {
-    max-width: 100%;
-  }
-
-  /* Rata tengah judul kolom di HP (Opsional) */
-  .columnTitle {
-    width: 100%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  }
+  .container { grid-template-columns: 1fr; gap: 3rem; }
+  .socialRow { margin-bottom: 1rem; }
 }
