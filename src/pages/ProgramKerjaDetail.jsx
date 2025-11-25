@@ -1,9 +1,20 @@
-// src/pages/ProgramKerjaDetail.jsx
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import styles from "./ProgramKerjaDetail.module.css";
+
+// ICONS
+import {
+  FiArrowLeft,
+  FiCalendar,
+  FiBriefcase,
+  FiUser,
+  FiExternalLink,
+} from "react-icons/fi";
+
+// COMPONENTS
+import PageContainer from "../components/ui/PageContainer.jsx"; // IMPORT BARU
+import LoadingState from "../components/ui/LoadingState.jsx"; // IMPORT BARU
 
 function ProgramKerjaDetail() {
   const { id } = useParams();
@@ -12,6 +23,7 @@ function ProgramKerjaDetail() {
   const [progja, setProgja] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // FETCH DATA
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -36,7 +48,8 @@ function ProgramKerjaDetail() {
         }
       } catch (err) {
         console.error(err);
-        navigate("/program-kerja"); // Redirect jika not found
+        // Optional: Redirect
+        // navigate("/program-kerja");
       } finally {
         setLoading(false);
       }
@@ -62,126 +75,138 @@ function ProgramKerjaDetail() {
     return styles["status-rencana"];
   };
 
-  if (loading)
+  // --- LOADING STATE ---
+  if (loading) {
     return (
-      <div className="main-content">
-        <p className="loading-text">Memuat detail...</p>
-      </div>
+      <PageContainer breadcrumbText="Memuat...">
+        <LoadingState message="Memuat detail program..." />
+      </PageContainer>
     );
-  if (!progja) return null;
+  }
+
+  // --- NOT FOUND ---
+  if (!progja) {
+    return (
+      <PageContainer breadcrumbText="Error">
+        <div className={styles.emptyState}>Program Kerja tidak ditemukan.</div>
+      </PageContainer>
+    );
+  }
 
   return (
-    <div className="main-content">
-      <div className={styles.container}>
-        {/* Navigation */}
-        <div className={styles.navBar}>
-          <Link to="/program-kerja" className={styles.backLink}>
-            &larr; Kembali ke Program Kerja
-          </Link>
+    // Menggunakan PageContainer agar breadcrumb otomatis ("Program Kerja" > "Nama Acara")
+    <PageContainer breadcrumbText={progja.nama_acara}>
+      {/* 1. TOMBOL KEMBALI (Opsional, tapi bagus untuk navigasi cepat) */}
+      <div className={styles.navBar}>
+        <Link to="/program-kerja" className={styles.backLink}>
+          <FiArrowLeft /> Kembali ke Daftar
+        </Link>
+      </div>
+
+      {/* 2. MAIN CONTENT CARD */}
+      <div className={styles.contentCard}>
+        {/* A. Media Section (Video/Foto) */}
+        {progja.embed_html ? (
+          <div className={styles.mediaContainer}>
+            <div
+              className={styles.embedWrapper}
+              dangerouslySetInnerHTML={{ __html: progja.embed_html }}
+            />
+          </div>
+        ) : (
+          /* Placeholder jika tidak ada media */
+          <div className={styles.noMediaPlaceholder}>
+            <span style={{ fontSize: "3rem" }}>📅</span>
+          </div>
+        )}
+
+        {/* B. Header Info */}
+        <div className={styles.headerSection}>
+          <div className={styles.topRow}>
+            <span
+              className={`${styles.statusBadge} ${getStatusClass(
+                progja.status
+              )}`}
+            >
+              {progja.status}
+            </span>
+          </div>
+
+          <h1 className={styles.title}>{progja.nama_acara}</h1>
+
+          {/* Metadata Grid */}
+          <div className={styles.metaGrid}>
+            {/* Tanggal */}
+            <div className={styles.metaItem}>
+              <div className={styles.iconBox}>
+                <FiCalendar />
+              </div>
+              <div>
+                <span className={styles.metaLabel}>Tanggal Pelaksanaan</span>
+                <span className={styles.metaValue}>
+                  {formatDate(progja.tanggal)}
+                </span>
+              </div>
+            </div>
+
+            {/* Divisi */}
+            <div className={styles.metaItem}>
+              <div className={styles.iconBox}>
+                <FiBriefcase />
+              </div>
+              <div>
+                <span className={styles.metaLabel}>Divisi Penyelenggara</span>
+                <span className={styles.metaValue}>
+                  {progja.nama_divisi || "-"}
+                </span>
+              </div>
+            </div>
+
+            {/* PJ */}
+            <div className={styles.metaItem}>
+              <div className={styles.iconBox}>
+                <FiUser />
+              </div>
+              <div>
+                <span className={styles.metaLabel}>Penanggung Jawab</span>
+                <span className={styles.metaValue} style={{ color: "#3182ce" }}>
+                  {progja.nama_penanggung_jawab || "-"}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Main Content Card */}
-        <div className={styles.contentCard}>
-          {/* 1. Media Section (Video/Foto) */}
-          {progja.embed_html ? (
-            <div className={styles.mediaContainer}>
-              <div
-                className={styles.embedWrapper}
-                dangerouslySetInnerHTML={{ __html: progja.embed_html }}
-              />
+        {/* C. Body Description */}
+        <div className={styles.bodySection}>
+          <h3 className={styles.descTitle}>Deskripsi Kegiatan</h3>
+
+          {progja.deskripsi ? (
+            <div className={styles.descContent}>
+              {progja.deskripsi.split("\n").map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
             </div>
           ) : (
-            <div className={styles.noMediaPlaceholder} />
+            <p className={styles.emptyDesc}>Tidak ada deskripsi detail.</p>
           )}
 
-          {/* 2. Header Info */}
-          <div className={styles.headerSection}>
-            <div className={styles.topRow}>
-              <span
-                className={`${styles.statusBadge} ${getStatusClass(progja.status)}`}
+          {/* Link Dokumentasi External */}
+          {progja.link_dokumentasi && (
+            <div className={styles.docSection}>
+              <a
+                href={progja.link_dokumentasi}
+                target="_blank"
+                rel="noreferrer"
+                className={styles.docLink}
               >
-                {progja.status}
-              </span>
+                <FiExternalLink /> Lihat Dokumentasi Lengkap
+              </a>
             </div>
-
-            <h1 className={styles.title}>{progja.nama_acara}</h1>
-
-            <div className={styles.metaGrid}>
-              <div className={styles.metaItem}>
-                <span className={styles.metaIcon}>🗓️</span>
-                <div>
-                  <span className={styles.metaLabel}>Tanggal</span>
-                  <span className={styles.metaValue}>
-                    {formatDate(progja.tanggal)}
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.metaItem}>
-                <span className={styles.metaIcon}>🏢</span>
-                <div>
-                  <span className={styles.metaLabel}>Divisi</span>
-                  <span className={styles.metaValue}>
-                    {progja.nama_divisi || "-"}
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.metaItem}>
-                <span className={styles.metaIcon}>👤</span>
-                <div>
-                  <span className={styles.metaLabel}>Penanggung Jawab</span>
-                  <span
-                    className={styles.metaValue}
-                    style={{ color: "#3182ce" }}
-                  >
-                    {progja.nama_penanggung_jawab || "-"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Body Description */}
-          <div className={styles.bodySection}>
-            {/* Render newlines as paragraphs */}
-            {progja.deskripsi ? (
-              progja.deskripsi
-                .split("\n")
-                .map((paragraph, idx) => <p key={idx}>{paragraph}</p>)
-            ) : (
-              <p style={{ fontStyle: "italic", color: "#a0aec0" }}>
-                Tidak ada deskripsi detail.
-              </p>
-            )}
-
-            {/* Link Dokumentasi External (Opsional) */}
-            {progja.link_dokumentasi && (
-              <div
-                style={{
-                  marginTop: "2rem",
-                  paddingTop: "1rem",
-                  borderTop: "1px solid #edf2f7",
-                }}
-              >
-                <a
-                  href={progja.link_dokumentasi}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    color: "#3182ce",
-                    fontWeight: "600",
-                    textDecoration: "none",
-                  }}
-                >
-                  📂 Lihat Dokumentasi Lengkap &rarr;
-                </a>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

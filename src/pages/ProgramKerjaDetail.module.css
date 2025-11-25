@@ -1,172 +1,197 @@
 /* src/pages/ProgramKerjaDetail.module.css */
 
-/* 1. LAYOUT */
-.container {
-  max-width: 900px; /* Fokus membaca */
-  margin: 0 auto;
-  padding-bottom: 4rem;
-}
-
-/* 2. NAVIGATION */
 .navBar {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .backLink {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  color: #64748b;
   text-decoration: none;
-  color: #718096;
   font-weight: 600;
+  font-size: 0.9rem;
   transition: color 0.2s;
 }
 .backLink:hover {
   color: #3182ce;
 }
 
-/* 3. CONTENT CARD (Wadah Utama) */
+/* CARD UTAMA */
 .contentCard {
   background: white;
-  border-radius: 1rem;
+  border-radius: 16px;
   border: 1px solid #e2e8f0;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-/* 4. MEDIA / EMBED SECTION */
+/* MEDIA */
 .mediaContainer {
-  width: 100%;
-  background-color: #000; /* Hitam untuk video/foto */
+  background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 2rem;
   min-height: 300px;
-  border-bottom: 1px solid #edf2f7;
 }
-
 .embedWrapper {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 500px;
   width: 100%;
-  max-width: 100%;
+}
+.noMediaPlaceholder {
+  height: 200px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e0;
 }
 
-/* Override style iframe bawaan */
-.embedWrapper :global(iframe),
-.embedWrapper :global(blockquote) {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 auto !important;
-  display: block;
-}
-
-/* 5. HEADER INFO */
+/* HEADER INFO */
 .headerSection {
-  padding: 2.5rem 2.5rem 1.5rem 2.5rem;
-  border-bottom: 1px solid #edf2f7;
+  padding: 2rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .topRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 1rem;
 }
 
 .statusBadge {
-  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 12px;
   border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .status-selesai {
-  background: #c6f6d5;
-  color: #22543d;
+  background: #d1fae5;
+  color: #047857;
 }
 .status-akan-datang {
-  background: #bee3f8;
-  color: #2c5282;
+  background: #ffedd5;
+  color: #c2410c;
 }
 .status-rencana {
-  background: #fefcbf;
-  color: #744210;
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .title {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #1a202c;
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 2rem 0;
   line-height: 1.2;
 }
 
-/* Meta Grid (Tanggal, Divisi, PJ) */
+/* META GRID */
 .metaGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
 }
 
 .metaItem {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #edf2f7;
 }
 
-.metaIcon {
-  font-size: 1.5rem;
-  opacity: 0.8;
+.iconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #718096;
+  font-size: 1.2rem;
 }
 
 .metaLabel {
+  display: block;
   font-size: 0.75rem;
-  color: #718096;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
-  display: block;
-  margin-bottom: 0.2rem;
+  margin-bottom: 2px;
 }
 
 .metaValue {
-  font-size: 1rem;
-  font-weight: 600;
+  display: block;
+  font-size: 0.95rem;
   color: #2d3748;
+  font-weight: 600;
 }
 
-/* 6. BODY DESCRIPTION */
+/* BODY */
 .bodySection {
   padding: 2.5rem;
+}
+
+.descTitle {
   font-size: 1.1rem;
-  line-height: 1.8;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 1rem 0;
+}
+
+.descContent p {
   color: #4a5568;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
 }
 
-.bodySection p {
-  margin-bottom: 1.5rem;
+.emptyDesc {
+  font-style: italic;
+  color: #a0aec0;
 }
 
-/* Empty State if no media */
-.noMediaPlaceholder {
-  height: 20px;
-  background: linear-gradient(90deg, #3182ce, #63b3ed);
+.docSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed #e2e8f0;
 }
 
-/* RESPONSIVE */
-@media (max-width: 640px) {
-  .title {
-    font-size: 1.75rem;
-  }
-  .headerSection,
-  .bodySection {
-    padding: 1.5rem;
-  }
-  .metaGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  .mediaContainer {
-    min-height: 200px;
-  }
+.docLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #3182ce;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #bee3f8;
+  background: #ebf8ff;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.docLink:hover {
+  background: #3182ce;
+  color: white;
+  border-color: #3182ce;
+}
+
+/* ERROR STATE */
+.emptyState {
+  text-align: center;
+  padding: 4rem;
+  color: #a0aec0;
+  font-style: italic;
 }

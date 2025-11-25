@@ -1,190 +1,211 @@
-/* CONTAINER KARTU */
+/* src/components/cards/ProgramKerjaCard.module.css */
+
 .card {
-  background-color: white;
+  background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  border-radius: 16px;
   overflow: hidden;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
+  transition: all 0.2s ease;
   position: relative;
-  height: 100%; /* Penting agar tinggi seragam dalam grid */
+  height: 100%; /* Agar tinggi seragam di grid */
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-  border-color: #bee3f8;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e0;
 }
 
-/* MEDIA / EMBED */
+/* --- MEDIA / EMBED --- */
 .mediaContainer {
-  width: 100%;
-  background-color: #f7fafc;
+  position: relative;
+  background: #000;
+  min-height: 200px; /* Tinggi minimal area embed */
+  max-height: 300px;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 150px; /* Tinggi minimal agar tidak gepeng */
-  border-bottom: 1px solid #edf2f7;
-  overflow: hidden;
 }
 
 .embedWrapper {
   width: 100%;
+  pointer-events: none; /* Mencegah interaksi langsung di preview card */
+  transform: scale(0.9); /* Sedikit zoom out agar muat */
 }
 
-/* Paksa elemen embed (iframe/blockquote) agar responsif penuh */
-.embedWrapper :global(iframe),
-.embedWrapper :global(blockquote) {
-  width: 100% !important;
-  max-width: 100% !important;
-  border: none;
-  margin: 0 auto !important;
-  display: block;
+/* Overlay transparan agar user klik card-nya, bukan play video */
+.mediaOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  background: transparent;
 }
 
-/* BODY & CONTENT */
+/* --- BODY --- */
 .cardBody {
-  padding: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  flex-grow: 1; /* Isi ruang kosong agar footer rata bawah */
+  flex-grow: 1;
 }
 
+/* --- BADGES --- */
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-/* STATUS BADGES */
 .statusBadge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
+/* Warna Status */
 .status-selesai {
-  background-color: #c6f6d5;
-  color: #22543d;
-} /* Hijau */
+  background-color: #d1fae5; /* Hijau Muda */
+  color: #047857;
+}
+
 .status-akan-datang {
-  background-color: #bee3f8;
-  color: #2c5282;
-} /* Biru */
+  background-color: #ffedd5; /* Orange Muda */
+  color: #c2410c;
+}
+
 .status-rencana {
-  background-color: #fefcbf;
-  color: #744210;
-} /* Kuning/Emas */
+  background-color: #f1f5f9; /* Abu Muda */
+  color: #64748b;
+}
 
 .hiddenBadge {
   font-size: 0.7rem;
+  font-weight: 600;
   color: #e53e3e;
-  background-color: #fff5f5;
-  border: 1px solid #feb2b2;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
   padding: 2px 6px;
   border-radius: 4px;
 }
 
-/* TYPOGRAPHY */
+/* --- TEXT CONTENT --- */
 .cardTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.75rem;
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  font-weight: 800;
   line-height: 1.4;
 }
 
-.cardMeta {
+.cardTitle a {
+  text-decoration: none;
+  color: #1e293b;
+  transition: color 0.2s;
+}
+
+.cardTitle a:hover {
+  color: #3182ce;
+}
+
+.metaList {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  color: #718096;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
 .metaItem {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.metaIcon {
+  color: #94a3b8;
+  font-size: 1rem;
 }
 
 .textPj {
-  color: #3182ce;
-  font-weight: 600;
+  font-style: italic;
 }
 
 .cardDesc {
   font-size: 0.9rem;
-  color: #4a5568;
+  color: #475569;
   line-height: 1.6;
   margin-bottom: 1.5rem;
-  /* Truncate Text (Maksimal 3 baris) */
+
+  /* Limit 3 Baris */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* FOOTER LINK */
+/* --- FOOTER --- */
+.cardFooter {
+  margin-top: auto; /* Dorong ke bawah */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+}
+
 .btnDetail {
-  margin-top: auto; /* Dorong ke paling bawah sebelum tombol admin */
   font-size: 0.85rem;
   font-weight: 600;
   color: #3182ce;
   text-decoration: none;
-  transition: color 0.2s;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap 0.2s;
 }
 
 .btnDetail:hover {
-  color: #2b6cb0;
+  gap: 8px; /* Efek panah bergerak */
   text-decoration: underline;
 }
 
-/* ADMIN BUTTONS */
 .adminActions {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e2e8f0;
   display: flex;
   gap: 0.5rem;
 }
 
-.btnAction {
-  flex: 1;
-  padding: 0.4rem 0;
-  border-radius: 0.375rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
+.btnIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  transition: background 0.2s;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.btnEdit {
-  background-color: #ebf8ff;
+.btnIcon:hover {
+  background: #f8fafc;
   color: #3182ce;
-}
-.btnEdit:hover {
-  background-color: #bee3f8;
+  border-color: #3182ce;
 }
 
-.btnDelete {
-  background-color: #fff5f5;
-  color: #e53e3e;
-}
 .btnDelete:hover {
-  background-color: #fed7d7;
+  color: #e53e3e;
+  border-color: #e53e3e;
+  background: #fff5f5;
 }

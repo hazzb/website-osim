@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 // --- 1. KOMPONEN GLOBAL ---
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx"; // 1. IMPORT INI
 // HAPUS IMPORT INI: import Breadcrumbs from "./components/Breadcrumbs.jsx";
 
 // --- 2. HALAMAN (HYBRID: Publik + Admin) ---
@@ -37,6 +38,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <div
           className="app-container"
           style={{
