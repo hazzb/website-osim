@@ -11,9 +11,28 @@ function DivisiForm({
   loading,
   periodeList,
 }) {
+  // LOGIKA VALIDASI FILE (Max 200KB)
+  const handleFileValidation = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // 200KB = 200 * 1024 = 204800 bytes
+      if (file.size > 204800) {
+        alert("Ukuran file terlalu besar! Maksimal 200KB.");
+        e.target.value = null; // Reset input
+        return;
+      }
+    }
+    // Jika aman, panggil handler asli
+    if (onFileChange) onFileChange(e);
+  };
+
+  // Logic Preview
+  const showPreview = formData.logo_url;
+
   return (
     <form onSubmit={onSubmit}>
       <div className={formStyles["form-grid"]}>
+        {/* Nama Divisi */}
         <FormInput
           label="Nama Divisi"
           name="nama_divisi"
@@ -24,6 +43,7 @@ function DivisiForm({
           span="col-span-3"
         />
 
+        {/* Periode */}
         <FormInput
           label="Periode"
           name="periode_id"
@@ -33,6 +53,7 @@ function DivisiForm({
           required
           span="col-span-3"
         >
+          <option value="">-- Pilih Periode --</option>
           {periodeList.map((p) => (
             <option key={p.id} value={p.id}>
               {p.nama_kabinet}
@@ -40,24 +61,56 @@ function DivisiForm({
           ))}
         </FormInput>
 
-        <FormInput
-          label="Urutan"
-          name="urutan"
-          type="number"
-          value={formData.urutan || 10}
-          onChange={onChange}
-          span="col-span-3"
-        />
+        {/* Deskripsi (Textarea Manual pakai style Anda) */}
+        <div
+          className={`${formStyles["col-span-3"]} ${formStyles["form-group"]}`}
+        >
+          <label className={formStyles["form-label"]}>Deskripsi Divisi</label>
+          <textarea
+            name="deskripsi"
+            value={formData.deskripsi || ""}
+            onChange={onChange}
+            // Menggunakan class .form-textarea dari CSS Anda
+            className={formStyles["form-textarea"]}
+            rows="4"
+            placeholder="Jelaskan detail divisi ini..."
+          />
+        </div>
 
-        <FormInput
-          label="Logo"
-          name="logo"
-          type="file"
-          onChange={onFileChange}
-          span="col-span-3"
-          helper="Format: JPG/PNG. Max 200KB."
-        />
+        {/* Upload Logo + Preview */}
+        <div
+          className={`${formStyles["col-span-3"]} ${formStyles["form-group"]}`}
+        >
+          {/* Kita pakai FormInput untuk file, tapi helper text disesuaikan */}
+          <FormInput
+            label="Ganti Logo"
+            name="logo"
+            type="file"
+            onChange={handleFileValidation} // Pakai validasi lokal
+            helper="Format: JPG/PNG. Maksimal 200KB."
+            accept="image/png, image/jpeg, image/jpg"
+          />
+
+          {/* Tampilkan preview jika ada URL logo */}
+          {showPreview && (
+            <div style={{ marginTop: "0.5rem" }}>
+              <label className={formStyles["form-label"]}>
+                Preview Logo Saat Ini:
+              </label>
+              <div>
+                <img
+                  src={showPreview}
+                  alt="Preview"
+                  className={formStyles["form-image-preview"]}
+                  onError={(e) => (e.target.style.display = "none")}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Footer Buttons */}
       <div className={formStyles["form-footer"]}>
         <button
           type="button"

@@ -1,130 +1,189 @@
 /* src/pages/VisiMisi.module.css */
 
-/* Container Utama */
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding-bottom: 6rem;
-}
-
-/* Header Section (Judul Halaman Dinamis) */
+/* --- 1. HEADER SECTION --- */
 .headerSection {
-  text-align: center;
-  padding: 4rem 1rem;
-  margin-bottom: 4rem;
-  background: linear-gradient(to bottom, #fff, #f7fafc);
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.pageTitle {
-  font-size: 3rem;
-  font-weight: 900;
-  color: #2d3748;
-  margin-bottom: 1rem;
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-}
-
-.pageSubtitle {
-  font-size: 1.2rem;
-  color: #718096;
-  max-width: 700px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-/* Top Bar (Tombol Setting) */
-.topBar {
   display: flex;
-  justify-content: flex-end;
-  padding: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  min-height: 40px; /* Jaga tinggi agar tidak gepeng jika judul kosong */
+}
+
+.adminControls {
+  display: flex;
+  gap: 0.75rem;
 }
 
 .settingBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: white;
-  border: 1px solid #cbd5e0;
+  background-color: white;
+  border: 1px solid #e2e8f0;
   padding: 0.5rem 1rem;
-  border-radius: 99px;
+  border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #4a5568;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
-}
-.settingBtn:hover {
-  background: #f7fafc;
-  border-color: #a0aec0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Icon Button (Untuk Edit Judul Utama) */
-.iconBtn {
-  width: 32px;
-  height: 32px;
+.settingBtn:hover {
+  background-color: #f7fafc;
+  border-color: #cbd5e0;
+  color: #2d3748;
+  transform: translateY(-1px);
+}
+
+/* --- 2. HERO WRAPPER (Judul Utama) --- */
+.heroWrapper {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin-bottom: 3rem;
+
+  /* Dekorasi bayangan halus */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin: 0 0 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.pageSubtitle {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #4a5568;
+  white-space: pre-line; /* Agar Enter terbaca */
+}
+
+/* Tombol Edit Hero (Pojok Kanan Atas) */
+.editHeroBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background-color: #f1f5f9;
+  color: #64748b;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e2e8f0;
-  background: white;
-  border-radius: 6px;
   cursor: pointer;
-}
-.iconBtn:hover {
-  background: #3182ce;
-  color: white;
-  border-color: #3182ce;
+  transition: all 0.2s;
 }
 
-/* Big Add Button (Tombol Tambah Seksi) */
+.editHeroBtn:hover {
+  background-color: #3182ce;
+  color: white;
+}
+
+/* Empty Hero State */
+.emptyHero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #a0aec0;
+}
+
+/* --- 3. CONTENT AREA --- */
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 .addBtn {
+  display: inline-block;
   width: 100%;
-  padding: 2rem;
+  padding: 1.5rem;
   border: 2px dashed #cbd5e0;
-  background: #f7fafc;
+  border-radius: 12px;
+  background-color: transparent;
   color: #718096;
   font-weight: 600;
-  border-radius: 1rem;
   cursor: pointer;
-  margin-top: 3rem;
   transition: all 0.2s;
-  text-align: center;
-  font-size: 1.1rem;
-}
-.addBtn:hover {
-  border-color: #3182ce;
-  color: #3182ce;
-  background: #ebf8ff;
 }
 
-/* Settings Modal Options */
+.addBtn:hover {
+  border-color: #3182ce;
+  background-color: #ebf8ff;
+  color: #3182ce;
+}
+
+/* --- 4. LAYOUT MODAL OPTIONS --- */
 .layoutOptionGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  margin-top: 1rem;
+  padding: 0.5rem;
 }
 
 .layoutOption {
   border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s;
-  font-weight: 600;
-  color: #718096;
+  background: white;
 }
 
 .layoutOption:hover {
   border-color: #cbd5e0;
-  background: #f7fafc;
+  transform: translateY(-2px);
 }
 
 .layoutOption.active {
   border-color: #3182ce;
-  background: #ebf8ff;
+  background-color: #ebf8ff;
   color: #2b6cb0;
-  font-weight: 700;
+}
+
+.layoutIcon {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: #cbd5e0;
+}
+
+.layoutOption.active .layoutIcon {
+  color: #3182ce;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .headerSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+  .layoutOptionGrid {
+    grid-template-columns: 1fr;
+  }
 }

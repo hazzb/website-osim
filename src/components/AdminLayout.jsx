@@ -1,21 +1,23 @@
 // src/components/AdminLayout.jsx
-// --- VERSI 2.0 (Refaktor CSS Murni) ---
-
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-// Pastikan path impor Sidebar sudah benar
-import Sidebar from './admin/Sidebar.jsx';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Sidebar from "./admin/Sidebar.jsx";
+import Breadcrumbs from "./Breadcrumbs.jsx"; // Import Breadcrumbs
 
 function AdminLayout() {
   return (
-    // Ini adalah wrapper utama admin layout
     <div className="admin-layout">
-      
       {/* 1. Sidebar Navigasi */}
       <Sidebar />
 
-      {/* 2. Konten Halaman Admin (Dashboard, Form, dll) */}
+      {/* 2. Konten Halaman Admin */}
       <div className="admin-content">
+        {/* Breadcrumb Navigasi di Admin Area */}
+        <div style={{ marginBottom: "1rem" }}>
+          <Breadcrumbs />
+        </div>
+
+        {/* Halaman Aktif (Dashboard, Form, dll) */}
         <Outlet />
       </div>
     </div>

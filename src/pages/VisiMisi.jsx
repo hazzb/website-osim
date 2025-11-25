@@ -1,13 +1,17 @@
+// src/pages/VisiMisi.jsx
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import styles from "./VisiMisi.module.css"; // CSS Halaman
-import formStyles from "../components/admin/AdminForm.module.css"; // CSS Tombol Save Layout
+import styles from "./VisiMisi.module.css";
+import formStyles from "../components/admin/AdminForm.module.css";
 
 // UI Components
+import PageContainer from "../components/ui/PageContainer.jsx";
+import LoadingState from "../components/ui/LoadingState.jsx";
 import Modal from "../components/Modal.jsx";
 
-// Forms & Reorder (NEW)
+// Forms & Reorder
 import VisiMisiForm from "../components/forms/VisiMisiForm.jsx";
 import KontenReorderModal from "../components/admin/KontenReorderModal.jsx";
 
@@ -15,6 +19,17 @@ import KontenReorderModal from "../components/admin/KontenReorderModal.jsx";
 import LayoutModular from "../components/layouts/visimisi/LayoutModular.jsx";
 import LayoutSplit from "../components/layouts/visimisi/LayoutSplit.jsx";
 import LayoutZigZag from "../components/layouts/visimisi/LayoutZigZag.jsx";
+
+// --- UPDATE IMPORT ICONS ---
+import {
+  FiEdit, // GANTI: Edit standar (Pensil)
+  FiLayout,
+  FiLayers,
+  FiGrid,
+  FiColumns,
+  FiGitMerge, // GANTI: Ikon ZigZag (Simbol percabangan/selang-seling)
+  FiPlus, // BARU: Ikon Tambah
+} from "react-icons/fi";
 
 function VisiMisi() {
   const { session } = useAuth();
@@ -25,11 +40,10 @@ function VisiMisi() {
   const [layoutMode, setLayoutMode] = useState("modular");
   const [loading, setLoading] = useState(true);
 
-  // Modals
-  const [isModalOpen, setIsModalOpen] = useState(false); // Form
-  const [isReorderOpen, setIsReorderOpen] = useState(false); // Reorder
-  const [isSettingOpen, setIsSettingOpen] = useState(false); // Layout Setting
-
+  // Modals & Form States...
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReorderOpen, setIsReorderOpen] = useState(false);
+  const [isSettingOpen, setIsSettingOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
@@ -64,7 +78,7 @@ function VisiMisi() {
   const heroContent = contents.length > 0 ? contents[0] : null;
   const gridContents = contents.length > 0 ? contents.slice(1) : [];
 
-  // Handlers
+  // Handlers...
   const handleLayoutChange = async (mode) => {
     setLayoutMode(mode);
     try {
@@ -142,82 +156,97 @@ function VisiMisi() {
 
   if (loading)
     return (
-      <div className="main-content">
-        <p style={{ textAlign: "center", padding: "3rem" }}>Memuat...</p>
-      </div>
+      <PageContainer breadcrumbText="Memuat...">
+        <LoadingState message="Memuat konten..." />
+      </PageContainer>
     );
 
   return (
-    <div className="main-content">
-      {/* TOP BAR: Admin Controls */}
-      {isAdmin && (
-        <div className={styles.topBar} style={{ gap: "0.5rem" }}>
-          <button
-            onClick={() => setIsReorderOpen(true)}
-            className={styles.settingBtn}
-            style={{
-              backgroundColor: "#ebf8ff",
-              borderColor: "#bee3f8",
-              color: "#2b6cb0",
-            }}
-          >
-            ↕️ Atur Urutan
-          </button>
-          <button
-            onClick={() => setIsSettingOpen(true)}
-            className={styles.settingBtn}
-          >
-            ⚙️ Tampilan
-          </button>
-        </div>
-      )}
-
-      {/* HERO SECTION (Item #1) */}
+    <PageContainer breadcrumbText="Visi & Misi">
+      {/* HEADER */}
       <div className={styles.headerSection}>
+        <div></div>
+        {isAdmin && (
+          <div className={styles.adminControls}>
+            <button
+              onClick={() => setIsReorderOpen(true)}
+              className={styles.settingBtn}
+              title="Atur Urutan"
+            >
+              <FiLayers /> Atur Urutan
+            </button>
+            <button
+              onClick={() => setIsSettingOpen(true)}
+              className={styles.settingBtn}
+              title="Ganti Tampilan"
+            >
+              <FiLayout /> Tampilan
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* HERO CONTENT */}
+      <div className={styles.heroWrapper}>
         {heroContent ? (
-          <div style={{ position: "relative", display: "inline-block" }}>
+          <div className={styles.heroContent}>
             <h1 className={styles.pageTitle}>{heroContent.judul}</h1>
             <p className={styles.pageSubtitle}>{heroContent.isi}</p>
             {isAdmin && (
-              <div
-                style={{ position: "absolute", top: "-10px", right: "-40px" }}
+              <button
+                onClick={() => openModal(heroContent)}
+                className={styles.editHeroBtn}
+                title="Edit Judul Utama"
               >
-                <button
-                  onClick={() => openModal(heroContent)}
-                  className={styles.iconBtn}
-                >
-                  ✏️
-                </button>
-              </div>
+                {/* GANTI ICON EDIT */}
+                <FiEdit />
+              </button>
             )}
           </div>
         ) : (
-          <div>
+          <div className={styles.emptyHero}>
             <h1 className={styles.pageTitle}>Visi & Misi</h1>
             {isAdmin && (
-              <button onClick={() => openModal()}>+ Buat Judul Utama</button>
+              <button
+                onClick={() => openModal()}
+                className="button button-primary"
+              >
+                {/* GANTI ICON PLUS */}
+                <FiPlus style={{ marginRight: "4px" }} /> Buat Judul Utama
+              </button>
             )}
           </div>
         )}
       </div>
 
-      {/* CONTENT GRID (Item #2 dst) */}
-      <div className={styles.container}>
+      {/* DYNAMIC CONTENT GRID */}
+      <div className={styles.contentWrapper}>
         {renderLayout()}
+
         {isAdmin && (
-          <button onClick={() => openModal()} className={styles.addBtn}>
-            + Tambah Seksi Baru
-          </button>
+          <div style={{ textAlign: "center", marginTop: "2rem" }}>
+            <button
+              onClick={() => openModal()}
+              className={styles.addBtn}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+              }}
+            >
+              {/* GANTI ICON PLUS */}
+              <FiPlus size={20} /> Tambah Seksi Baru
+            </button>
+          </div>
         )}
       </div>
 
-      {/* --- MODALS --- */}
-
-      {/* 1. FORM (Create/Edit) */}
+      {/* MODALS (Form, Reorder) ... (Sama seperti sebelumnya) */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingId ? "Edit Konten" : "Tambah Konten Baru"}
+        title={editingId ? "Edit Konten" : "Tambah Konten"}
       >
         <VisiMisiForm
           formData={formData}
@@ -228,7 +257,6 @@ function VisiMisi() {
         />
       </Modal>
 
-      {/* 2. REORDER (Urutan) */}
       {isAdmin && (
         <Modal
           isOpen={isReorderOpen}
@@ -244,30 +272,46 @@ function VisiMisi() {
         </Modal>
       )}
 
-      {/* 3. LAYOUT (Setting) */}
+      {/* LAYOUT SETTING (Icons Updated) */}
       <Modal
         isOpen={isSettingOpen}
         onClose={() => setIsSettingOpen(false)}
-        title="Pilih Tampilan Halaman"
+        title="Pilih Tampilan"
       >
         <div className={styles.layoutOptionGrid}>
           <div
-            className={`${styles.layoutOption} ${layoutMode === "modular" ? styles.active : ""}`}
+            className={`${styles.layoutOption} ${
+              layoutMode === "modular" ? styles.active : ""
+            }`}
             onClick={() => handleLayoutChange("modular")}
           >
-            Modular
+            <div className={styles.layoutIcon}>
+              <FiGrid />
+            </div>
+            <span>Modular</span>
           </div>
           <div
-            className={`${styles.layoutOption} ${layoutMode === "split" ? styles.active : ""}`}
+            className={`${styles.layoutOption} ${
+              layoutMode === "split" ? styles.active : ""
+            }`}
             onClick={() => handleLayoutChange("split")}
           >
-            Split
+            <div className={styles.layoutIcon}>
+              <FiColumns />
+            </div>
+            <span>Split</span>
           </div>
           <div
-            className={`${styles.layoutOption} ${layoutMode === "zigzag" ? styles.active : ""}`}
+            className={`${styles.layoutOption} ${
+              layoutMode === "zigzag" ? styles.active : ""
+            }`}
             onClick={() => handleLayoutChange("zigzag")}
           >
-            Zig-Zag
+            {/* GANTI ICON ZIGZAG KE GIT MERGE (Lebih mirip cabang) */}
+            <div className={styles.layoutIcon}>
+              <FiGitMerge />
+            </div>
+            <span>Zig-Zag</span>
           </div>
         </div>
         <div
@@ -283,7 +327,7 @@ function VisiMisi() {
           </button>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

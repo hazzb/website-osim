@@ -4,14 +4,14 @@
   background-color: white;
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
-  padding: 1.25rem; /* Lebih compact dari 1.5rem */
+  padding: 1.25rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  max-width: 800px; /* Sedikit lebih lebar agar 3 kolom muat nyaman */
+  max-width: 800px;
   margin: 1.5rem auto;
 }
 
 .form-title {
-  font-size: 1.125rem; /* text-lg */
+  font-size: 1.125rem;
   font-weight: 700;
   color: #2d3748;
   margin-bottom: 1.25rem;
@@ -22,33 +22,34 @@
   gap: 0.5rem;
 }
 
-/* Grid System yang Lebih Rapat */
+/* Grid System */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.85rem; /* Gap diperkecil (compact) */
-  align-items: start; /* Agar input tidak stretch vertikal jika ada error */
+  gap: 0.85rem; /* Compact gap */
+  align-items: start;
+  margin-bottom: 1.5rem;
 }
 
 @media (min-width: 640px) {
   .form-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 Kolom di Tablet */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
   .form-grid {
-    grid-template-columns: repeat(3, 1fr); /* 3 Kolom di Desktop */
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Utilitas Col-Span */
+/* Col-Span Utilities */
 .col-span-1 {
   grid-column: span 1;
 }
 .col-span-2 {
   grid-column: span 1;
-} /* Di HP tetap 1 kolom */
+}
 .col-span-3 {
   grid-column: span 1;
 }
@@ -67,17 +68,19 @@
   }
 }
 
-/* Styling Input Group */
-.form-group {
+/* Input Group */
+.form-group,
+.input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem; /* Jarak label ke input sangat dekat */
+  gap: 0.25rem;
 }
 
-.form-label {
-  font-size: 0.75rem; /* text-xs */
+.form-label,
+.input-label {
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #4a5568; /* gray-700 */
+  color: #4a5568;
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
@@ -87,15 +90,13 @@
 .form-select,
 .form-textarea {
   width: 100%;
-  padding: 0.4rem 0.75rem; /* Padding vertikal kecil */
-  font-size: 0.875rem; /* text-sm */
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
   border: 1px solid #cbd5e0;
   border-radius: 0.375rem;
   background-color: #fff;
-  transition:
-    border-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
   color: #2d3748;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .form-input:focus,
@@ -107,12 +108,13 @@
 }
 
 .form-textarea {
-  min-height: 80px; /* Default height */
+  min-height: 100px;
   resize: vertical;
+  line-height: 1.5;
+  font-family: inherit;
 }
 
 .form-select {
-  /* Custom arrow */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-repeat: no-repeat;
@@ -121,10 +123,10 @@
   appearance: none;
 }
 
-/* Helper Text & Error */
+/* Helper & Error */
 .form-helper {
   font-size: 0.7rem;
-  color: #718096; /* gray-500 */
+  color: #718096;
   margin-top: 0.1rem;
 }
 
@@ -133,11 +135,8 @@
   color: #e53e3e;
   margin-top: 0.1rem;
 }
-.input-error {
-  border-color: #e53e3e;
-}
 
-/* File Input Styling (Lebih cantik dari default) */
+/* File Input Styling */
 .form-input[type="file"] {
   padding: 0.25rem;
   font-size: 0.75rem;
@@ -155,12 +154,13 @@
 
 /* Image Preview */
 .form-image-preview {
-  width: 80px; /* Lebih kecil */
+  width: 80px;
   height: 80px;
   border-radius: 0.375rem;
   object-fit: cover;
   border: 1px solid #e2e8f0;
   margin-top: 0.25rem;
+  background-color: #f7fafc;
 }
 
 /* Footer */
@@ -171,97 +171,4 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-}
-
-.card-divider {
-  border: 0;
-  border-top: 1px solid #edf2f7;
-  margin: 0.5rem 0;
-}
-
-/* src/components/admin/AdminForm.module.css */
-
-/* Grid Layout */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-/* Label Styling */
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.input-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #4a5568;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* --- MODERN INPUT & TEXTAREA STYLE --- */
-.input-field {
-  width: 100%;
-  padding: 0.85rem 1rem;
-  font-family: inherit; /* Mengikuti font website (bukan Courier/Default) */
-  font-size: 0.95rem;
-  color: #2d3748;
-
-  /* Background sedikit abu agar terlihat seperti "field" */
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.6rem;
-
-  transition: all 0.2s ease;
-  outline: none;
-}
-
-/* Placeholder styling */
-.input-field::placeholder {
-  color: #a0aec0;
-  font-weight: 400;
-}
-
-/* Focus State (Saat diklik) */
-.input-field:focus {
-  background-color: #ffffff; /* Jadi putih bersih */
-  border-color: #3182ce; /* Border biru */
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); /* Glow halus */
-}
-
-/* Khusus TEXTAREA (Isi Konten) */
-textarea.input-field {
-  min-height: 200px; /* Lebih tinggi */
-  line-height: 1.7; /* Jarak antar baris lebih lega (enak dibaca) */
-  resize: vertical;
-
-  /* Typography mirip editor dokumen */
-  font-family: "Inter", system-ui, sans-serif;
-}
-
-/* Helper Text (Tips di bawah) */
-.helper-text {
-  font-size: 0.8rem;
-  color: #718096;
-  background-color: #f0fff4; /* Background hijau sangat muda */
-  color: #2f855a;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid #c6f6d5;
-  display: inline-block;
-  margin-top: 0.5rem;
-}
-
-/* Footer Buttons */
-.form-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #edf2f7;
 }

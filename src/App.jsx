@@ -6,12 +6,11 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 
 // --- 1. KOMPONEN GLOBAL ---
 import Navbar from "./components/Navbar.jsx";
-import Footer from "./components/Footer.jsx"; // Pastikan file ini ada
-import Breadcrumbs from "./components/Breadcrumbs.jsx";
+import Footer from "./components/Footer.jsx";
+// HAPUS IMPORT INI: import Breadcrumbs from "./components/Breadcrumbs.jsx";
 
 // --- 2. HALAMAN (HYBRID: Publik + Admin) ---
-// Halaman ini otomatis memunculkan tombol edit jika user login
-import Beranda from "./pages/Beranda.jsx"; // atau Home.jsx
+import Beranda from "./pages/Beranda.jsx";
 import VisiMisi from "./pages/VisiMisi.jsx";
 import DaftarAnggota from "./pages/DaftarAnggota.jsx";
 import ProgramKerja from "./pages/ProgramKerja.jsx";
@@ -36,7 +35,6 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    // 1. Wrap dengan AuthProvider agar state 'isAdmin' jalan di semua halaman
     <AuthProvider>
       <BrowserRouter>
         <div
@@ -48,23 +46,22 @@ function App() {
           }}
         >
           <Navbar />
-          <Breadcrumbs />
 
-          {/* Main Content: Flex 1 agar footer terdorong ke bawah */}
+          {/* HAPUS BARIS INI: <Breadcrumbs /> */}
+          {/* Breadcrumb sekarang ditangani oleh PageContainer di tiap halaman */}
+
+          {/* Main Content */}
           <main style={{ flex: 1, paddingBottom: "3rem" }}>
             <Routes>
               {/* === RUTE UTAMA (HYBRID) === */}
-              {/* Admin & Pengunjung mengakses URL yang sama */}
               <Route path="/" element={<Beranda />} />
               <Route path="/login" element={<LoginPage />} />
 
               <Route path="/visi-misi" element={<VisiMisi />} />
 
-              {/* Anggota & Divisi */}
               <Route path="/anggota" element={<DaftarAnggota />} />
               <Route path="/divisi/:id" element={<DivisiDetail />} />
 
-              {/* Program Kerja */}
               <Route path="/program-kerja" element={<ProgramKerja />} />
               <Route
                 path="/program-kerja/:id"
@@ -72,7 +69,6 @@ function App() {
               />
 
               {/* === RUTE KHUSUS ADMIN === */}
-              {/* Hanya bisa diakses jika login */}
               <Route
                 path="/dashboard"
                 element={
@@ -91,7 +87,6 @@ function App() {
                 }
               />
 
-              {/* Redirect /admin ke dashboard (opsional) */}
               <Route
                 path="/admin"
                 element={<Navigate to="/dashboard" replace />}

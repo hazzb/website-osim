@@ -1,57 +1,80 @@
 /* src/components/Breadcrumbs.module.css */
 
+/* Container: Hanya mengatur jarak bawah, posisi mengikuti parent (MainLayout) */
 .container {
-  max-width: 1100px;
-  margin: 0 auto;
-  /* Padding kiri/kanan disamakan dengan konten utama agar segaris */
-  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
   width: 100%;
+  margin-bottom: 1.5rem; /* Jarak antara breadcrumb dan judul halaman */
+  padding: 0; /* Nol-kan padding agar lurus garis vertikal dengan judul */
 }
 
-.nav {
-  display: flex;
-  justify-content: flex-start; /* Paksa ke kiri */
-  font-size: 0.85rem;
-  color: #718096;
-}
-
+/* List Navigasi */
 .list {
-  display: flex;
-  align-items: center;
   list-style: none;
   padding: 0;
   margin: 0;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Jarak antar item */
+  flex-wrap: wrap; /* Turun baris jika layar sempit */
 }
 
-/* ... (Sisanya sama) ... */
+/* Item Navigasi */
 .item {
   display: flex;
   align-items: center;
-}
-.separator {
-  margin: 0 0.5rem;
-  color: #cbd5e0;
-  font-size: 0.7rem;
-}
-.link {
-  text-decoration: none;
-  color: #718096;
-  transition: color 0.2s;
-}
-.link:hover {
-  color: #2a9df4;
-  text-decoration: underline;
-} /* Sesuaikan hover dengan biru baru */
-.active {
-  color: #2d3748;
-  font-weight: 700;
-  pointer-events: none;
+  gap: 0.5rem;
+  font-size: 0.875rem; /* Ukuran font standar yang enak dibaca (14px) */
+  color: #94a3b8; /* Abu-abu netral */
+  font-weight: 500;
 }
 
+/* Link (Breadcrumb sebelumnya) */
+.link {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+  color: #64748b; /* Abu-abu agak gelap */
+  transition: all 0.2s ease;
+}
+
+.link:hover {
+  color: #3182ce; /* Biru OSIS saat hover */
+  text-decoration: underline;
+}
+
+/* Ikon Rumah Kecil */
+.homeIcon {
+  margin-bottom: 1px;
+  font-size: 1rem;
+}
+
+/* Pemisah (Panah / Slash) */
+.separator {
+  display: flex;
+  align-items: center;
+  color: #cbd5e0; /* Abu-abu sangat muda */
+  font-size: 1rem;
+}
+
+/* Item Terakhir (Halaman Aktif) */
+.active {
+  color: #1e293b; /* Hitam/Biru Gelap Tegas */
+  font-weight: 700; /* Bold */
+
+  /* Mencegah teks terlalu panjang merusak layout */
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Mobile Responsiveness --- */
 @media (max-width: 640px) {
-  .container {
-    display: none;
-  } /* Sembunyi di HP biar hemat tempat */
+  .item {
+    font-size: 0.8rem; /* Perkecil sedikit di HP */
+  }
+
+  /* Opsional: Sembunyikan 'Beranda' di HP agar muat, sisakan icon */
+  /* .link span { display: none; } */
 }

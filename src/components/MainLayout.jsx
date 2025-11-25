@@ -1,17 +1,18 @@
-// src/components/MainLayout.jsx
-// --- VERSI 3.0 (Refaktor CSS Murni) ---
-
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar.jsx'; // Impor Navbar versi CSS
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Navbar from "./Navbar.jsx";
+// PENTING: Jangan import Breadcrumbs di sini!
 
 function MainLayout() {
   return (
-    // 'body' kita di index.css sudah mengatur bg-gray-50
     <div className="app-layout">
       <Navbar />
-      <main>
-        {/* Konten halaman akan dirender di sini */}
+
+      {/* MainLayout sekarang hanya wadah kosong.
+         Breadcrumb dan Layout Lebar (1200px) sudah diurus oleh 
+         PageContainer di masing-masing halaman.
+      */}
+      <main style={{ width: "100%", minHeight: "100vh" }}>
         <Outlet />
       </main>
     </div>
