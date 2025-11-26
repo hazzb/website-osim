@@ -1,5 +1,3 @@
-// src/pages/VisiMisi.jsx
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
@@ -20,27 +18,33 @@ import LayoutModular from "../components/layouts/visimisi/LayoutModular.jsx";
 import LayoutSplit from "../components/layouts/visimisi/LayoutSplit.jsx";
 import LayoutZigZag from "../components/layouts/visimisi/LayoutZigZag.jsx";
 
-// --- UPDATE IMPORT ICONS ---
+// ICONS
 import {
-  FiEdit, // GANTI: Edit standar (Pensil)
+  FiEdit,
   FiLayout,
   FiLayers,
   FiGrid,
   FiColumns,
-  FiGitMerge, // GANTI: Ikon ZigZag (Simbol percabangan/selang-seling)
-  FiPlus, // BARU: Ikon Tambah
+  FiGitMerge,
+  FiPlus,
+  FiToggleLeft,
+  FiToggleRight,
 } from "react-icons/fi";
 
 function VisiMisi() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // States
+  // States Data
   const [contents, setContents] = useState([]);
+
+  // States Pengaturan
   const [layoutMode, setLayoutMode] = useState("modular");
+  const [showHero, setShowHero] = useState(true); // <--- STATE BARU
+
   const [loading, setLoading] = useState(true);
 
-  // Modals & Form States...
+  // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReorderOpen, setIsReorderOpen] = useState(false);
   const [isSettingOpen, setIsSettingOpen] = useState(false);
@@ -55,17 +59,25 @@ function VisiMisi() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // 1. Ambil Pengaturan (Layout & Hero)
       const { data: settings } = await supabase
         .from("pengaturan")
-        .select("visi_misi_layout")
+        .select("visi_misi_layout, tampilkan_hero") // <--- Ambil kolom tampilkan_hero
         .eq("id", 1)
         .single();
-      if (settings) setLayoutMode(settings.visi_misi_layout || "modular");
 
+      if (settings) {
+        setLayoutMode(settings.visi_misi_layout || "modular");
+        setShowHero(settings.tampilkan_hero !== false); // Default true jika null
+      }
+
+      // 2. Ambil Konten
       const { data, error } = await supabase
         .from("konten_halaman")
         .select("*")
+        .eq("page_type", "visimisi")
         .order("urutan", { ascending: true });
+
       if (error) throw error;
       setContents(data || []);
     } catch (err) {
@@ -75,10 +87,14 @@ function VisiMisi() {
     }
   };
 
-  const heroContent = contents.length > 0 ? contents[0] : null;
-  const gridContents = contents.length > 0 ? contents.slice(1) : [];
+  // --- LOGIC PEMBAGIAN KONTEN (SMART) ---
+  // Jika Show Hero ON: Item pertama jadi Hero, sisanya Grid.
+  // Jika Show Hero OFF: Semua item masuk Grid.
+  const heroContent = showHero && contents.length > 0 ? contents[0] : null;
+  const gridContents =
+    showHero && contents.length > 0 ? contents.slice(1) : contents;
 
-  // Handlers...
+  // Handlers
   const handleLayoutChange = async (mode) => {
     setLayoutMode(mode);
     try {
@@ -91,15 +107,36 @@ function VisiMisi() {
     }
   };
 
+  const handleToggleHero = async () => {
+    const newValue = !showHero;
+    setShowHero(newValue);
+    try {
+      await supabase
+        .from("pengaturan")
+        .update({ tampilkan_hero: newValue })
+        .eq("id", 1);
+    } catch (err) {
+      setShowHero(!newValue); // Revert jika error
+      console.error(err);
+    }
+  };
+
   const openModal = (item = null) => {
     if (item) {
       setEditingId(item.id);
       setFormData(item);
     } else {
       setEditingId(null);
+      // Jika Hero mati, urutan otomatis ambil paling akhir
+      // Jika Hero nyala, urutan mengikuti logic list biasa
       const lastOrder =
         contents.length > 0 ? contents[contents.length - 1].urutan : 0;
-      setFormData({ judul: "", isi: "", urutan: lastOrder + 10 });
+      setFormData({
+        judul: "",
+        isi: "",
+        urutan: lastOrder + 10,
+        page_type: "visimisi",
+      });
     }
     setIsModalOpen(true);
   };
@@ -108,12 +145,14 @@ function VisiMisi() {
     e.preventDefault();
     setModalLoading(true);
     try {
+      const payload = { ...formData, page_type: "visimisi" };
       if (editingId)
         await supabase
           .from("konten_halaman")
-          .update(formData)
+          .update(payload)
           .eq("id", editingId);
-      else await supabase.from("konten_halaman").insert(formData);
+      else await supabase.from("konten_halaman").insert(payload);
+
       fetchData();
       setIsModalOpen(false);
     } catch (err) {
@@ -157,7 +196,7 @@ function VisiMisi() {
   if (loading)
     return (
       <PageContainer breadcrumbText="Memuat...">
-        <LoadingState message="Memuat konten..." />
+        <LoadingState message="Memuat Visi Misi..." />
       </PageContainer>
     );
 
@@ -186,38 +225,38 @@ function VisiMisi() {
         )}
       </div>
 
-      {/* HERO CONTENT */}
-      <div className={styles.heroWrapper}>
-        {heroContent ? (
-          <div className={styles.heroContent}>
-            <h1 className={styles.pageTitle}>{heroContent.judul}</h1>
-            <p className={styles.pageSubtitle}>{heroContent.isi}</p>
-            {isAdmin && (
-              <button
-                onClick={() => openModal(heroContent)}
-                className={styles.editHeroBtn}
-                title="Edit Judul Utama"
-              >
-                {/* GANTI ICON EDIT */}
-                <FiEdit />
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className={styles.emptyHero}>
-            <h1 className={styles.pageTitle}>Visi & Misi</h1>
-            {isAdmin && (
-              <button
-                onClick={() => openModal()}
-                className="button button-primary"
-              >
-                {/* GANTI ICON PLUS */}
-                <FiPlus style={{ marginRight: "4px" }} /> Buat Judul Utama
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+      {/* HERO CONTENT (Hanya Render jika showHero = true) */}
+      {showHero && (
+        <div className={styles.heroWrapper}>
+          {heroContent ? (
+            <div className={styles.heroContent}>
+              <h1 className={styles.pageTitle}>{heroContent.judul}</h1>
+              <p className={styles.pageSubtitle}>{heroContent.isi}</p>
+              {isAdmin && (
+                <button
+                  onClick={() => openModal(heroContent)}
+                  className={styles.editHeroBtn}
+                  title="Edit Judul Utama"
+                >
+                  <FiEdit />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className={styles.emptyHero}>
+              <h1 className={styles.pageTitle}>Visi & Misi</h1>
+              {isAdmin && (
+                <button
+                  onClick={() => openModal()}
+                  className="button button-primary"
+                >
+                  <FiPlus style={{ marginRight: "4px" }} /> Buat Judul Utama
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* DYNAMIC CONTENT GRID */}
       <div className={styles.contentWrapper}>
@@ -235,14 +274,13 @@ function VisiMisi() {
                 gap: "0.5rem",
               }}
             >
-              {/* GANTI ICON PLUS */}
               <FiPlus size={20} /> Tambah Seksi Baru
             </button>
           </div>
         )}
       </div>
 
-      {/* MODALS (Form, Reorder) ... (Sama seperti sebelumnya) */}
+      {/* --- MODALS --- */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -272,48 +310,105 @@ function VisiMisi() {
         </Modal>
       )}
 
-      {/* LAYOUT SETTING (Icons Updated) */}
+      {/* MODAL SETTING (Dengan Toggle Hero) */}
       <Modal
         isOpen={isSettingOpen}
         onClose={() => setIsSettingOpen(false)}
-        title="Pilih Tampilan"
+        title="Pengaturan Tampilan"
       >
-        <div className={styles.layoutOptionGrid}>
-          <div
-            className={`${styles.layoutOption} ${
-              layoutMode === "modular" ? styles.active : ""
-            }`}
-            onClick={() => handleLayoutChange("modular")}
+        {/* 1. Toggle Hero Section */}
+        <div
+          style={{
+            marginBottom: "1.5rem",
+            paddingBottom: "1.5rem",
+            borderBottom: "1px dashed #e2e8f0",
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              cursor: "pointer",
+            }}
           >
-            <div className={styles.layoutIcon}>
-              <FiGrid />
+            <div>
+              <span
+                style={{
+                  display: "block",
+                  fontWeight: "700",
+                  color: "#2d3748",
+                }}
+              >
+                Banner Utama (Hero)
+              </span>
+              <span style={{ fontSize: "0.85rem", color: "#718096" }}>
+                Tampilkan judul besar di bagian paling atas.
+              </span>
             </div>
-            <span>Modular</span>
-          </div>
-          <div
-            className={`${styles.layoutOption} ${
-              layoutMode === "split" ? styles.active : ""
-            }`}
-            onClick={() => handleLayoutChange("split")}
+            <div
+              onClick={handleToggleHero}
+              style={{
+                fontSize: "2rem",
+                color: showHero ? "#3182ce" : "#cbd5e0",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {showHero ? <FiToggleRight /> : <FiToggleLeft />}
+            </div>
+          </label>
+        </div>
+
+        {/* 2. Pilihan Layout Grid */}
+        <div>
+          <span
+            style={{
+              display: "block",
+              fontWeight: "700",
+              color: "#2d3748",
+              marginBottom: "0.5rem",
+            }}
           >
-            <div className={styles.layoutIcon}>
-              <FiColumns />
+            Gaya Tampilan Konten
+          </span>
+          <div className={styles.layoutOptionGrid}>
+            <div
+              className={`${styles.layoutOption} ${
+                layoutMode === "modular" ? styles.active : ""
+              }`}
+              onClick={() => handleLayoutChange("modular")}
+            >
+              <div className={styles.layoutIcon}>
+                <FiGrid />
+              </div>
+              <span>Modular</span>
             </div>
-            <span>Split</span>
-          </div>
-          <div
-            className={`${styles.layoutOption} ${
-              layoutMode === "zigzag" ? styles.active : ""
-            }`}
-            onClick={() => handleLayoutChange("zigzag")}
-          >
-            {/* GANTI ICON ZIGZAG KE GIT MERGE (Lebih mirip cabang) */}
-            <div className={styles.layoutIcon}>
-              <FiGitMerge />
+            <div
+              className={`${styles.layoutOption} ${
+                layoutMode === "split" ? styles.active : ""
+              }`}
+              onClick={() => handleLayoutChange("split")}
+            >
+              <div className={styles.layoutIcon}>
+                <FiColumns />
+              </div>
+              <span>Split</span>
             </div>
-            <span>Zig-Zag</span>
+            <div
+              className={`${styles.layoutOption} ${
+                layoutMode === "zigzag" ? styles.active : ""
+              }`}
+              onClick={() => handleLayoutChange("zigzag")}
+            >
+              <div className={styles.layoutIcon}>
+                <FiGitMerge />
+              </div>
+              <span>Zig-Zag</span>
+            </div>
           </div>
         </div>
+
         <div
           className={formStyles["form-footer"]}
           style={{ marginTop: "2rem" }}

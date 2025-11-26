@@ -1,245 +1,240 @@
-// src/pages/KelolaAnggota.jsx
-// --- VERSI 8.0 (All-in-One Modal System) ---
+import React, { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../supabaseClient';
-import { useAuth } from '../context/AuthContext';
+// Components UI
+import PageContainer from "../components/ui/PageContainer.jsx";
+import Modal from "../components/Modal.jsx";
+import LoadingState from "../components/ui/LoadingState.jsx";
+import {
+  FilterBar,
+  FilterSelect,
+  FilterSearch,
+} from "../components/ui/FilterBar.jsx";
 
-// Style & Components
-import styles from '../components/admin/AdminTable.module.css'; // Style untuk Tabel
-import formStyles from '../components/admin/AdminForm.module.css'; // Style untuk Form (Grid, dll)
-import FormInput from '../components/admin/FormInput.jsx';
-import Modal from '../components/Modal.jsx';
+// Styles & Icons
+import tableStyles from "../components/admin/AdminTable.module.css";
+import formStyles from "../components/admin/AdminForm.module.css";
+import { FiPlus, FiEdit, FiTrash2, FiSearch, FiUser } from "react-icons/fi";
 
 const PER_PAGE = 10;
 
 function KelolaAnggota() {
-  const { user } = useAuth();
-  
-  // --- STATE UTAMA (TABEL) ---
+  const { session } = useAuth();
+
+  // --- STATE DATA & TABEL ---
   const [anggotaList, setAnggotaList] = useState([]);
   const [loadingTable, setLoadingTable] = useState(true);
   const [error, setError] = useState(null);
-  
-  // State Filter & Pagination
-  const [selectedPeriodeId, setSelectedPeriodeId] = useState('');
-  const [selectedDivisiId, setSelectedDivisiId] = useState('semua');
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // --- STATE FILTER & PAGINATION ---
+  const [selectedPeriodeId, setSelectedPeriodeId] = useState("");
+  const [selectedDivisiId, setSelectedDivisiId] = useState("semua");
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const totalPages = Math.ceil(totalCount / PER_PAGE);
 
-  // --- STATE FORM (MODAL) ---
+  // --- STATE MODAL & FORM ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null); // null = Tambah, ID = Edit
-  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
   const [formData, setFormData] = useState({});
-  const [formFile, setFormFile] = useState(null); // File baru
-  const [formPreview, setFormPreview] = useState(null); // Preview
-  const [existingFotoUrl, setExistingFotoUrl] = useState(null); // Foto lama (untuk edit)
 
-  // --- STATE RELASI (DROPDOWN) ---
+  // File Upload
+  const [formFile, setFormFile] = useState(null);
+  const [formPreview, setFormPreview] = useState(null);
+  const [existingFotoUrl, setExistingFotoUrl] = useState(null);
+
+  // --- STATE DROPDOWN ---
   const [periodeList, setPeriodeList] = useState([]);
-  const [divisiList, setDivisiList] = useState([]);
-  const [jabatanList, setJabatanList] = useState([]); // Dinamis
-  const [allDivisiForForm, setAllDivisiForForm] = useState([]); // Semua divisi untuk form
+  const [divisiFilterList, setDivisiFilterList] = useState([]); // List Divisi untuk Filter (Atas)
+  const [divisiFormList, setDivisiFormList] = useState([]); // List Divisi untuk Form (Modal)
+  const [jabatanList, setJabatanList] = useState([]); // List Jabatan untuk Form (Modal)
 
-  // =========================================
-  // 1. FETCH DATA AWAL (Periode, Divisi Filter)
-  // =========================================
+  // =================================================================
+  // 1. FETCH DATA AWAL (Periode)
+  // =================================================================
   useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const { data } = await supabase
+          .from("periode_jabatan")
+          .select("*")
+          .order("tahun_mulai", { ascending: false });
+        setPeriodeList(data || []);
+
+        // Default filter ke periode aktif (atau yang pertama)
+        if (data?.length > 0) {
+          const active = data.find((p) => p.is_active);
+          setSelectedPeriodeId(active ? active.id : data[0].id);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
     fetchInitialData();
   }, []);
 
-  const fetchInitialData = async () => {
-    try {
-      // Fetch Periode
-      const { data: periodes } = await supabase.from('periode_jabatan').select('*').order('tahun_mulai', { ascending: false });
-      setPeriodeList(periodes || []);
-      
-      // Set default filter periode
-      if (periodes?.length > 0) {
-        const active = periodes.find(p => p.is_active);
-        setSelectedPeriodeId(active ? active.id : periodes[0].id);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // =========================================
-  // 2. FETCH TABEL ANGGOTA & DIVISI FILTER
-  // =========================================
+  // =================================================================
+  // 2. FETCH DATA TABEL (Reactive terhadap Filter)
+  // =================================================================
   useEffect(() => {
     if (!selectedPeriodeId) return;
 
-    // Fetch Divisi untuk Filter (Hanya yg ada di periode ini)
-    const fetchDivisiFilter = async () => {
-      const { data } = await supabase.from('divisi').select('id, nama_divisi').eq('periode_id', selectedPeriodeId).order('urutan');
-      setDivisiList(data || []);
-    };
-    fetchDivisiFilter();
+    const loadTableData = async () => {
+      setLoadingTable(true);
+      try {
+        // A. Ambil Divisi untuk Filter (Sesuai periode yang dipilih di filter bar)
+        const { data: divData } = await supabase
+          .from("divisi")
+          .select("id, nama_divisi")
+          .eq("periode_id", selectedPeriodeId)
+          .order("urutan");
+        setDivisiFilterList(divData || []);
 
-    // Fetch Tabel Anggota
-    fetchAnggotaTable();
+        // B. Ambil Data Anggota
+        const from = (currentPage - 1) * PER_PAGE;
+        const to = from + PER_PAGE - 1;
+
+        let query = supabase
+          .from("anggota_detail_view") // Pastikan view ini ada di Database Anda
+          .select("*", { count: "exact" })
+          .eq("periode_id", selectedPeriodeId)
+          .order("urutan", { ascending: true }) // Urut berdasarkan divisi urutan
+          .order("nama", { ascending: true })
+          .range(from, to);
+
+        if (selectedDivisiId !== "semua")
+          query = query.eq("divisi_id", selectedDivisiId);
+        if (searchTerm) query = query.ilike("nama", `%${searchTerm}%`);
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+
+        setAnggotaList(data || []);
+        setTotalCount(count || 0);
+      } catch (err) {
+        setError("Gagal memuat data: " + err.message);
+      } finally {
+        setLoadingTable(false);
+      }
+    };
+
+    loadTableData();
   }, [selectedPeriodeId, selectedDivisiId, currentPage, searchTerm]);
 
-  const fetchAnggotaTable = async () => {
-    setLoadingTable(true);
-    const from = (currentPage - 1) * PER_PAGE;
-    const to = from + PER_PAGE - 1;
+  // =================================================================
+  // 3. LOGIC FORM (Cascading Dropdown)
+  // =================================================================
 
-    try {
-      let query = supabase
-        .from('anggota_detail_view')
-        .select('*', { count: 'exact' })
-        .eq('periode_id', selectedPeriodeId)
-        .order('urutan', { ascending: true })
-        .order('nama', { ascending: true })
-        .range(from, to);
-      
-      if (selectedDivisiId !== 'semua') query = query.eq('divisi_id', selectedDivisiId);
-      if (searchTerm) query = query.ilike('nama', `%${searchTerm}%`);
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-      
-      setAnggotaList(data || []);
-      setTotalCount(count || 0);
-    } catch (err) {
-      setError("Gagal memuat tabel: " + err.message);
-    } finally {
-      setLoadingTable(false);
-    }
+  // Ambil divisi untuk form modal (berdasarkan periode yang dipilih di form)
+  const fetchDivisiForForm = async (pId) => {
+    const { data } = await supabase
+      .from("divisi")
+      .select("id, nama_divisi")
+      .eq("periode_id", pId)
+      .order("urutan");
+    setDivisiFormList(data || []);
   };
 
-  // =========================================
-  // 3. MODAL & FORM LOGIC
-  // =========================================
-
-  // Buka Modal Tambah
-  const openAddModal = async () => {
-    setEditingId(null); // Mode Tambah
-    setFormData({ 
-      jenis_kelamin: 'Ikhwan', 
-      periode_id: selectedPeriodeId // Default ke periode yang sedang dilihat
-    }); 
-    setFormFile(null);
-    setFormPreview(null);
-    setExistingFotoUrl(null);
-    setJabatanList([]);
-    
-    // Ambil semua divisi untuk dropdown form (sesuai periode terpilih di form)
-    fetchDivisiForForm(selectedPeriodeId);
-    
-    setIsModalOpen(true);
-  };
-
-  // Buka Modal Edit
-  const openEditModal = async (anggotaView) => {
-    setEditingId(anggotaView.id); // Mode Edit
-    setLoadingSubmit(true); // Tampilkan loading sebentar saat fetch detail
-    setIsModalOpen(true);
-
-    try {
-      // Fetch data asli dari tabel 'anggota' (bukan view)
-      const { data, error } = await supabase.from('anggota').select('*').eq('id', anggotaView.id).single();
-      if (error) throw error;
-
-      setFormData(data);
-      setExistingFotoUrl(data.foto_url);
-      setFormPreview(data.foto_url);
-      setFormFile(null);
-
-      // Siapkan dropdown
-      await fetchDivisiForForm(data.periode_id);
-      await fetchJabatanForDivisi(data.divisi_id); // Load jabatan yang sesuai divisi ini
-
-    } catch (err) {
-      alert("Gagal memuat detail: " + err.message);
-      setIsModalOpen(false);
-    } finally {
-      setLoadingSubmit(false);
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setFormData({});
-  };
-
-  // Helper: Fetch Divisi untuk Dropdown Form
-  const fetchDivisiForForm = async (periodeId) => {
-    if (!periodeId) return;
-    const { data } = await supabase.from('divisi').select('id, nama_divisi').eq('periode_id', periodeId);
-    setAllDivisiForForm(data || []);
-  };
-
-  // Helper: Fetch Jabatan Dinamis (Database-Driven)
-  const fetchJabatanForDivisi = async (divisiId) => {
-    if (!divisiId) {
+  // Ambil jabatan untuk form modal (berdasarkan divisi yang dipilih di form)
+  const fetchJabatanForDivisi = async (dId) => {
+    if (!dId) {
       setJabatanList([]);
       return;
     }
     const { data } = await supabase
-      .from('divisi_jabatan_link')
-      .select('master_jabatan (id, nama_jabatan)')
-      .eq('divisi_id', divisiId);
-    
+      .from("divisi_jabatan_link")
+      .select("master_jabatan (id, nama_jabatan)")
+      .eq("divisi_id", dId);
+
     if (data) {
-      setJabatanList(data.map(item => item.master_jabatan));
+      setJabatanList(data.map((item) => item.master_jabatan));
     }
   };
 
-  // Handler Input Form
+  const openModal = async (item = null) => {
+    setFormFile(null);
+    setFormPreview(null);
+    setExistingFotoUrl(null);
+    setJabatanList([]); // Reset jabatan
+
+    if (item) {
+      // EDIT MODE
+      setEditingId(item.id);
+      // Fetch data asli (bukan view) agar ID relasinya benar
+      const { data } = await supabase
+        .from("anggota")
+        .select("*")
+        .eq("id", item.id)
+        .single();
+      setFormData(data);
+      setExistingFotoUrl(data.foto_url);
+      setFormPreview(data.foto_url);
+
+      // Isi dropdown sesuai data yang diedit
+      await fetchDivisiForForm(data.periode_id);
+      await fetchJabatanForDivisi(data.divisi_id);
+    } else {
+      // ADD MODE
+      setEditingId(null);
+      setFormData({
+        jenis_kelamin: "Ikhwan",
+        periode_id: selectedPeriodeId, // Default ke periode yang sedang dilihat
+      });
+      // Isi dropdown default
+      await fetchDivisiForForm(selectedPeriodeId);
+    }
+    setIsModalOpen(true);
+  };
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Jika periode berubah di form, refresh list divisi
-    if (name === 'periode_id') {
-        setFormData(prev => ({ ...prev, divisi_id: '', jabatan_di_divisi: '' }));
-        fetchDivisiForForm(value);
+    // Logika Cascading Dropdown (Periode -> Divisi -> Jabatan)
+    if (name === "periode_id") {
+      setFormData((prev) => ({
+        ...prev,
+        divisi_id: "",
+        jabatan_di_divisi: "",
+      }));
+      fetchDivisiForForm(value);
     }
-
-    // Jika divisi berubah di form, refresh list jabatan
-    if (name === 'divisi_id') {
-      setFormData(prev => ({ ...prev, jabatan_di_divisi: '' }));
+    if (name === "divisi_id") {
+      setFormData((prev) => ({ ...prev, jabatan_di_divisi: "" }));
       fetchJabatanForDivisi(value);
     }
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    const file = e.target.files[0];
+    if (file) {
       setFormFile(file);
       setFormPreview(URL.createObjectURL(file));
     }
   };
 
-  // Handler Submit (Insert / Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return alert("Sesi habis.");
-    setLoadingSubmit(true);
-
+    setModalLoading(true);
     try {
       let finalFotoUrl = existingFotoUrl;
 
-      // 1. Upload Foto Baru (jika ada)
+      // Upload Foto
       if (formFile) {
-        const ext = formFile.name.split('.').pop();
-        const fileName = `anggota_${user.id}_${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('gambar-osim').upload(`anggota/${fileName}`, formFile);
+        const ext = formFile.name.split(".").pop();
+        const fileName = `anggota_${Date.now()}.${ext}`;
+        // Upload ke bucket 'logos' -> folder 'anggota'
+        const { error: upErr } = await supabase.storage
+          .from("logos")
+          .upload(`anggota/${fileName}`, formFile);
         if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage.from('gambar-osim').getPublicUrl(`anggota/${fileName}`);
+        const { data: urlData } = supabase.storage
+          .from("logos")
+          .getPublicUrl(`anggota/${fileName}`);
         finalFotoUrl = urlData.publicUrl;
-
-        // Hapus foto lama jika update
-        if (editingId && existingFotoUrl) {
-            const oldPath = existingFotoUrl.split('gambar-osim/')[1];
-            if(oldPath) await supabase.storage.from('gambar-osim').remove([oldPath]);
-        }
       }
 
       const payload = {
@@ -251,115 +246,218 @@ function KelolaAnggota() {
         periode_id: formData.periode_id,
         divisi_id: formData.divisi_id,
         jabatan_di_divisi: formData.jabatan_di_divisi,
-        foto_url: finalFotoUrl
+        foto_url: finalFotoUrl,
       };
 
       if (editingId) {
-        // UPDATE
-        const { error } = await supabase.from('anggota').update(payload).eq('id', editingId);
-        if (error) throw error;
-        alert("Data diperbarui!");
+        await supabase.from("anggota").update(payload).eq("id", editingId);
       } else {
-        // INSERT
-        const { error } = await supabase.from('anggota').insert(payload);
-        if (error) throw error;
-        alert("Anggota ditambahkan!");
+        await supabase.from("anggota").insert(payload);
       }
 
-      closeModal();
-      fetchAnggotaTable(); // Refresh tabel
-
+      // Refresh halaman sederhana agar data terupdate
+      window.location.reload();
     } catch (err) {
-      alert("Gagal menyimpan: " + err.message);
-    } finally {
-      setLoadingSubmit(false);
+      alert("Gagal: " + err.message);
+      setModalLoading(false);
     }
   };
 
-  // Handler Hapus
-  const handleHapus = async (id, fotoUrl) => {
-    if (!window.confirm('Hapus anggota ini?')) return;
+  const handleDelete = async (id) => {
+    if (!window.confirm("Hapus anggota ini?")) return;
     try {
-      setLoadingTable(true);
-      const { error } = await supabase.from('anggota').delete().eq('id', id);
-      if (error) throw error;
-      if (fotoUrl) {
-        const path = fotoUrl.split('gambar-osim/')[1];
-        if(path) await supabase.storage.from('gambar-osim').remove([path]);
-      }
-      fetchAnggotaTable(); // Refresh tabel
+      await supabase.from("anggota").delete().eq("id", id);
+      // Update state lokal biar cepat
+      setAnggotaList((prev) => prev.filter((a) => a.id !== id));
     } catch (err) {
-      alert("Gagal menghapus: " + err.message);
-      setLoadingTable(false);
+      alert(err.message);
     }
   };
+
+  // =================================================================
+  // 4. RENDER UI
+  // =================================================================
+
+  if (loadingTable && !selectedPeriodeId)
+    return (
+      <PageContainer breadcrumbText="Memuat...">
+        <LoadingState message="Menyiapkan data..." />
+      </PageContainer>
+    );
 
   return (
-    <div className="main-content">
-      <div className={styles['admin-page-header']}>
-        <h1 className="page-title">Kelola Anggota</h1>
-        <button onClick={openAddModal} className="button button-primary">
-          + Tambah Anggota
-        </button>
-      </div>
-
-      {/* --- FILTER & SEARCH --- */}
-      <div className={styles['table-filter-container']}>
-        <div className={styles['filter-group']}>
-          <label>Periode:</label>
-          <select className={styles['filter-select']} value={selectedPeriodeId} onChange={(e) => setSelectedPeriodeId(e.target.value)}>
-            {periodeList.map(p => <option key={p.id} value={p.id}>{p.nama_kabinet || `${p.tahun_mulai}/${p.tahun_selesai}`}</option>)}
-          </select>
+    <PageContainer breadcrumbText="Kelola Anggota">
+      {/* === STICKY HEADER & FILTER === */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          backgroundColor: "#f8fafc",
+          paddingBottom: "1rem",
+          paddingTop: "0.5rem",
+          margin: "0 -1.5rem",
+          paddingLeft: "1.5rem",
+          paddingRight: "1.5rem",
+          borderBottom: "1px solid #e2e8f0",
+        }}
+      >
+        {/* Header Title & Tombol Tambah */}
+        <div className={tableStyles.adminPageHeader}>
+          <h1
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "700",
+              color: "#1e293b",
+              margin: 0,
+            }}
+          >
+            Database Anggota
+          </h1>
+          <button
+            onClick={() => openModal()}
+            className="button button-primary"
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+          >
+            <FiPlus /> Tambah Anggota
+          </button>
         </div>
-        <div className={styles['filter-group']}>
-          <label>Divisi:</label>
-          <select className={styles['filter-select']} value={selectedDivisiId} onChange={(e) => setSelectedDivisiId(e.target.value)}>
+
+        {/* Filter Bar */}
+        <FilterBar>
+          {/* Filter Periode */}
+          <FilterSelect
+            label="Periode"
+            value={selectedPeriodeId}
+            onChange={(e) => setSelectedPeriodeId(e.target.value)}
+          >
+            {periodeList.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nama_kabinet}
+              </option>
+            ))}
+          </FilterSelect>
+
+          {/* Filter Divisi */}
+          <FilterSelect
+            label="Divisi"
+            value={selectedDivisiId}
+            onChange={(e) => setSelectedDivisiId(e.target.value)}
+          >
             <option value="semua">Semua Divisi</option>
-            {divisiList.map(d => <option key={d.id} value={d.id}>{d.nama_divisi}</option>)}
-          </select>
-        </div>
-        <div className={styles['search-input-group']}>
-          <span>🔍</span>
-          <input type="text" placeholder="Cari nama..." className={styles['search-input']} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-        </div>
-      </div>
+            {divisiFilterList.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.nama_divisi}
+              </option>
+            ))}
+          </FilterSelect>
 
-      {error && <p className="error-text">{error}</p>}
-      
-      {/* --- TABEL --- */}
-      <div className={styles['table-container']}>
-        <table className={styles['admin-table']}>
+          {/* Search */}
+          <FilterSearch
+            placeholder="Cari nama..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </FilterBar>
+      </div>
+      {/* === END STICKY === */}
+
+      {/* TABEL DATA */}
+      <div
+        className={tableStyles.tableContainer}
+        style={{ marginTop: "1.5rem" }}
+      >
+        <table className={tableStyles.table}>
           <thead>
             <tr>
-              <th>Nama</th>
+              <th style={{ width: "60px" }}>Foto</th>
+              <th>Nama Lengkap</th>
               <th>Divisi</th>
               <th>Jabatan</th>
               <th>Gender</th>
-              <th>Aksi</th>
+              <th style={{ width: "120px" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loadingTable ? (
-              <tr><td colSpan="5" style={{textAlign:'center'}}>Memuat...</td></tr>
+              <tr>
+                <td
+                  colSpan="6"
+                  style={{ textAlign: "center", padding: "2rem" }}
+                >
+                  Memuat data...
+                </td>
+              </tr>
             ) : anggotaList.length === 0 ? (
-              <tr><td colSpan="5" style={{textAlign:'center'}}>Tidak ada data.</td></tr>
+              <tr>
+                <td
+                  colSpan="6"
+                  style={{
+                    textAlign: "center",
+                    padding: "2rem",
+                    color: "#94a3b8",
+                  }}
+                >
+                  Tidak ada data anggota.
+                </td>
+              </tr>
             ) : (
-              anggotaList.map(anggota => (
-                <tr key={anggota.id}>
-                  <td className={styles['avatar-cell']}>
-                    <img src={anggota.foto_url || 'https://via.placeholder.com/40'} alt={anggota.nama} className={styles['avatar-image']} />
-                    <strong>{anggota.nama}</strong>
+              anggotaList.map((item) => (
+                <tr key={item.id}>
+                  <td className={tableStyles.avatarCell}>
+                    {item.foto_url ? (
+                      <img
+                        src={item.foto_url}
+                        className={tableStyles.avatarImage}
+                        alt="foto"
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          borderRadius: "8px",
+                          background: "#f1f5f9",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: "0 auto",
+                          color: "#cbd5e0",
+                        }}
+                      >
+                        <FiUser />
+                      </div>
+                    )}
                   </td>
-                  <td>{anggota.nama_divisi}</td>
-                  <td>{anggota.jabatan_di_divisi}</td>
-                  <td>{anggota.jenis_kelamin}</td>
-                  <td className={styles['actions-cell']}>
-                    <button onClick={() => openEditModal(anggota)} className={`${styles['button-table']} ${styles['button-edit']}`}>
-                      Edit
-                    </button>
-                    <button onClick={() => handleHapus(anggota.id, anggota.foto_url)} className={`${styles['button-table']} ${styles['button-delete']}`}>
-                      Hapus
-                    </button>
+                  <td style={{ fontWeight: "600", color: "#1e293b" }}>
+                    {item.nama}
+                  </td>
+                  <td>{item.nama_divisi || "-"}</td>
+                  <td>
+                    <span
+                      className={`${tableStyles.badge} ${tableStyles.badgeGray}`}
+                    >
+                      {item.jabatan_di_divisi}
+                    </span>
+                  </td>
+                  <td>{item.jenis_kelamin}</td>
+                  <td>
+                    <div className={tableStyles.actionCell}>
+                      <button
+                        onClick={() => openModal(item)}
+                        className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
+                        title="Edit"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
+                        title="Hapus"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -368,56 +466,243 @@ function KelolaAnggota() {
         </table>
       </div>
 
-      {/* --- MODAL FORM (INSERT & UPDATE) --- */}
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingId ? "Edit Anggota" : "Tambah Anggota Baru"}>
+      {/* PAGINATION */}
+      <div className={tableStyles.paginationContainer}>
+        <span className={tableStyles.paginationInfo}>
+          Halaman {currentPage} dari {totalPages || 1}
+        </span>
+        <div className={tableStyles.paginationButtons}>
+          <button
+            className={tableStyles.paginationButton}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+          <button
+            className={tableStyles.paginationButton}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages || totalPages === 0}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      {/* MODAL FORM */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingId ? "Edit Anggota" : "Tambah Anggota"}
+      >
         <form onSubmit={handleSubmit}>
-          <div className={formStyles['form-grid']}> {/* Reusing AdminForm CSS Grid */}
-            <FormInput label="Nama Lengkap" name="nama" type="text" value={formData.nama || ''} onChange={handleFormChange} required span="col-span-3" />
-            
-            <FormInput label="Gender" name="jenis_kelamin" type="select" value={formData.jenis_kelamin || 'Ikhwan'} onChange={handleFormChange} span="col-span-1">
-               <option value="Ikhwan">Ikhwan</option>
-               <option value="Akhwat">Akhwat</option>
-            </FormInput>
+          <div className={formStyles.formGrid}>
+            {/* Nama */}
+            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Nama Lengkap</label>
+              <input
+                type="text"
+                name="nama"
+                required
+                value={formData.nama || ""}
+                onChange={handleFormChange}
+                className={formStyles.formInput}
+              />
+            </div>
 
-            <FormInput label="Instagram" name="instagram_username" type="text" value={formData.instagram_username || ''} onChange={handleFormChange} span="col-span-2" />
+            {/* Gender */}
+            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Gender</label>
+              <select
+                name="jenis_kelamin"
+                value={formData.jenis_kelamin || "Ikhwan"}
+                onChange={handleFormChange}
+                className={formStyles.formSelect}
+              >
+                <option value="Ikhwan">Ikhwan</option>
+                <option value="Akhwat">Akhwat</option>
+              </select>
+            </div>
 
-            <FormInput label="Periode" name="periode_id" type="select" value={formData.periode_id || ''} onChange={handleFormChange} required span="col-span-1">
-               <option value="">-- Pilih --</option>
-               {periodeList.map(p => <option key={p.id} value={p.id}>{p.nama_kabinet}</option>)}
-            </FormInput>
+            {/* Instagram */}
+            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>
+                Instagram (Opsional)
+              </label>
+              <input
+                type="text"
+                name="instagram_username"
+                value={formData.instagram_username || ""}
+                onChange={handleFormChange}
+                className={formStyles.formInput}
+                placeholder="username"
+              />
+            </div>
 
-            <FormInput label="Divisi" name="divisi_id" type="select" value={formData.divisi_id || ''} onChange={handleFormChange} required disabled={!formData.periode_id} span="col-span-1">
-               <option value="">-- Pilih --</option>
-               {allDivisiForForm.map(d => <option key={d.id} value={d.id}>{d.nama_divisi}</option>)}
-            </FormInput>
+            {/* Divider */}
+            <div
+              className={formStyles.colSpan2}
+              style={{ borderTop: "1px dashed #e2e8f0", margin: "0.5rem 0" }}
+            ></div>
 
-            <FormInput label="Jabatan" name="jabatan_di_divisi" type="select" value={formData.jabatan_di_divisi || ''} onChange={handleFormChange} required disabled={!formData.divisi_id || jabatanList.length === 0} span="col-span-1">
-               <option value="">-- Pilih --</option>
-               {jabatanList.map(j => <option key={j.id} value={j.nama_jabatan}>{j.nama_jabatan}</option>)}
-            </FormInput>
+            {/* Periode */}
+            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Periode</label>
+              <select
+                name="periode_id"
+                required
+                value={formData.periode_id || ""}
+                onChange={handleFormChange}
+                className={formStyles.formSelect}
+              >
+                <option value="">-- Pilih --</option>
+                {periodeList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama_kabinet}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <FormInput label="Alamat" name="alamat" type="text" value={formData.alamat || ''} onChange={handleFormChange} span="col-span-3" />
-            <FormInput label="Motto" name="motto" type="textarea" value={formData.motto || ''} onChange={handleFormChange} span="col-span-3" />
-            
-            <hr className="card-divider col-span-3" />
-            
-            <FormInput label="Foto" name="foto" type="file" onChange={handleFileChange} span="col-span-2" />
-            {formPreview && (
-               <div className={`${formStyles['form-group']} ${formStyles['col-span-1']}`}>
-                 <label className={formStyles['form-label']}>Preview</label>
-                 <img src={formPreview} alt="Preview" className={formStyles['form-image-preview']} />
-               </div>
-            )}
+            {/* Divisi */}
+            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Divisi</label>
+              <select
+                name="divisi_id"
+                required
+                value={formData.divisi_id || ""}
+                onChange={handleFormChange}
+                disabled={!formData.periode_id}
+                className={formStyles.formSelect}
+              >
+                <option value="">-- Pilih --</option>
+                {divisiFormList.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nama_divisi}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Jabatan */}
+            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Jabatan</label>
+              <select
+                name="jabatan_di_divisi"
+                required
+                value={formData.jabatan_di_divisi || ""}
+                onChange={handleFormChange}
+                disabled={!formData.divisi_id}
+                className={formStyles.formSelect}
+              >
+                <option value="">-- Pilih Jabatan --</option>
+                {jabatanList.map((j) => (
+                  <option key={j.id} value={j.nama_jabatan}>
+                    {j.nama_jabatan}
+                  </option>
+                ))}
+              </select>
+              <p className={formStyles.formHelper}>
+                Jabatan muncul sesuai divisi. Atur di 'Master Jabatan'.
+              </p>
+            </div>
+
+            {/* Alamat & Motto */}
+            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Alamat</label>
+              <input
+                type="text"
+                name="alamat"
+                value={formData.alamat || ""}
+                onChange={handleFormChange}
+                className={formStyles.formInput}
+              />
+            </div>
+            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
+              <label className={formStyles.formLabel}>Motto Hidup</label>
+              <textarea
+                name="motto"
+                value={formData.motto || ""}
+                onChange={handleFormChange}
+                className={formStyles.formTextarea}
+                rows="2"
+              />
+            </div>
+
+            {/* Foto */}
+            <div
+              className={`${formStyles.colSpan2} ${formStyles.uploadSection}`}
+            >
+              <label className={formStyles.formLabel}>Foto Profil</label>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1rem",
+                  alignItems: "center",
+                  marginTop: "0.5rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    border: "1px solid #cbd5e0",
+                    flexShrink: 0,
+                  }}
+                >
+                  {formPreview ? (
+                    <img
+                      src={formPreview}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                      alt="preview"
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: "#f1f5f9",
+                      }}
+                    ></div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className={formStyles.formInput}
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className={formStyles['form-footer']}>
-             <button type="button" onClick={closeModal} className="button button-secondary" disabled={loadingSubmit}>Batal</button>
-             <button type="submit" className="button button-primary" disabled={loadingSubmit}>{loadingSubmit ? 'Menyimpan...' : 'Simpan'}</button>
+          <div className={formStyles.formFooter}>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="button button-secondary"
+              disabled={modalLoading}
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={modalLoading}
+            >
+              {modalLoading ? "Menyimpan..." : "Simpan Data"}
+            </button>
           </div>
         </form>
       </Modal>
-
-    </div>
+    </PageContainer>
   );
 }
 

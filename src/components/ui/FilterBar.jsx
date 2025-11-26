@@ -1,13 +1,12 @@
-// src/components/ui/FilterBar.jsx
 import React from "react";
 import styles from "./FilterBar.module.css";
 
-// 1. Container Utama
+// 1. Container Utama (Wrapper)
 export const FilterBar = ({ children, className = "" }) => {
   return <div className={`${styles.bar} ${className}`}>{children}</div>;
 };
 
-// 2. Dropdown Select (Label: Value)
+// 2. Dropdown Select (Label + Select)
 export const FilterSelect = ({
   label,
   value,
@@ -17,21 +16,23 @@ export const FilterSelect = ({
 }) => {
   return (
     <div className={styles.group}>
-      <label className={styles.label}>{label}:</label>
-      <select className={styles.select} value={value} onChange={onChange}>
-        {children
-          ? children
-          : options.map((opt, idx) => (
-              <option key={idx} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-      </select>
+      {label && <label className={styles.label}>{label}</label>}
+      <div className={styles.selectWrapper}>
+        <select className={styles.select} value={value} onChange={onChange}>
+          {children
+            ? children
+            : options.map((opt, idx) => (
+                <option key={idx} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+        </select>
+      </div>
     </div>
   );
 };
 
-// 3. Pill Button (Tombol On/Off atau Kategori)
+// 3. Pill Button (Tombol Kategori/Status)
 export const FilterPill = ({ label, active, onClick }) => {
   return (
     <button
@@ -43,7 +44,7 @@ export const FilterPill = ({ label, active, onClick }) => {
   );
 };
 
-// 4. Search Input
+// 4. Search Input (Input Pencarian dengan Ikon)
 export const FilterSearch = ({ value, onChange, placeholder = "Cari..." }) => {
   return (
     <div className={styles.searchWrapper}>

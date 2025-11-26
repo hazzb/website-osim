@@ -7,7 +7,6 @@ const HomeStats = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      // Hitung total semua program kerja
       const { count } = await supabase
         .from("program_kerja")
         .select("*", { count: "exact", head: true });
@@ -19,40 +18,68 @@ const HomeStats = () => {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%)",
-        borderRadius: "20px",
+        /* GANTI GRADIENT BIRU JADI ORANYE/MERAH (Sunset) */
+        background: "linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%)",
+        borderRadius: "24px",
         padding: "3rem",
         color: "white",
         textAlign: "center",
         marginBottom: "4rem",
-        boxShadow: "0 10px 15px -3px rgba(49, 130, 206, 0.3)",
+        /* Ganti shadow jadi warna oranye */
+        boxShadow: "0 15px 30px -5px rgba(255, 107, 107, 0.4)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>
+      {/* Dekorasi Background Circle Transparan */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-50px",
+          left: "-50px",
+          width: "150px",
+          height: "150px",
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: "50%",
+        }}
+      ></div>
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-50px",
+          right: "-50px",
+          width: "200px",
+          height: "200px",
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: "50%",
+        }}
+      ></div>
+
+      <div style={{ fontSize: "3.5rem", marginBottom: "0.5rem" }}>
         <FiActivity />
       </div>
       <h2
         style={{
-          fontSize: "4rem",
+          fontSize: "4.5rem",
           fontWeight: "900",
           margin: 0,
           lineHeight: 1,
         }}
       >
-        {count}
+        {count}+
       </h2>
       <p
         style={{
-          fontSize: "1.2rem",
-          opacity: 0.9,
+          fontSize: "1.25rem",
           marginTop: "0.5rem",
-          fontWeight: "500",
+          fontWeight: "700",
+          letterSpacing: "0.05em",
         }}
       >
-        TOTAL PROGRAM KERJA
+        PROGRAM KERJA SERU
       </p>
-      <p style={{ fontSize: "0.9rem", opacity: 0.7 }}>
-        Dedikasi kami untuk kemajuan bersama
+      <p style={{ fontSize: "1rem", opacity: 0.8, fontWeight: "500" }}>
+        Telah terlaksana dan memeriahkan sekolah kita!
       </p>
     </div>
   );
