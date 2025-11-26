@@ -1,23 +1,5 @@
 /* src/components/cards/ProgramKerjaCard.module.css */
 
-.card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease;
-  position: relative;
-  height: 100%; /* Agar tinggi seragam di grid */
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
-  border-color: #cbd5e0;
-}
-
 /* --- MEDIA / EMBED --- */
 .mediaContainer {
   position: relative;

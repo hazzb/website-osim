@@ -1,0 +1,25 @@
+/* Container Dasar */
+.cardContainer {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden; /* Agar isi tidak tumpah keluar rounded corner */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Agar seragam di grid */
+  cursor: default; /* Atau pointer jika bisa diklik */
+
+  /* --- MAGIC EFFECT (RAISE UP) --- */
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
+  /* Cubic-bezier ini memberikan efek "membal" sedikit yang premium */
+}
+
+/* Saat Hover */
+.cardContainer:hover {
+  transform: translateY(-8px); /* Naik ke atas */
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.15); /* Bayangan soft di bawah */
+  border-color: #cbd5e0; /* Border sedikit lebih gelap */
+  z-index: 10; /* Supaya di atas elemen lain */
+}

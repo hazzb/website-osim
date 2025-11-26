@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import styles from "./ProgramKerja.module.css";
+import { ProgjaSkeletonGrid } from "../components/ui/Skeletons.jsx";
 import {
   FilterBar,
   FilterSelect,
@@ -12,17 +13,63 @@ import {
   FiPlus,
   FiEye,
   FiEyeOff,
-  FiCalendar, // Untuk "Akan Datang"
-  FiTarget, // Untuk "Rencana"
-  FiCheckCircle, // Untuk "Selesai"
+  FiCalendar,
+  FiTarget,
+  FiCheckCircle,
 } from "react-icons/fi";
 
 // COMPONENTS
-import PageContainer from "../components/ui/PageContainer.jsx"; // IMPORT BARU
-import LoadingState from "../components/ui/LoadingState.jsx"; // IMPORT BARU
+import PageContainer from "../components/ui/PageContainer.jsx";
 import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import Modal from "../components/Modal.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
+
+// --- KOMPONEN SKELETON BARU (Agar Loading Terlihat Bagus) ---
+const ProgjaSkeleton = () => (
+  <div className={styles["progja-grid"]}>
+    {[1, 2, 3, 4].map((i) => (
+      <div
+        key={i}
+        style={{
+          background: "white",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          height: "200px",
+          padding: "1.5rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+        }}
+      >
+        <div
+          style={{
+            width: "60%",
+            height: "24px",
+            background: "#f1f5f9",
+            borderRadius: "4px",
+          }}
+        ></div>
+        <div
+          style={{
+            width: "40%",
+            height: "16px",
+            background: "#f1f5f9",
+            borderRadius: "4px",
+          }}
+        ></div>
+        <div
+          style={{
+            width: "100%",
+            height: "12px",
+            background: "#f1f5f9",
+            borderRadius: "4px",
+            marginTop: "auto",
+          }}
+        ></div>
+      </div>
+    ))}
+  </div>
+);
 
 // --- KOMPONEN TOGGLE KHUSUS ADMIN ---
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
@@ -147,11 +194,10 @@ function ProgramKerja() {
   };
 
   // --- EFFECTS ---
-  // Re-process Instagram embed saat list berubah
   const progjaListRef = useRef(progjaList);
   useEffect(() => {
     progjaListRef.current = progjaList;
-    const timer = setTimeout(processInstagramEmbeds, 500); // Delay sedikit agar DOM ready
+    const timer = setTimeout(processInstagramEmbeds, 500);
     return () => clearTimeout(timer);
   }, [progjaList, selectedStatus, selectedDivisi]);
 
@@ -165,7 +211,7 @@ function ProgramKerja() {
         .update({ [key]: newValue })
         .eq("id", 1);
     } catch (err) {
-      setPengaturan((prev) => ({ ...prev, [key]: !newValue })); // Revert on error
+      setPengaturan((prev) => ({ ...prev, [key]: !newValue }));
     } finally {
       setIsSavingSetting(false);
     }
@@ -266,7 +312,6 @@ function ProgramKerja() {
     if (selectedStatus !== "semua" && item.status !== selectedStatus)
       return false;
 
-    // Logic Visibilitas Publik
     if (!isAdmin || viewPublicMode) {
       if (item.tampilkan_di_publik === false) return false;
       if (item.status === "Rencana" && !pengaturan.tampilkan_progja_rencana)
@@ -305,14 +350,11 @@ function ProgramKerja() {
     return (
       <section className={styles["timeline-section"]} style={isAdminViewStyle}>
         <div className={styles["section-header"]}>
-          {/* Render Judul dengan Ikon */}
           <h2 className={`${styles["section-title"]} ${styles[cssClass]}`}>
             {Icon && <span className={styles["title-icon"]}>{Icon}</span>}
             {title}
           </h2>
-
           <span className={styles["section-count"]}>{list.length}</span>
-
           {isAdmin && !viewPublicMode && !isGlobalVisible && (
             <span className={styles["hidden-badge"]}>Hidden</span>
           )}
@@ -333,26 +375,39 @@ function ProgramKerja() {
     );
   };
 
-  // --- LOADING STATE ---
-  if (loading) {
-    return (
-      <PageContainer breadcrumbText="Memuat...">
-        <LoadingState message="Mengambil data Program Kerja..." />
-      </PageContainer>
-    );
-  }
-
   // --- MAIN RENDER ---
   return (
     <PageContainer breadcrumbText="Program Kerja">
       {/* 1. HEADER & ADMIN CONTROLS */}
       <div className={styles["header-section"]}>
+        <div>
+          <h1
+            className="page-title"
+            style={{
+              fontSize: "1.8rem",
+              fontWeight: "800",
+              color: "#1e293b",
+              margin: 0,
+            }}
+          >
+            Program Kerja
+          </h1>
+          <p
+            style={{ color: "#64748b", margin: "0.2rem 0 0", fontSize: "1rem" }}
+          >
+            Timeline kegiatan dan acara organisasi.
+          </p>
+        </div>
+
         {isAdmin && (
-          <div className={styles["admin-controls"]}>
+          <div
+            className={styles["admin-controls"]}
+            style={{ marginTop: "1rem" }}
+          >
+            {/* marginTop agar ada jarak jika layar kecil */}
+
             <div className={styles["admin-toggles"]}>
-              <span className={styles["admin-controls-title"]}>
-                Tampilkan di Publik:
-              </span>
+              {/* ... (AdminToggle code tetap sama) ... */}
               <AdminToggle
                 label="Akan Datang"
                 isEnabled={pengaturan.tampilkan_progja_akan_datang !== false}
@@ -382,6 +437,7 @@ function ProgramKerja() {
             <button
               onClick={() => openModal()}
               className="button button-primary"
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
               <FiPlus /> Tambah Program
             </button>
@@ -391,7 +447,6 @@ function ProgramKerja() {
 
       {/* 2. FILTER BAR */}
       <FilterBar>
-        {/* Filter Status (Pills) */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {visibleStatusOptions.map((status) => (
             <FilterPill
@@ -407,7 +462,6 @@ function ProgramKerja() {
           ))}
         </div>
 
-        {/* Filter Divisi (Dropdown) */}
         <FilterSelect
           label="Divisi"
           value={selectedDivisi}
@@ -421,7 +475,6 @@ function ProgramKerja() {
           ))}
         </FilterSelect>
 
-        {/* Preview Mode (Admin Only) */}
         {isAdmin && (
           <div className={styles["preview-toggle-wrapper"]}>
             <button
@@ -442,8 +495,11 @@ function ProgramKerja() {
         )}
       </FilterBar>
 
-      {/* 3. CONTENT LIST */}
-      {filteredList.length === 0 ? (
+      {/* 3. CONTENT LIST / LOADING SKELETON */}
+      {loading ? (
+        /* --- BAGIAN SKELETON MAKSIMAL --- */
+        <ProgjaSkeletonGrid />
+      ) : filteredList.length === 0 ? (
         <div className={styles["empty-state"]}>
           <span className={styles["empty-icon"]}>📭</span>
           <h3 className={styles["empty-title"]}>Belum ada Program Kerja</h3>
@@ -458,21 +514,21 @@ function ProgramKerja() {
             getListBySection("Akan Datang"),
             "tampilkan_progja_akan_datang",
             "title-akan-datang",
-            <FiCalendar /> // Ikon Baru
+            <FiCalendar />
           )}
           {renderSection(
             "Rencana Program",
             getListBySection("Rencana"),
             "tampilkan_progja_rencana",
             "title-rencana",
-            <FiTarget /> // Ikon Baru
+            <FiTarget />
           )}
           {renderSection(
             "Terlaksana / Selesai",
             getListBySection("Selesai"),
             "tampilkan_progja_selesai",
             "title-selesai",
-            <FiCheckCircle /> // Ikon Baru
+            <FiCheckCircle />
           )}
         </div>
       )}

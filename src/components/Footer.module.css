@@ -5,7 +5,7 @@
   color: #ffffff;
   padding-top: 4rem;
   margin-top: auto;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   border-top: 5px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -13,7 +13,7 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 1.5rem;
-  
+
   display: grid;
   grid-template-columns: 2fr 1fr 1.3fr; /* Kiri Lebar */
   gap: 4rem;
@@ -21,71 +21,226 @@
 }
 
 /* --- KOLOM 1 --- */
-.infoSection { display: flex; flex-direction: column; gap: 0.8rem; }
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
 
-.logoRow { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
-.logoImg { height: 48px; object-fit: contain; background: white; padding: 4px; border-radius: 8px; }
+.logoRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.logoImg {
+  height: 48px;
+  object-fit: contain;
+  background: white;
+  padding: 4px;
+  border-radius: 8px;
+}
 
-.brandRow { display: flex; align-items: center; gap: 0.8rem; }
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
 
 .brandName {
-  font-size: 1.5rem; font-weight: 800; margin: 0; text-transform: uppercase;
-  letter-spacing: -0.02em; line-height: 1.2;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 /* Tombol Edit Bulat */
 .editBtn {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
-  color: white; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.2s;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.editBtn:hover { background: white; color: #2a9df4; transform: rotate(45deg); }
+.editBtn:hover {
+  background: white;
+  color: #2a9df4;
+  transform: rotate(45deg);
+}
 
-.schoolName { font-weight: 600; margin: 0; opacity: 0.9; font-size: 0.95rem; }
-.brandDesc { font-size: 0.9rem; line-height: 1.6; opacity: 0.9; max-width: 350px; margin: 0; }
+.schoolName {
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+.brandDesc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  max-width: 350px;
+  margin: 0;
+}
 
 /* Social Icons */
-.socialRow { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
-.socialIcon {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: rgba(255,255,255,0.15); color: white;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; border: 1px solid transparent;
+.socialRow {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
 }
-.socialIcon:hover { background: white; color: #2a9df4; transform: translateY(-3px); }
+.socialIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.socialIcon:hover {
+  background: white;
+  color: #2a9df4;
+  transform: translateY(-3px);
+}
 
 /* --- KOLOM 2 & 3 HEADINGS --- */
 .columnTitle {
-  font-size: 0.9rem; font-weight: 700; margin-bottom: 1.5rem;
-  text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8;
-  border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 0.5rem; display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 0.5rem;
+  display: inline-block;
 }
 
 /* --- LINKS --- */
-.linkGroup { display: flex; flex-direction: column; gap: 0.8rem; }
-.footerLink {
-  color: white; text-decoration: none; font-size: 0.95rem;
-  display: flex; align-items: center; gap: 0.75rem; /* Jarak Ikon & Teks */
-  opacity: 0.9; transition: all 0.2s;
+.linkGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
-.footerLink:hover { opacity: 1; transform: translateX(5px); }
+.footerLink {
+  color: white;
+  text-decoration: none;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Jarak Ikon & Teks */
+  opacity: 0.9;
+  transition: all 0.2s;
+}
+.footerLink:hover {
+  opacity: 1;
+  transform: translateX(5px);
+}
 
 /* --- CONTACT --- */
 .contactItem {
-  display: flex; align-items: flex-start; gap: 0.75rem;
-  margin-bottom: 1rem; font-size: 0.95rem; line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
-.contactIcon { flex-shrink: 0; margin-top: 3px; opacity: 0.8; }
+.contactIcon {
+  flex-shrink: 0;
+  margin-top: 3px;
+  opacity: 0.8;
+}
 
 /* --- COPYRIGHT --- */
 .copyright {
-  background: rgba(0, 0, 0, 0.1); text-align: center; padding: 1.5rem;
-  font-size: 0.85rem; font-weight: 500; border-top: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* MOBILE */
 @media (max-width: 768px) {
-  .container { grid-template-columns: 1fr; gap: 3rem; }
-  .socialRow { margin-bottom: 1rem; }
+  .container {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .socialRow {
+    margin-bottom: 1rem;
+  }
+}
+
+.copyright {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+
+  /* Flexbox agar Copyright di Kiri, Signature di Kanan (Desktop) */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Signature Style */
+.signature {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.heartIcon {
+  /* Animasi detak jantung opsional */
+  animation: heartbeat 1.5s infinite;
+}
+
+.githubLink {
+  color: #94a3b8;
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.githubLink:hover {
+  color: #3b82f6; /* Warna Biru saat hover */
+  text-decoration: underline;
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Desktop: Sebar ke kiri dan kanan */
+@media (min-width: 768px) {
+  .copyright {
+    flex-direction: row;
+    justify-content: space-between;
+  }
 }

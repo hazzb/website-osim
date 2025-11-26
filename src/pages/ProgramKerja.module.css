@@ -236,17 +236,33 @@
 
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .admin-controls {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
-
-  .admin-toggles {
-    justify-content: space-between;
-    width: 100%;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .progja-grid {
-    grid-template-columns: 1fr; /* 1 Kolom di HP */
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.timeline-section {
+  position: relative;
+  /* Efek muncul perlahan */
+  animation: fadeIn 0.6s ease-out forwards;
+
+  /* Style lainnya biarkan saja */
+  margin-bottom: 3rem;
 }

@@ -1,22 +1,21 @@
-// src/components/cards/AnggotaCard.jsx
 import React from "react";
 import styles from "./AnggotaCard.module.css";
+// Import Ikon Baru
+import { FiEdit, FiTrash2, FiInstagram } from "react-icons/fi";
+import HoverCard from "../ui/HoverCard";
 
 const AnggotaCard = ({ data, isAdmin, onEdit, onDelete }) => {
-  // Fallback jika onEdit/onDelete lupa dikirim dari parent, agar tidak crash
   const handleEditClick = () => {
     if (onEdit) onEdit(data);
-    else console.warn("Fungsi onEdit belum dipasang di parent component");
   };
 
   const handleDeleteClick = () => {
     if (onDelete) onDelete(data.id);
-    else console.warn("Fungsi onDelete belum dipasang di parent component");
   };
 
   return (
-    <div
-      className={`${styles.card} ${
+    <HoverCard
+      className={`${styles.cardOverride} ${
         data.jenis_kelamin === "Akhwat"
           ? styles["card-akhwat"]
           : styles["card-ikhwan"]
@@ -54,12 +53,11 @@ const AnggotaCard = ({ data, isAdmin, onEdit, onDelete }) => {
             rel="noreferrer"
             className={styles["instagram-link"]}
           >
-            @{data.instagram_username.replace("@", "")}
+            <FiInstagram /> @{data.instagram_username.replace("@", "")}
           </a>
         )}
 
-        {/* --- BAGIAN INI YANG MEMBUATNYA DEFAULT --- */}
-        {/* Tombol hanya muncul jika isAdmin = true */}
+        {/* --- ADMIN ACTIONS --- */}
         {isAdmin && (
           <div className={styles["admin-card-actions"]}>
             <button
@@ -67,19 +65,19 @@ const AnggotaCard = ({ data, isAdmin, onEdit, onDelete }) => {
               className={`${styles["btn-card-action"]} ${styles["btn-edit"]}`}
               title="Edit Anggota"
             >
-              ✏️ Edit
+              <FiEdit /> Edit
             </button>
             <button
               onClick={handleDeleteClick}
               className={`${styles["btn-card-action"]} ${styles["btn-delete"]}`}
               title="Hapus Anggota"
             >
-              🗑️ Hapus
+              <FiTrash2 /> Hapus
             </button>
           </div>
         )}
       </div>
-    </div>
+    </HoverCard>
   );
 };
 

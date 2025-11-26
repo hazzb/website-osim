@@ -11,6 +11,7 @@ import {
   FiEdit,
   FiTrash2,
 } from "react-icons/fi";
+import HoverCard from "../ui/HoverCard";
 
 const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
   // Helper: Menentukan warna badge
@@ -32,7 +33,7 @@ const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
   };
 
   return (
-    <div className={styles.card}>
+    <HoverCard className={styles.cardOverride}>
       {/* 1. MEDIA SECTION (Jika ada Embed Instagram) */}
       {data.embed_html && (
         <div className={styles.mediaContainer}>
@@ -124,7 +125,7 @@ const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
           )}
         </div>
       </div>
-    </div>
+    </HoverCard>
   );
 };
 
