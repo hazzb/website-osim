@@ -1,6 +1,7 @@
 import React from "react";
 import formStyles from "../admin/AdminForm.module.css";
 import FormInput from "../admin/FormInput.jsx";
+import { FiImage } from "react-icons/fi";
 
 function DivisiForm({
   formData,
@@ -11,39 +12,19 @@ function DivisiForm({
   loading,
   periodeList,
 }) {
-  // LOGIKA VALIDASI FILE (Max 200KB)
-  const handleFileValidation = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // 200KB = 200 * 1024 = 204800 bytes
-      if (file.size > 204800) {
-        alert("Ukuran file terlalu besar! Maksimal 200KB.");
-        e.target.value = null; // Reset input
-        return;
-      }
-    }
-    // Jika aman, panggil handler asli
-    if (onFileChange) onFileChange(e);
-  };
-
-  // Logic Preview
   const showPreview = formData.logo_url;
 
   return (
     <form onSubmit={onSubmit}>
-      <div className={formStyles["form-grid"]}>
-        {/* Nama Divisi */}
+      <div className={formStyles.formGrid}>
         <FormInput
           label="Nama Divisi"
           name="nama_divisi"
-          type="text"
           value={formData.nama_divisi || ""}
           onChange={onChange}
           required
-          span="col-span-3"
+          span={8}
         />
-
-        {/* Periode */}
         <FormInput
           label="Periode"
           name="periode_id"
@@ -51,9 +32,9 @@ function DivisiForm({
           value={formData.periode_id || ""}
           onChange={onChange}
           required
-          span="col-span-3"
+          span={4}
         >
-          <option value="">-- Pilih Periode --</option>
+          <option value="">-- Pilih --</option>
           {periodeList.map((p) => (
             <option key={p.id} value={p.id}>
               {p.nama_kabinet}
@@ -61,62 +42,45 @@ function DivisiForm({
           ))}
         </FormInput>
 
-        {/* Deskripsi (Textarea Manual pakai style Anda) */}
-        <div
-          className={`${formStyles["col-span-3"]} ${formStyles["form-group"]}`}
-        >
-          <label className={formStyles["form-label"]}>Deskripsi Divisi</label>
-          <textarea
-            name="deskripsi"
-            value={formData.deskripsi || ""}
-            onChange={onChange}
-            // Menggunakan class .form-textarea dari CSS Anda
-            className={formStyles["form-textarea"]}
-            rows="4"
-            placeholder="Jelaskan detail divisi ini..."
-          />
-        </div>
+        <FormInput
+          label="Deskripsi"
+          name="deskripsi"
+          type="textarea"
+          value={formData.deskripsi || ""}
+          onChange={onChange}
+          span={12}
+          rows={3}
+        />
 
-        {/* Upload Logo + Preview */}
-        <div
-          className={`${formStyles["col-span-3"]} ${formStyles["form-group"]}`}
-        >
-          {/* Kita pakai FormInput untuk file, tapi helper text disesuaikan */}
-          <FormInput
-            label="Ganti Logo"
-            name="logo"
-            type="file"
-            onChange={handleFileValidation} // Pakai validasi lokal
-            helper="Format: JPG/PNG. Maksimal 200KB."
-            accept="image/png, image/jpeg, image/jpg"
-          />
-
-          {/* Tampilkan preview jika ada URL logo */}
-          {showPreview && (
-            <div style={{ marginTop: "0.5rem" }}>
-              <label className={formStyles["form-label"]}>
-                Preview Logo Saat Ini:
-              </label>
-              <div>
-                <img
-                  src={showPreview}
-                  alt="Preview"
-                  className={formStyles["form-image-preview"]}
-                  onError={(e) => (e.target.style.display = "none")}
-                />
-              </div>
+        {/* Upload Logo */}
+        <div className={formStyles.colSpan12}>
+          <label className={formStyles.formLabel}>Logo Divisi</label>
+          <div className={formStyles.uploadRow}>
+            <div className={formStyles.previewBox}>
+              {showPreview ? (
+                <img src={showPreview} alt="Logo" />
+              ) : (
+                <FiImage size={20} />
+              )}
             </div>
-          )}
+            <label className={formStyles.uploadBtn}>
+              Pilih File{" "}
+              <input
+                type="file"
+                onChange={onFileChange}
+                accept="image/*"
+                hidden
+              />
+            </label>
+          </div>
         </div>
       </div>
 
-      {/* Footer Buttons */}
-      <div className={formStyles["form-footer"]}>
+      <div className={formStyles.formFooter}>
         <button
           type="button"
           className="button button-secondary"
           onClick={onCancel}
-          disabled={loading}
         >
           Batal
         </button>
@@ -125,11 +89,10 @@ function DivisiForm({
           className="button button-primary"
           disabled={loading}
         >
-          {loading ? "Menyimpan..." : "Simpan"}
+          Simpan
         </button>
       </div>
     </form>
   );
 }
-
 export default DivisiForm;

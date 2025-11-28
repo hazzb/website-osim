@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import styles from "./VisiMisi.module.css";
+// Kita aktifkan ini untuk styling footer modal yang konsisten
 import formStyles from "../components/admin/AdminForm.module.css";
 
 // UI Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-import LoadingState from "../components/ui/LoadingState.jsx";
+// Ganti LoadingState biasa dengan Skeleton khusus Visi Misi
+import { VisiMisiSkeleton } from "../components/ui/Skeletons.jsx";
 import Modal from "../components/Modal.jsx";
 
 // Forms & Reorder
@@ -40,7 +42,7 @@ function VisiMisi() {
 
   // States Pengaturan
   const [layoutMode, setLayoutMode] = useState("modular");
-  const [showHero, setShowHero] = useState(true); // <--- STATE BARU
+  const [showHero, setShowHero] = useState(true);
 
   const [loading, setLoading] = useState(true);
 
@@ -62,13 +64,13 @@ function VisiMisi() {
       // 1. Ambil Pengaturan (Layout & Hero)
       const { data: settings } = await supabase
         .from("pengaturan")
-        .select("visi_misi_layout, tampilkan_hero") // <--- Ambil kolom tampilkan_hero
+        .select("visi_misi_layout, tampilkan_hero")
         .eq("id", 1)
         .single();
 
       if (settings) {
         setLayoutMode(settings.visi_misi_layout || "modular");
-        setShowHero(settings.tampilkan_hero !== false); // Default true jika null
+        setShowHero(settings.tampilkan_hero !== false);
       }
 
       // 2. Ambil Konten
@@ -87,10 +89,10 @@ function VisiMisi() {
     }
   };
 
-  // --- LOGIC PEMBAGIAN KONTEN (SMART) ---
-  // Jika Show Hero ON: Item pertama jadi Hero, sisanya Grid.
-  // Jika Show Hero OFF: Semua item masuk Grid.
+  // --- LOGIC PEMBAGIAN KONTEN ---
+  // Jika Hero Aktif: Item pertama (urutan 1) jadi Hero.
   const heroContent = showHero && contents.length > 0 ? contents[0] : null;
+  // Sisanya masuk ke grid di bawahnya.
   const gridContents =
     showHero && contents.length > 0 ? contents.slice(1) : contents;
 
@@ -116,7 +118,7 @@ function VisiMisi() {
         .update({ tampilkan_hero: newValue })
         .eq("id", 1);
     } catch (err) {
-      setShowHero(!newValue); // Revert jika error
+      setShowHero(!newValue);
       console.error(err);
     }
   };
@@ -127,8 +129,7 @@ function VisiMisi() {
       setFormData(item);
     } else {
       setEditingId(null);
-      // Jika Hero mati, urutan otomatis ambil paling akhir
-      // Jika Hero nyala, urutan mengikuti logic list biasa
+      // Auto-increment urutan
       const lastOrder =
         contents.length > 0 ? contents[contents.length - 1].urutan : 0;
       setFormData({
@@ -163,7 +164,7 @@ function VisiMisi() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Hapus?")) return;
+    if (!window.confirm("Hapus konten ini?")) return;
     try {
       await supabase.from("konten_halaman").delete().eq("id", id);
       setContents((prev) => prev.filter((c) => c.id !== id));
@@ -193,18 +194,19 @@ function VisiMisi() {
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <PageContainer breadcrumbText="Memuat...">
-        <LoadingState message="Memuat Visi Misi..." />
+        <VisiMisiSkeleton />
       </PageContainer>
     );
+  }
 
   return (
     <PageContainer breadcrumbText="Visi & Misi">
       {/* HEADER */}
       <div className={styles.headerSection}>
-        <div></div>
+        <div></div> {/* Spacer agar tombol ada di kanan */}
         {isAdmin && (
           <div className={styles.adminControls}>
             <button
@@ -225,7 +227,7 @@ function VisiMisi() {
         )}
       </div>
 
-      {/* HERO CONTENT (Hanya Render jika showHero = true) */}
+      {/* HERO CONTENT */}
       {showHero && (
         <div className={styles.heroWrapper}>
           {heroContent ? (
@@ -264,23 +266,14 @@ function VisiMisi() {
 
         {isAdmin && (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
-            <button
-              onClick={() => openModal()}
-              className={styles.addBtn}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-              }}
-            >
+            <button onClick={() => openModal()} className={styles.addBtn}>
               <FiPlus size={20} /> Tambah Seksi Baru
             </button>
           </div>
         )}
       </div>
 
-      {/* --- MODALS --- */}
+      {/* --- MODAL FORM --- */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -295,6 +288,7 @@ function VisiMisi() {
         />
       </Modal>
 
+      {/* --- MODAL REORDER --- */}
       {isAdmin && (
         <Modal
           isOpen={isReorderOpen}
@@ -310,7 +304,7 @@ function VisiMisi() {
         </Modal>
       )}
 
-      {/* MODAL SETTING (Dengan Toggle Hero) */}
+      {/* --- MODAL SETTING TAMPILAN --- */}
       <Modal
         isOpen={isSettingOpen}
         onClose={() => setIsSettingOpen(false)}
@@ -409,10 +403,7 @@ function VisiMisi() {
           </div>
         </div>
 
-        <div
-          className={formStyles["form-footer"]}
-          style={{ marginTop: "2rem" }}
-        >
+        <div className={formStyles.formFooter} style={{ marginTop: "2rem" }}>
           <button
             onClick={() => setIsSettingOpen(false)}
             className="button button-primary"

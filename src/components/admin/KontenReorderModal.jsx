@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
 
-// Kita REUSE CSS yang sudah bagus dari DivisiReorder
+// Reuse CSS yang sudah ada (List Style)
 import styles from "./DivisiReorderModal.module.css";
+// Import Global Form Style (Footer Style)
 import globalFormStyles from "./AdminForm.module.css";
 
 export default function KontenReorderModal({
@@ -47,7 +48,7 @@ export default function KontenReorderModal({
     }
     setLoading(true);
     try {
-      // Update Sequential
+      // Update Sequential (Satu per satu agar aman)
       for (let i = 0; i < reorderList.length; i++) {
         const item = reorderList[i];
         const urutanBaru = i + 1; // 1, 2, 3...
@@ -73,7 +74,8 @@ export default function KontenReorderModal({
     <div>
       <p className={styles.instruction}>
         <strong>Catatan Penting:</strong> Item urutan <strong>No. 1</strong>{" "}
-        akan otomatis menjadi <strong>Judul Utama (Hero)</strong> halaman.
+        akan otomatis menjadi <strong>Judul Utama (Hero)</strong> halaman (jika
+        fitur Hero diaktifkan).
       </p>
 
       {reorderList.length === 0 ? (
@@ -91,14 +93,14 @@ export default function KontenReorderModal({
                       style={{
                         fontSize: "0.7rem",
                         color: "#3182ce",
-                        marginLeft: "5px",
+                        marginLeft: "8px",
                         background: "#ebf8ff",
-                        padding: "1px 4px",
+                        padding: "2px 6px",
                         borderRadius: "4px",
+                        fontWeight: "600",
                       }}
                     >
-                      {" "}
-                      (Header)
+                      (HEADER UTAMA)
                     </span>
                   )}
                 </span>
@@ -110,6 +112,7 @@ export default function KontenReorderModal({
                   className={styles.btnArrow}
                   onClick={() => moveItem(index, "up")}
                   disabled={index === 0}
+                  title="Naikkan"
                 >
                   ▲
                 </button>
@@ -118,6 +121,7 @@ export default function KontenReorderModal({
                   className={styles.btnArrow}
                   onClick={() => moveItem(index, "down")}
                   disabled={index === reorderList.length - 1}
+                  title="Turunkan"
                 >
                   ▼
                 </button>
@@ -127,7 +131,8 @@ export default function KontenReorderModal({
         </div>
       )}
 
-      <div className={globalFormStyles["form-footer"]}>
+      {/* FOOTER MENGGUNAKAN GLOBAL STYLE (CAMELCASE) */}
+      <div className={globalFormStyles.formFooter}>
         <button
           type="button"
           onClick={onClose}
@@ -141,7 +146,7 @@ export default function KontenReorderModal({
           className="button button-primary"
           disabled={loading}
         >
-          {loading ? "Simpan Urutan" : "Simpan Urutan"}
+          {loading ? "Menyimpan..." : "Simpan Urutan"}
         </button>
       </div>
     </div>

@@ -1,12 +1,10 @@
-// src/components/admin/DivisiReorderModal.jsx
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
 
-// Import CSS Module Baru yang Compact
+// Import CSS Module Lokal (Untuk styling list)
 import styles from "./DivisiReorderModal.module.css";
 
-// Kita pakai style button global hanya untuk footer save/cancel
+// Import Style Global untuk tombol (Konsistensi)
 import globalFormStyles from "./AdminForm.module.css";
 
 export default function DivisiReorderModal({
@@ -117,7 +115,8 @@ export default function DivisiReorderModal({
         </div>
       )}
 
-      <div className={globalFormStyles["form-footer"]}>
+      {/* FOOTER MENGGUNAKAN GLOBAL STYLE (CAMELCASE) */}
+      <div className={globalFormStyles.formFooter}>
         <button
           type="button"
           onClick={onClose}

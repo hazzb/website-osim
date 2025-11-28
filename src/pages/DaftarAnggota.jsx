@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 // UI Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-import { AnggotaSkeletonGrid } from "../components/ui/Skeletons.jsx"; // Skeleton
+import { AnggotaSkeletonGrid } from "../components/ui/Skeletons.jsx";
 import { FilterBar, FilterSelect } from "../components/ui/FilterBar.jsx";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import Modal from "../components/Modal.jsx";
@@ -15,13 +15,21 @@ import AnggotaForm from "../components/forms/AnggotaForm.jsx";
 import DivisiForm from "../components/forms/DivisiForm.jsx";
 import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
 import FormInput from "../components/admin/FormInput.jsx";
+import JabatanManager from "../components/admin/JabatanManager.jsx";
+import PeriodeForm from "../components/forms/PeriodeForm.jsx";
 
 // Styles
 import styles from "./DaftarAnggota.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
 
-// Icons (PASTIKAN FISEARCH DAN ARROW ADA)
-import { FiSearch, FiArrowRight, FiPlus, FiEdit } from "react-icons/fi";
+// Icons
+import {
+  FiSearch,
+  FiArrowRight,
+  FiPlus,
+  FiEdit,
+  FiBriefcase,
+} from "react-icons/fi";
 
 function DaftarAnggota() {
   const { session } = useAuth();
@@ -33,8 +41,11 @@ function DaftarAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [jabatanList, setJabatanList] = useState([]);
 
+  // STATE BARU: Untuk menyimpan relasi Divisi <-> Jabatan
+  const [jabatanLinks, setJabatanLinks] = useState([]);
+
   // Filter
-  const [activeTab, setActiveTab] = useState(""); // Periode
+  const [activeTab, setActiveTab] = useState("");
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
   const [selectedGender, setSelectedGender] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,7 +66,7 @@ function DaftarAnggota() {
   const fetchInitialData = useCallback(async () => {
     setLoading(true);
     try {
-      // Periode
+      // 1. Periode
       const { data: periodes } = await supabase
         .from("periode_jabatan")
         .select("*")
@@ -66,18 +77,25 @@ function DaftarAnggota() {
         setActiveTab(active ? active.id : periodes[0].id);
       }
 
-      // Divisi
+      // 2. Divisi
       const { data: divisis } = await supabase
         .from("divisi")
         .select("*")
         .order("urutan", { ascending: true });
       setDivisiList(divisis || []);
 
-      // Jabatan
+      // 3. Jabatan Master
       const { data: jabatans } = await supabase
         .from("master_jabatan")
-        .select("*");
+        .select("*")
+        .order("nama_jabatan", { ascending: true });
       setJabatanList(jabatans || []);
+
+      // 4. [BARU] Relasi Divisi-Jabatan
+      const { data: links } = await supabase
+        .from("divisi_jabatan_link")
+        .select("*");
+      setJabatanLinks(links || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -111,6 +129,7 @@ function DaftarAnggota() {
   // --- HANDLERS ---
   const getModalTitle = () => {
     if (activeModal === "reorder_divisi") return "Atur Urutan Divisi";
+    if (activeModal === "jabatan") return "Kelola Jabatan";
     const action = editingId ? "Edit" : "Tambah";
     return `${action} ${activeModal || ""}`;
   };
@@ -146,7 +165,7 @@ function DaftarAnggota() {
     setFormPreview(null);
     setExistingFotoUrl(null);
 
-    if (type === "reorder_divisi") {
+    if (type === "reorder_divisi" || type === "jabatan") {
       setIsModalOpen(true);
       return;
     }
@@ -167,6 +186,7 @@ function DaftarAnggota() {
         periode_id: activeTab,
         divisi_id: selectedDivisi !== "semua" ? selectedDivisi : "",
         jenis_kelamin: "Ikhwan",
+        alamat: "",
       });
     }
     setIsModalOpen(true);
@@ -239,7 +259,7 @@ function DaftarAnggota() {
   // --- RENDER ---
   return (
     <PageContainer breadcrumbText="Daftar Anggota">
-      {/* HEADER & STICKY WRAPPER */}
+      {/* HEADER & STICKY */}
       <div
         style={{
           position: "sticky",
@@ -259,7 +279,6 @@ function DaftarAnggota() {
           <p style={{ color: "#64748b" }}>Struktur Kepengurusan</p>
         </div>
 
-        {/* 1. TOMBOL PINTASAN ADMIN (DIKEMBALIKAN) */}
         {isAdmin && (
           <div
             className={styles["action-buttons"]}
@@ -268,35 +287,32 @@ function DaftarAnggota() {
             <button
               onClick={() => openModal("anggota")}
               className={`${styles["modern-button"]} ${styles["btn-blue"]}`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
             >
               <FiPlus /> Anggota
             </button>
             <button
               onClick={() => openModal("divisi")}
               className={`${styles["modern-button"]} ${styles["btn-orange"]}`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
             >
               <FiPlus /> Divisi
             </button>
             <button
               onClick={() => openModal("periode")}
               className={`${styles["modern-button"]} ${styles["btn-purple"]}`}
+            >
+              <FiPlus /> Periode
+            </button>
+            <button
+              onClick={() => openModal("jabatan")}
+              className={`${styles["modern-button"]}`}
               style={{
+                backgroundColor: "#0891b2",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "4px",
               }}
             >
-              <FiPlus /> Periode
+              <FiBriefcase /> Jabatan
             </button>
             <button
               onClick={() => openModal("reorder_divisi")}
@@ -337,12 +353,10 @@ function DaftarAnggota() {
             value={selectedGender}
             onChange={(e) => setSelectedGender(e.target.value)}
           >
-            <option value="all">Semua</option>
-            <option value="Ikhwan">Ikhwan</option>
+            <option value="all">Semua</option>{" "}
+            <option value="Ikhwan">Ikhwan</option>{" "}
             <option value="Akhwat">Akhwat</option>
           </FilterSelect>
-
-          {/* 3. INPUT SEARCH DENGAN IKON FiSearch (DIKEMBALIKAN) */}
           <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
             <FiSearch
               style={{
@@ -373,12 +387,11 @@ function DaftarAnggota() {
 
       {/* CONTENT */}
       {loading ? (
-        /* SKELETON SCREEN (DIKEMBALIKAN) */
         <AnggotaSkeletonGrid />
       ) : anggotaList.length === 0 ? (
         <div className={styles.emptyState}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📂</div>
-          <p>Tidak ada data anggota ditemukan untuk filter ini.</p>
+          <p>Tidak ada data anggota ditemukan.</p>
         </div>
       ) : (
         <div className={styles.contentWrapper}>
@@ -387,7 +400,6 @@ function DaftarAnggota() {
             if (!members || members.length === 0) return null;
             return (
               <section key={divisi.id} className={styles["divisi-section"]}>
-                {/* HEADER DIVISI DENGAN TOMBOL LIHAT DETAIL */}
                 <div className={styles["divisi-header"]}>
                   <div
                     style={{
@@ -407,7 +419,6 @@ function DaftarAnggota() {
                       {divisi.nama_divisi}
                     </h2>
                   </div>
-
                   <div
                     style={{
                       display: "flex",
@@ -416,7 +427,6 @@ function DaftarAnggota() {
                       marginLeft: "auto",
                     }}
                   >
-                    {/* 2. LINK LIHAT DETAIL (DIKEMBALIKAN) */}
                     <Link
                       to={`/divisi/${divisi.id}`}
                       style={{
@@ -431,7 +441,6 @@ function DaftarAnggota() {
                     >
                       Lihat Detail <FiArrowRight />
                     </Link>
-
                     {isAdmin && (
                       <button
                         onClick={() => openModal("divisi", divisi)}
@@ -448,7 +457,6 @@ function DaftarAnggota() {
                     )}
                   </div>
                 </div>
-
                 <div className={styles["card-grid"]}>
                   {members.map((anggota) => (
                     <AnggotaCard
@@ -463,7 +471,6 @@ function DaftarAnggota() {
               </section>
             );
           })}
-
           {memberMap["others"]?.length > 0 && (
             <section className={styles["divisi-section"]}>
               <div className={styles["divisi-header"]}>
@@ -481,6 +488,7 @@ function DaftarAnggota() {
 
       {/* MODALS */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
+        {/* OPER DATA 'jabatanLinks' KE ANGGOTA FORM */}
         {activeModal === "anggota" && (
           <AnggotaForm
             formData={formData}
@@ -492,6 +500,7 @@ function DaftarAnggota() {
             periodeList={periodeList}
             divisiList={divisiList}
             jabatanList={jabatanList}
+            jabatanLinks={jabatanLinks} // <--- PROPS BARU
             preview={formPreview}
           />
         )}
@@ -507,64 +516,13 @@ function DaftarAnggota() {
           />
         )}
         {activeModal === "periode" && (
-          <form onSubmit={handleSubmit}>
-            <div className={formStyles["form-grid"]}>
-              <FormInput
-                label="Nama Kabinet"
-                name="nama_kabinet"
-                type="text"
-                value={formData.nama_kabinet || ""}
-                onChange={handleFormChange}
-                required
-                span="col-span-3"
-              />
-              <FormInput
-                label="Mulai"
-                name="tahun_mulai"
-                type="number"
-                value={formData.tahun_mulai || ""}
-                onChange={handleFormChange}
-                required
-                span="col-span-1"
-              />
-              <FormInput
-                label="Selesai"
-                name="tahun_selesai"
-                type="number"
-                value={formData.tahun_selesai || ""}
-                onChange={handleFormChange}
-                required
-                span="col-span-1"
-              />
-              <FormInput
-                label="Aktif?"
-                name="is_active"
-                type="select"
-                value={formData.is_active}
-                onChange={handleFormChange}
-                span="col-span-1"
-              >
-                <option value={false}>Tidak</option>
-                <option value={true}>Ya</option>
-              </FormInput>
-            </div>
-            <div className={formStyles["form-footer"]}>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="button button-secondary"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                className="button button-primary"
-                disabled={modalLoading}
-              >
-                {modalLoading ? "Simpan..." : "Simpan"}
-              </button>
-            </div>
-          </form>
+          <PeriodeForm
+            formData={formData}
+            onChange={handleFormChange}
+            onSubmit={handleSubmit}
+            onCancel={closeModal}
+            loading={modalLoading}
+          />
         )}
         {activeModal === "reorder_divisi" && (
           <DivisiReorderModal
@@ -573,6 +531,13 @@ function DaftarAnggota() {
             divisiList={divisiList}
             activePeriodeId={activeTab}
             onSuccess={fetchInitialData}
+          />
+        )}
+        {activeModal === "jabatan" && (
+          <JabatanManager
+            onClose={closeModal}
+            onSuccess={fetchInitialData}
+            jabatanList={jabatanList}
           />
         )}
       </Modal>

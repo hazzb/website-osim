@@ -2,43 +2,54 @@ import React from "react";
 import formStyles from "../admin/AdminForm.module.css";
 import FormInput from "../admin/FormInput.jsx";
 
-function PeriodeForm({ formData, onChange, onSubmit, onCancel, loading }) {
+const PeriodeForm = ({ formData, onChange, onSubmit, onCancel, loading }) => {
   return (
     <form onSubmit={onSubmit}>
-      <div className={formStyles["form-grid"]}>
+      <div className={formStyles.formGrid}>
         <FormInput
           label="Nama Kabinet"
           name="nama_kabinet"
-          type="text"
           value={formData.nama_kabinet || ""}
           onChange={onChange}
-          span="col-span-3"
+          required
+          span={12}
         />
         <FormInput
-          label="Tahun Mulai"
+          label="Mulai"
           name="tahun_mulai"
           type="number"
           value={formData.tahun_mulai || ""}
           onChange={onChange}
           required
-          span="col-span-1"
+          span={4}
         />
         <FormInput
-          label="Tahun Selesai"
+          label="Selesai"
           name="tahun_selesai"
           type="number"
           value={formData.tahun_selesai || ""}
           onChange={onChange}
           required
-          span="col-span-1"
+          span={4}
         />
+        <FormInput
+          label="Status"
+          name="is_active"
+          type="select"
+          value={formData.is_active}
+          onChange={onChange}
+          span={4}
+        >
+          <option value={false}>Tidak Aktif</option>
+          <option value={true}>Aktif</option>
+        </FormInput>
       </div>
-      <div className={formStyles["form-footer"]}>
+
+      <div className={formStyles.formFooter}>
         <button
           type="button"
-          className="button button-secondary"
           onClick={onCancel}
-          disabled={loading}
+          className="button button-secondary"
         >
           Batal
         </button>
@@ -47,11 +58,10 @@ function PeriodeForm({ formData, onChange, onSubmit, onCancel, loading }) {
           className="button button-primary"
           disabled={loading}
         >
-          {loading ? "Menyimpan..." : "Simpan"}
+          Simpan
         </button>
       </div>
     </form>
   );
-}
-
+};
 export default PeriodeForm;

@@ -249,3 +249,70 @@ export const HeroSkeleton = () => {
     </div>
   );
 };
+
+export const VisiMisiSkeleton = () => {
+  return (
+    <div style={{ width: "100%", padding: "2rem 0" }}>
+      {/* Hero Section Skeleton (Tengah) */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          marginBottom: "4rem",
+          textAlign: "center",
+        }}
+      >
+        <Skeleton
+          width="200px"
+          height="40px"
+          style={{ marginBottom: "1rem" }}
+        />
+        <Skeleton width="60%" height="20px" />
+      </div>
+
+      {/* Grid Content Skeleton */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: "3rem",
+        }}
+      >
+        {/* Render 3 Dummy Items */}
+        {[1, 2, 3].map((item) => (
+          <div
+            key={item}
+            style={{
+              padding: "2rem",
+              border: "1px solid #e2e8f0",
+              borderRadius: "16px",
+              background: "white",
+            }}
+          >
+            {/* Judul Seksi */}
+            <Skeleton
+              width="40%"
+              height="30px"
+              style={{ marginBottom: "1.5rem" }}
+            />
+
+            {/* Paragraf */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.8rem",
+              }}
+            >
+              <Skeleton width="100%" height="16px" />
+              <Skeleton width="90%" height="16px" />
+              <Skeleton width="95%" height="16px" />
+              <Skeleton width="60%" height="16px" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

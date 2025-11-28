@@ -74,13 +74,6 @@
 }
 
 /* --- 3. CONTAINER UTAMA --- */
-.content-wrapper {
-  margin-top: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 3.5rem; /* Jarak antar Section Divisi */
-  padding-bottom: 4rem;
-}
 
 /* --- 4. SECTION PER DIVISI --- */
 .divisi-section {

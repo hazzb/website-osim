@@ -66,7 +66,7 @@
 }
 
 .toggle-wrapper.active .toggle-switch {
-  background-color: #3182ce; /* Biru aktif */
+  background-color: #3182ce;
 }
 
 .toggle-knob {
@@ -115,7 +115,6 @@
   border-color: #a0aec0;
   background-color: #f7fafc;
 }
-
 .preview-btn.active {
   background-color: #ebf8ff;
   border-color: #3182ce;
@@ -126,127 +125,15 @@
 .content-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 3rem; /* Jarak antar section status */
+  gap: 4rem; /* Jarak antar section diperlebar agar masonry terlihat */
   margin-top: 2rem;
 }
 
 .timeline-section {
   position: relative;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f1f5f9;
-}
-
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.title-icon {
-  display: flex;
-  align-items: center;
-  font-size: 1.4rem;
-}
-
-/* Warna Judul Per Status */
-.title-akan-datang {
-  color: #d97706; /* Amber/Orange */
-}
-.title-akan-datang .title-icon {
-  color: #d97706;
-}
-
-.title-rencana {
-  color: #64748b; /* Slate Gray */
-}
-.title-rencana .title-icon {
-  color: #94a3b8;
-}
-
-.title-selesai {
-  color: #059669; /* Emerald Green */
-}
-.title-selesai .title-icon {
-  color: #10b981;
-}
-
-.section-count {
-  background: #f1f5f9;
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 99px;
-}
-
-.hidden-badge {
-  margin-left: auto;
-  font-size: 0.7rem;
-  color: #e53e3e;
-  border: 1px solid #feb2b2;
-  background: #fff5f5;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-/* --- CARD GRID --- */
-.progja-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-/* --- EMPTY STATE --- */
-.empty-state {
-  text-align: center;
-  padding: 4rem 1rem;
-  background: #f9fafb;
-  border-radius: 16px;
-  border: 1px dashed #cbd5e0;
-  margin-top: 2rem;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.empty-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-
-.empty-desc {
-  color: #718096;
-}
-
-/* --- RESPONSIVE --- */
-@media (max-width: 768px) {
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .admin-controls {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -258,11 +145,132 @@
   }
 }
 
-.timeline-section {
-  position: relative;
-  /* Efek muncul perlahan */
-  animation: fadeIn 0.6s ease-out forwards;
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid #f1f5f9;
+}
 
-  /* Style lainnya biarkan saja */
-  margin-bottom: 3rem;
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.title-icon {
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+}
+
+/* Warna Judul */
+.title-akan-datang {
+  color: #d97706;
+}
+.title-akan-datang .title-icon {
+  color: #d97706;
+}
+
+.title-rencana {
+  color: #64748b;
+}
+.title-rencana .title-icon {
+  color: #94a3b8;
+}
+
+.title-selesai {
+  color: #059669;
+}
+.title-selesai .title-icon {
+  color: #10b981;
+}
+
+.section-count {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.hidden-badge {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #e53e3e;
+  border: 1px solid #feb2b2;
+  background: #fff5f5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* --- MASONRY LAYOUT (MAGIC HAPPENS HERE) --- */
+.progja-grid {
+  /* Menggunakan CSS Columns untuk efek Masonry Murni */
+  column-count: 3; /* Desktop: 3 Kolom */
+  column-gap: 1.5rem; /* Jarak antar kolom */
+}
+
+/* Card Wrapper agar tidak terpotong antar kolom */
+.progja-grid > div {
+  /* Asumsi card dibungkus div */
+  break-inside: avoid; /* Mencegah item terpotong */
+  margin-bottom: 1.5rem; /* Jarak bawah antar item */
+  display: inline-block; /* Penting untuk break-inside */
+  width: 100%;
+}
+
+/* --- EMPTY STATE --- */
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: #f9fafb;
+  border-radius: 16px;
+  border: 2px dashed #e2e8f0;
+  margin-top: 2rem;
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+.empty-desc {
+  color: #718096;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1024px) {
+  .progja-grid {
+    column-count: 2; /* Tablet: 2 Kolom */
+  }
+}
+
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-controls {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .progja-grid {
+    column-count: 1; /* Mobile: 1 Kolom (Stack) */
+  }
 }

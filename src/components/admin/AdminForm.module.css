@@ -1,106 +1,182 @@
 /* src/components/admin/AdminForm.module.css */
 
-.form-grid {
+/* GRID SYSTEM */
+.formGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 Kolom Default */
-  gap: 1.5rem;
-  padding: 1rem 0;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem 1.5rem;
+  padding: 0.5rem;
 }
 
-/* Utility Grid Span */
-.col-span-1 {
+/* SPANS */
+.colSpan12 {
+  grid-column: span 12;
+}
+.colSpan9 {
+  grid-column: span 9;
+}
+.colSpan8 {
+  grid-column: span 8;
+}
+.colSpan6 {
+  grid-column: span 6;
+}
+.colSpan4 {
+  grid-column: span 4;
+}
+.colSpan3 {
+  grid-column: span 3;
+}
+.colSpan2 {
+  grid-column: span 2;
+}
+.colSpan1 {
   grid-column: span 1;
 }
-.col-span-2 {
-  grid-column: span 2;
-} /* Full Width */
-.col-span-3 {
-  grid-column: span 2;
-} /* Fallback jika grid 2 kolom */
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+@media (max-width: 768px) {
+  .colSpan12,
+  .colSpan9,
+  .colSpan8,
+  .colSpan6,
+  .colSpan4,
+  .colSpan3,
+  .colSpan2,
+  .colSpan1 {
+    grid-column: span 12 !important;
+  }
 }
 
-.form-label {
+/* INPUT GROUPS */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.formLabel {
   font-size: 0.85rem;
   font-weight: 600;
   color: #475569;
+  margin: 0;
 }
 
-.form-input,
-.form-select,
-.form-textarea {
+.requiredMark {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* INPUT FIELDS */
+.formInput,
+.formSelect,
+.formTextarea {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
   border: 1px solid #cbd5e0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s;
+  border-radius: 6px;
   background-color: white;
+  transition: all 0.2s;
+  color: #1e293b;
 }
 
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
   outline: none;
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form-textarea {
-  min-height: 100px;
-  resize: vertical;
+.formInput:disabled,
+.formSelect:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
 }
 
-.form-helper {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  margin-top: 0.25rem;
-}
-
-/* --- UPLOAD SECTION --- */
-.upload-section {
-  border: 2px dashed #e2e8f0;
-  border-radius: 12px;
-  padding: 1.5rem;
+/* MARKDOWN STYLE */
+.markdownEditor {
+  font-family: "Consolas", monospace;
+  line-height: 1.5;
+  border-left: 3px solid #cbd5e0;
   background-color: #f8fafc;
+}
+.markdownEditor:focus {
+  background-color: white;
+  border-left-color: #3b82f6;
+}
+
+/* HELPER TEXT */
+.helperText {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.25rem;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* UPLOAD SECTION (COMPACT) */
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px dashed #cbd5e0;
+  border-radius: 8px;
+  background: #fdfdfd;
+}
+
+.previewBox {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px; /* Kotak rounded untuk logo */
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  background: #f1f5f9;
+  flex-shrink: 0;
 }
 
-.form-image-preview {
+/* Khusus Foto Profil Bulat */
+.previewCircle {
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+}
+
+.previewBox img,
+.previewCircle img {
   width: 100%;
-  max-height: 200px;
-  object-fit: contain;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  margin-top: 0.5rem;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* --- FOOTER TOMBOL --- */
-.form-footer {
+.uploadBtn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  background: #eff6ff;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.uploadBtn:hover {
+  background: #dbeafe;
+}
+
+/* FOOTER (TOMBOL KANAN) */
+.formFooter {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-/* Responsif untuk Form */
-@media (max-width: 640px) {
-  .form-grid {
-    grid-template-columns: 1fr; /* 1 Kolom di HP */
-  }
-  .col-span-1,
-  .col-span-2,
-  .col-span-3 {
-    grid-column: span 1;
-  }
+  justify-content: flex-end; /* INI KUNCINYA: Tombol di Kanan */
+  gap: 0.75rem;
 }

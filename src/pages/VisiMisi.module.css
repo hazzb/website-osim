@@ -1,90 +1,129 @@
 /* src/pages/VisiMisi.module.css */
 
-/* --- 1. HEADER SECTION --- */
+/* --- HEADER SECTION --- */
 .headerSection {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  min-height: 40px; /* Jaga tinggi agar tidak gepeng jika judul kosong */
-}
-
-.adminControls {
-  display: flex;
-  gap: 0.75rem;
+  margin-bottom: 2rem;
 }
 
 .settingBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  /* Tombol Glassy Ringan */
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  color: #475569;
   font-weight: 600;
-  color: #64748b;
   cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
   transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .settingBtn:hover {
-  background-color: #f7fafc;
-  border-color: #cbd5e0;
-  color: #2d3748;
-  transform: translateY(-1px);
+  background: white;
+  color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* --- 2. HERO WRAPPER (Judul Utama) --- */
+/* --- HERO WRAPPER (Royal Glass) --- */
 .heroWrapper {
   position: relative;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  padding: 3rem 2rem;
+  /* Gradient Biru ke Ungu */
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.9) 0%,
+    rgba(124, 58, 237, 0.9) 100%
+  );
+  border-radius: 24px;
+  padding: 4rem 2rem;
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 3.5rem;
 
-  /* Dekorasi bayangan halus */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  /* Border tipis transparan (khas glass) */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+
+  /* Efek Blur & Shadow Berwarna */
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.4),
+    /* Shadow Ungu */ inset 0 0 20px rgba(255, 255, 255, 0.1); /* Inner glow */
+
+  overflow: hidden;
+  color: white;
+}
+
+/* Dekorasi Cahaya (Orb) di pojok kiri atas */
+.heroWrapper::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.2);
+  filter: blur(60px);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Dekorasi Cahaya (Orb) di pojok kanan bawah */
+.heroWrapper::after {
+  content: "";
+  position: absolute;
+  bottom: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: rgba(56, 189, 248, 0.3); /* Cyan light */
+  filter: blur(50px);
+  border-radius: 50%;
+  z-index: 1;
 }
 
 .heroContent {
+  position: relative;
+  z-index: 5; /* Di atas dekorasi */
   max-width: 800px;
   margin: 0 auto;
 }
 
 .pageTitle {
-  font-size: 2.25rem;
+  font-size: 3.5rem;
   font-weight: 800;
-  color: #1a202c;
   margin: 0 0 1rem;
-  line-height: 1.2;
+  color: #ffffff;
   letter-spacing: -0.02em;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .pageSubtitle {
-  font-size: 1.1rem;
-  line-height: 1.7;
-  color: #4a5568;
-  white-space: pre-line; /* Agar Enter terbaca */
+  font-size: 1.2rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9); /* Putih agak transparan */
+  font-weight: 500;
+  max-width: 90%;
+  margin: 0 auto;
 }
 
-/* Tombol Edit Hero (Pojok Kanan Atas) */
+/* Tombol Edit Hero (Putih Transparan) */
 .editHeroBtn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
 
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
-  border: none;
-  background-color: #f1f5f9;
-  color: #64748b;
+  color: white;
 
   display: flex;
   align-items: center;
@@ -94,8 +133,9 @@
 }
 
 .editHeroBtn:hover {
-  background-color: #3182ce;
-  color: white;
+  background: white;
+  color: #4f46e5; /* Ungu saat hover */
+  transform: rotate(15deg);
 }
 
 /* Empty Hero State */
@@ -103,34 +143,39 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  color: #a0aec0;
+  gap: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 2rem;
 }
 
 /* --- 3. CONTENT AREA --- */
 .contentWrapper {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.5rem;
 }
 
+/* Tombol Tambah (Biru Muda) */
 .addBtn {
-  display: inline-block;
   width: 100%;
   padding: 1.5rem;
-  border: 2px dashed #cbd5e0;
-  border-radius: 12px;
-  background-color: transparent;
-  color: #718096;
+  border: 2px dashed #a5b4fc; /* Garis putus ungu muda */
+  border-radius: 16px;
+  background: #eef2ff;
+  color: #6366f1;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .addBtn:hover {
-  border-color: #3182ce;
-  background-color: #ebf8ff;
-  color: #3182ce;
+  background: #e0e7ff;
+  border-color: #6366f1;
+  transform: scale(1.01);
 }
 
 /* --- 4. LAYOUT MODAL OPTIONS --- */
@@ -138,50 +183,47 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  padding: 0.5rem;
+  padding: 0.5rem 0;
 }
 
 .layoutOption {
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
   padding: 1.5rem 1rem;
   text-align: center;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
   background: white;
+  transition: all 0.2s;
 }
 
 .layoutOption:hover {
-  border-color: #cbd5e0;
+  border-color: #a5b4fc;
   transform: translateY(-2px);
 }
 
 .layoutOption.active {
-  border-color: #3182ce;
-  background-color: #ebf8ff;
-  color: #2b6cb0;
+  border-color: #6366f1;
+  background: #eef2ff;
+  color: #4338ca;
 }
 
 .layoutIcon {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
   color: #cbd5e0;
 }
 
 .layoutOption.active .layoutIcon {
-  color: #3182ce;
+  color: #6366f1;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
-  .headerSection {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+  .heroWrapper {
+    padding: 3rem 1.5rem;
   }
   .pageTitle {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
   .layoutOptionGrid {
     grid-template-columns: 1fr;

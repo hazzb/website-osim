@@ -9,7 +9,7 @@ import {
   FiMenu,
   FiX,
   FiHome,
-  FiTarget,
+  FiTarget, // Ikon ini cocok untuk Profile/Visi Misi
   FiUsers,
   FiCalendar,
   FiLogIn,
@@ -25,14 +25,14 @@ const Navbar = () => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState(null);
-  const [orgName, setOrgName] = useState("OSIS APP"); // Default sementara
+  const [orgName, setOrgName] = useState("OSIS APP");
 
-  // Fetch Logo & Nama Organisasi dari Database
+  // Fetch Logo & Nama Organisasi
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
         .from("pengaturan")
-        .select("nama_organisasi, logo_osis_url") // Ambil nama & logo
+        .select("nama_organisasi, logo_osis_url")
         .eq("id", 1)
         .single();
 
@@ -44,7 +44,7 @@ const Navbar = () => {
     fetchSettings();
   }, []);
 
-  // Tutup mobile menu saat pindah halaman
+  // Tutup menu saat pindah halaman
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
@@ -59,20 +59,13 @@ const Navbar = () => {
   return (
     <nav className={styles.navbar}>
       <div className={styles.container}>
-        {/* 1. LOGO & NAMA ORGANISASI (DINAMIS) */}
+        {/* 1. LOGO */}
         <Link to="/" className={styles.logoLink}>
-          {/* Jika ada logo di DB, pakai. Jika tidak, pakai placeholder */}
           {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt="Logo Organisasi"
-              className={styles.logoImg}
-            />
+            <img src={logoUrl} alt="Logo" className={styles.logoImg} />
           ) : (
             <div style={{ fontSize: "1.5rem" }}>🏫</div>
           )}
-
-          {/* Tampilkan Nama Organisasi dari Database */}
           <span className={styles.logoText}>{orgName}</span>
         </Link>
 
@@ -88,6 +81,8 @@ const Navbar = () => {
           >
             <FiHome /> Beranda
           </NavLink>
+
+          {/* UPDATE: Visi Misi -> Profile */}
           <NavLink
             to="/visi-misi"
             className={({ isActive }) =>
@@ -96,8 +91,9 @@ const Navbar = () => {
                 : styles.navLink
             }
           >
-            <FiTarget /> Visi Misi
+            <FiTarget /> Profile
           </NavLink>
+
           <NavLink
             to="/anggota"
             className={({ isActive }) =>
@@ -108,6 +104,7 @@ const Navbar = () => {
           >
             <FiUsers /> Anggota
           </NavLink>
+
           <NavLink
             to="/program-kerja"
             className={({ isActive }) =>
@@ -146,7 +143,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* 3. MOBILE MENU TOGGLE */}
+        {/* 3. MOBILE TOGGLE */}
         <button
           className={styles.mobileToggle}
           onClick={() => setIsOpen(!isOpen)}
@@ -155,17 +152,21 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* 4. MOBILE MENU DROPDOWN */}
+      {/* 4. MOBILE MENU */}
       <div className={`${styles.mobileMenu} ${isOpen ? styles.open : ""}`}>
         <NavLink to="/" className={styles.mobileLink}>
           <FiHome /> Beranda
         </NavLink>
+
+        {/* UPDATE: Visi Misi -> Profile */}
         <NavLink to="/visi-misi" className={styles.mobileLink}>
-          <FiTarget /> Visi & Misi
+          <FiTarget /> Profile
         </NavLink>
+
         <NavLink to="/anggota" className={styles.mobileLink}>
           <FiUsers /> Daftar Anggota
         </NavLink>
+
         <NavLink to="/program-kerja" className={styles.mobileLink}>
           <FiCalendar /> Program Kerja
         </NavLink>
