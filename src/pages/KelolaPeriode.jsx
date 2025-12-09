@@ -8,7 +8,7 @@ import Modal from "../components/Modal.jsx";
 import FormInput from "../components/admin/FormInput.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 
-// Styles (Menggunakan CamelCase agar layout rapi)
+// Styles
 import tableStyles from "../components/admin/AdminTable.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
 
@@ -34,7 +34,6 @@ function KelolaPeriode() {
     totalPages,
     searchTerm,
     setSearchTerm,
-    handleDelete,
     refreshData,
   } = useAdminTable({
     tableName: "periode_jabatan",
@@ -55,7 +54,6 @@ function KelolaPeriode() {
       setFormData(item);
     } else {
       setEditingId(null);
-      // Default: Tahun Sekarang
       const currentYear = new Date().getFullYear();
       setFormData({
         nama_kabinet: "",
@@ -72,77 +70,123 @@ function KelolaPeriode() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // --- DEBUGGING SUBMIT ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
 
-    // DEBUG 1: Cek Payload yang mau dikirim
-    console.log("1. Sedang mengirim data:", formData);
+    console.log("--- MULAI SUBMIT ---");
+    console.log("Data Mentah Form:", formData);
 
     try {
+      // 1. Validasi & Konversi
       const isActive =
         formData.is_active === "true" || formData.is_active === true;
+      const tMulai = parseInt(formData.tahun_mulai);
+      const tSelesai = parseInt(formData.tahun_selesai);
 
       const payload = {
         nama_kabinet: formData.nama_kabinet,
-        tahun_mulai: parseInt(formData.tahun_mulai), // Pastikan Angka
-        tahun_selesai: parseInt(formData.tahun_selesai), // Pastikan Angka
+        tahun_mulai: tMulai,
+        tahun_selesai: tSelesai,
         motto_kabinet: formData.motto_kabinet,
         is_active: isActive,
       };
 
-      console.log("2. Payload Final:", payload);
+      console.log("Payload Siap Kirim:", payload);
 
-      // Logic: Jika aktif, nonaktifkan yang lain
+      // 2. Logic Update Status Aktif (Jika perlu)
       if (isActive) {
+        console.log(">> Mencoba menonaktifkan periode lain...");
         const { error: errReset } = await supabase
           .from("periode_jabatan")
           .update({ is_active: false })
-          .neq("id", 0); // Update semua
+          .neq("id", 0); // Hack update all
 
-        if (errReset) console.error("Gagal reset aktif:", errReset);
+        if (errReset) {
+          console.error("GAGAL RESET PERIODE LAIN:", errReset);
+          throw new Error(`Gagal Reset: ${errReset.message} (Cek RLS!)`);
+        }
+        console.log(">> Sukses menonaktifkan periode lain.");
       }
 
+      // 3. Eksekusi Simpan Utama
       let result;
       if (editingId) {
-        // UPDATE
-        console.log("3. Melakukan UPDATE ke ID:", editingId);
+        console.log(`>> Mencoba UPDATE ID: ${editingId}`);
         result = await supabase
           .from("periode_jabatan")
           .update(payload)
           .eq("id", editingId)
-          .select(); // Tambahkan .select() agar data balikan terlihat
+          .select();
       } else {
-        // INSERT
-        console.log("3. Melakukan INSERT baru");
+        console.log(">> Mencoba INSERT Baru");
         result = await supabase
           .from("periode_jabatan")
           .insert(payload)
           .select();
       }
 
-      // DEBUG 2: Cek Error dari Supabase
+      // 4. Cek Error Balikan Supabase
       const { data, error } = result;
 
       if (error) {
-        console.error("4. SUPABASE ERROR:", error); // Cek Console Browser (F12)
-        throw error; // Lempar ke catch agar alert Error muncul
+        console.error("FATAL ERROR SUPABASE:", error);
+        // Tampilkan pesan error spesifik RLS
+        if (error.code === "42501") {
+          throw new Error(
+            "Izin Ditolak (RLS Policy). Anda tidak punya hak tulis di tabel ini."
+          );
+        }
+        throw error;
       }
 
-      console.log("5. Berhasil! Data balik:", data);
+      if (!data || data.length === 0) {
+        console.warn(
+          "Warning: Tidak ada data yang dikembalikan. Mungkin RLS 'select' policy memblokir hasil balikan."
+        );
+      }
 
+      console.log("SUKSES! Data tersimpan:", data);
       alert("Berhasil disimpan!");
       setIsModalOpen(false);
       refreshData();
     } catch (err) {
-      console.error("CATCH ERROR:", err);
-      alert("Gagal: " + (err.message || err.details || JSON.stringify(err)));
+      console.error("CATCH BLOCK ERROR:", err);
+      alert("TERJADI ERROR: " + (err.message || JSON.stringify(err)));
     } finally {
       setModalLoading(false);
+      console.log("--- SELESAI SUBMIT ---");
     }
   };
 
-  // --- 4. RENDER UTAMA ---
+  // --- DEBUGGING DELETE ---
+  const handleDelete = async (id) => {
+    if (!window.confirm("Hapus periode ini?")) return;
+
+    console.log(`--- MULAI DELETE ID: ${id} ---`);
+    try {
+      const { error } = await supabase
+        .from("periode_jabatan")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("DELETE ERROR:", error);
+        if (error.code === "42501") {
+          throw new Error("Izin Hapus Ditolak (RLS Policy).");
+        }
+        throw error;
+      }
+
+      console.log("Delete Sukses");
+      alert("Berhasil dihapus");
+      refreshData();
+    } catch (err) {
+      alert("Gagal hapus: " + err.message);
+    }
+  };
+
   if (loading)
     return (
       <PageContainer breadcrumbText="Memuat...">
@@ -152,7 +196,7 @@ function KelolaPeriode() {
 
   return (
     <PageContainer breadcrumbText="Kelola Periode">
-      {/* HEADER PAGE */}
+      {/* HEADER */}
       <div className={tableStyles.adminPageHeader}>
         <div>
           <h1 className="page-title">Kelola Periode</h1>
@@ -169,7 +213,7 @@ function KelolaPeriode() {
         </button>
       </div>
 
-      {/* FILTER SEARCH */}
+      {/* FILTER */}
       <div className={tableStyles.tableFilterContainer}>
         <div className={tableStyles.searchInputGroup}>
           <FiSearch style={{ color: "var(--text-muted)" }} />
@@ -222,10 +266,7 @@ function KelolaPeriode() {
                   <td>{(currentPage - 1) * 10 + index + 1}</td>
                   <td>
                     <span
-                      style={{
-                        fontWeight: "600",
-                        color: "var(--text-main)",
-                      }}
+                      style={{ fontWeight: "600", color: "var(--text-main)" }}
                     >
                       {item.nama_kabinet}
                     </span>
@@ -250,8 +291,8 @@ function KelolaPeriode() {
                         fontSize: "0.9rem",
                       }}
                     >
-                      <FiClock size={14} color="#64748b" />
-                      {item.tahun_mulai} - {item.tahun_selesai}
+                      <FiClock size={14} color="#64748b" /> {item.tahun_mulai} -{" "}
+                      {item.tahun_selesai}
                     </div>
                   </td>
                   <td>
@@ -304,31 +345,6 @@ function KelolaPeriode() {
         </table>
       </div>
 
-      {/* PAGINATION */}
-      {totalPages > 1 && (
-        <div className={tableStyles.paginationContainer}>
-          <span className={tableStyles.paginationInfo}>
-            Halaman {currentPage} dari {totalPages}
-          </span>
-          <div className={tableStyles.paginationButtons}>
-            <button
-              className={tableStyles.paginationButton}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </button>
-            <button
-              className={tableStyles.paginationButton}
-              onClick={() => setCurrentPage((p) => p + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* MODAL FORM */}
       <Modal
         isOpen={isModalOpen}
@@ -336,9 +352,7 @@ function KelolaPeriode() {
         title={editingId ? "Edit Periode" : "Tambah Periode Baru"}
       >
         <form onSubmit={handleSubmit}>
-          {/* Form Grid Layout */}
           <div className={formStyles.formGrid}>
-            {/* Nama Kabinet */}
             <FormInput
               label="Nama Kabinet"
               name="nama_kabinet"
@@ -348,8 +362,6 @@ function KelolaPeriode() {
               span={12}
               placeholder="Contoh: Kabinet Pembaharu"
             />
-
-            {/* Tahun Mulai */}
             <div className={formStyles.colSpan4}>
               <FormInput
                 label="Tahun Mulai"
@@ -360,8 +372,6 @@ function KelolaPeriode() {
                 required
               />
             </div>
-
-            {/* Tahun Selesai */}
             <div className={formStyles.colSpan4}>
               <FormInput
                 label="Tahun Selesai"
@@ -372,8 +382,6 @@ function KelolaPeriode() {
                 required
               />
             </div>
-
-            {/* Status Aktif */}
             <div className={formStyles.colSpan4}>
               <FormInput
                 label="Status"
@@ -386,8 +394,6 @@ function KelolaPeriode() {
                 <option value={true}>Aktif</option>
               </FormInput>
             </div>
-
-            {/* Motto */}
             <FormInput
               label="Motto Kabinet"
               name="motto_kabinet"
@@ -399,7 +405,6 @@ function KelolaPeriode() {
               placeholder="Slogan atau visi singkat..."
             />
           </div>
-
           <div className={formStyles.formFooter}>
             <button
               type="button"

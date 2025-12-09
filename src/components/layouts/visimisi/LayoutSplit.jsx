@@ -2,6 +2,8 @@ import React from "react";
 import { FiEdit, FiTrash2, FiExternalLink } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import SimpleCarousel from "../../ui/SimpleCarousel.jsx";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const LayoutSplit = ({ data, isAdmin, onEdit, onDelete }) => {
   return (
@@ -107,7 +109,11 @@ const LayoutSplit = ({ data, isAdmin, onEdit, onDelete }) => {
                   margin: "0 auto",
                 }}
               >
-                {item.isi}
+                <div className="prose-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.isi}
+                  </ReactMarkdown>
+                </div>
               </p>
 
               {item.button_text && (
@@ -175,7 +181,11 @@ const LayoutSplit = ({ data, isAdmin, onEdit, onDelete }) => {
                   whiteSpace: "pre-line",
                 }}
               >
-                {item.isi}
+                <div className="prose-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.isi}
+                  </ReactMarkdown>
+                </div>
               </p>
 
               {item.button_text && (

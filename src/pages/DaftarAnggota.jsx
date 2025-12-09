@@ -14,13 +14,14 @@ import Modal from "../components/Modal.jsx";
 import AnggotaForm from "../components/forms/AnggotaForm.jsx";
 import DivisiForm from "../components/forms/DivisiForm.jsx";
 import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
-import FormInput from "../components/admin/FormInput.jsx";
 import JabatanManager from "../components/admin/JabatanManager.jsx";
 import PeriodeForm from "../components/forms/PeriodeForm.jsx";
 
 // Styles
 import styles from "./DaftarAnggota.module.css";
-import formStyles from "../components/admin/AdminForm.module.css";
+
+// Utils (INI YANG DITAMBAHKAN)
+import { uploadImage } from "../utils/uploadHelper";
 
 // Icons
 import {
@@ -41,7 +42,7 @@ function DaftarAnggota() {
   const [anggotaList, setAnggotaList] = useState([]);
   const [jabatanList, setJabatanList] = useState([]);
 
-  // STATE BARU: Untuk menyimpan relasi Divisi <-> Jabatan
+  // RELASI DIVISI <-> JABATAN
   const [jabatanLinks, setJabatanLinks] = useState([]);
 
   // Filter
@@ -91,7 +92,7 @@ function DaftarAnggota() {
         .order("nama_jabatan", { ascending: true });
       setJabatanList(jabatans || []);
 
-      // 4. [BARU] Relasi Divisi-Jabatan
+      // 4. Relasi Divisi-Jabatan
       const { data: links } = await supabase
         .from("divisi_jabatan_link")
         .select("*");
@@ -132,19 +133,6 @@ function DaftarAnggota() {
     if (activeModal === "jabatan") return "Kelola Jabatan";
     const action = editingId ? "Edit" : "Tambah";
     return `${action} ${activeModal || ""}`;
-  };
-
-  const uploadFile = async (file, folder) => {
-    const ext = file.name.split(".").pop();
-    const fileName = `${folder}_${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from("logos")
-      .upload(`${folder}/${fileName}`, file, { upsert: true });
-    if (error) throw new Error(error.message);
-    const { data } = supabase.storage
-      .from("logos")
-      .getPublicUrl(`${folder}/${fileName}`);
-    return data.publicUrl;
   };
 
   const handleFileChange = (e) => {
@@ -203,22 +191,33 @@ function DaftarAnggota() {
     setModalLoading(true);
     try {
       let payload = { ...formData };
+
+      // LOGIC UPLOAD GAMBAR PAKE HELPER
       if (activeModal === "anggota" || activeModal === "divisi") {
-        if (formFile)
-          payload[activeModal === "anggota" ? "foto_url" : "logo_url"] =
-            await uploadFile(formFile, activeModal);
+        if (formFile) {
+          // Gunakan helper uploadImage di sini
+          const folder = activeModal; // 'anggota' atau 'divisi'
+          const url = await uploadImage(formFile, folder);
+          payload[activeModal === "anggota" ? "foto_url" : "logo_url"] = url;
+        }
       }
+
       const table = activeModal === "periode" ? "periode_jabatan" : activeModal;
-      if (editingId)
+
+      if (editingId) {
         await supabase.from(table).update(payload).eq("id", editingId);
-      else await supabase.from(table).insert(payload);
+      } else {
+        await supabase.from(table).insert(payload);
+      }
 
       alert("Berhasil disimpan!");
+
       if (activeModal === "anggota") fetchAnggota(activeTab);
       else fetchInitialData();
+
       closeModal();
     } catch (err) {
-      alert(err.message);
+      alert(err.message || err);
     } finally {
       setModalLoading(false);
     }
@@ -488,7 +487,6 @@ function DaftarAnggota() {
 
       {/* MODALS */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
-        {/* OPER DATA 'jabatanLinks' KE ANGGOTA FORM */}
         {activeModal === "anggota" && (
           <AnggotaForm
             formData={formData}
@@ -500,7 +498,7 @@ function DaftarAnggota() {
             periodeList={periodeList}
             divisiList={divisiList}
             jabatanList={jabatanList}
-            jabatanLinks={jabatanLinks} // <--- PROPS BARU
+            jabatanLinks={jabatanLinks}
             preview={formPreview}
           />
         )}

@@ -1,23 +1,4 @@
 /* src/components/cards/AnggotaCard.module.css */
-
-.card {
-  position: relative;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
 /* Warna Gender */
 .card-ikhwan {
   background-color: #ebf8ff;

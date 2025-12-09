@@ -229,3 +229,32 @@
     grid-template-columns: 1fr;
   }
 }
+/* Tambahkan ini di bagian bawah */
+.markdownContent {
+  color: #64748b;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.markdownContent p {
+  margin-bottom: 1rem;
+}
+
+.markdownContent ul,
+.markdownContent ol {
+  text-align: left;
+  margin: 1rem 0;
+  padding-left: 2rem;
+  display: inline-block; /* Agar bullet point di tengah jika text align center */
+}
+
+.markdownContent li {
+  margin-bottom: 0.5rem;
+}
+
+.markdownContent strong {
+  color: #2d3748;
+  font-weight: 700;
+}

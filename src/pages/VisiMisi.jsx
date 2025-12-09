@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import styles from "./VisiMisi.module.css";
-// Kita aktifkan ini untuk styling footer modal yang konsisten
 import formStyles from "../components/admin/AdminForm.module.css";
+
+// --- LIBRARY MARKDOWN (BARU) ---
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // UI Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-// Ganti LoadingState biasa dengan Skeleton khusus Visi Misi
 import { VisiMisiSkeleton } from "../components/ui/Skeletons.jsx";
 import Modal from "../components/Modal.jsx";
 
@@ -90,9 +92,7 @@ function VisiMisi() {
   };
 
   // --- LOGIC PEMBAGIAN KONTEN ---
-  // Jika Hero Aktif: Item pertama (urutan 1) jadi Hero.
   const heroContent = showHero && contents.length > 0 ? contents[0] : null;
-  // Sisanya masuk ke grid di bawahnya.
   const gridContents =
     showHero && contents.length > 0 ? contents.slice(1) : contents;
 
@@ -129,7 +129,6 @@ function VisiMisi() {
       setFormData(item);
     } else {
       setEditingId(null);
-      // Auto-increment urutan
       const lastOrder =
         contents.length > 0 ? contents[contents.length - 1].urutan : 0;
       setFormData({
@@ -206,7 +205,7 @@ function VisiMisi() {
     <PageContainer breadcrumbText="Visi & Misi">
       {/* HEADER */}
       <div className={styles.headerSection}>
-        <div></div> {/* Spacer agar tombol ada di kanan */}
+        <div></div>
         {isAdmin && (
           <div className={styles.adminControls}>
             <button
@@ -227,13 +226,21 @@ function VisiMisi() {
         )}
       </div>
 
-      {/* HERO CONTENT */}
+      {/* HERO CONTENT (Updated with Markdown) */}
       {showHero && (
         <div className={styles.heroWrapper}>
           {heroContent ? (
             <div className={styles.heroContent}>
               <h1 className={styles.pageTitle}>{heroContent.judul}</h1>
-              <p className={styles.pageSubtitle}>{heroContent.isi}</p>
+
+              {/* --- PERBAIKAN: Gunakan ReactMarkdown --- */}
+              <div className={styles.markdownContent}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {heroContent.isi}
+                </ReactMarkdown>
+              </div>
+              {/* --------------------------------------- */}
+
               {isAdmin && (
                 <button
                   onClick={() => openModal(heroContent)}
@@ -310,7 +317,7 @@ function VisiMisi() {
         onClose={() => setIsSettingOpen(false)}
         title="Pengaturan Tampilan"
       >
-        {/* 1. Toggle Hero Section */}
+        {/* Settings Content... (Sama seperti sebelumnya) */}
         <div
           style={{
             marginBottom: "1.5rem",
@@ -354,7 +361,6 @@ function VisiMisi() {
           </label>
         </div>
 
-        {/* 2. Pilihan Layout Grid */}
         <div>
           <span
             style={{

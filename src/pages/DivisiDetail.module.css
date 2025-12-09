@@ -1,17 +1,109 @@
 /* src/pages/DivisiDetail.module.css */
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding-bottom: 5rem;
+/* --- HEADER CARD --- */
+.headerCard {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column; /* Mobile first: tumpuk ke bawah */
+  gap: 1.5rem;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* --- NAVIGASI KEMBALI --- */
-.navBar {
-  margin-bottom: 1.5rem;
+/* Tablet & Desktop: Sebelahan */
+@media (min-width: 768px) {
+  .headerCard {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+  }
 }
 
-.backLink {
+.logoWrapper {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.infoWrapper {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.periodeBadge {
+  display: inline-block;
+  background: #eff6ff;
+  color: #3b82f6;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 99px;
+  margin-bottom: 1rem;
+}
+
+.description {
+  color: #64748b;
+  line-height: 1.6;
+  font-size: 1rem;
+  max-width: 800px;
+}
+
+/* --- SECTIONS --- */
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 2rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px dashed #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* --- GRIDS --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.emptyState {
+  background: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* --- BACK BUTTON --- */
+.backButton {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -19,209 +111,43 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  background: white;
-  border-radius: 99px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.2s;
-}
-
-.backLink:hover {
-  color: #3182ce;
-  border-color: #3182ce;
-  transform: translateX(-3px);
-}
-
-/* --- HERO SECTION (Identitas Divisi) --- */
-.heroSection {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  padding: 2rem;
-  margin-bottom: 2rem;
-
-  display: flex;
-  align-items: flex-start;
-  gap: 2rem;
-
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Dekorasi Background Gradient Tipis */
-.heroSection::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(90deg, #3182ce, #d53f8c);
-}
-
-.logoWrapper {
-  width: 120px;
-  height: 120px;
-  flex-shrink: 0;
-
-  background: #f8fafc;
-  border-radius: 20px; /* Squircle */
-  border: 1px solid #edf2f7;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.logo {
-  width: 70%;
-  height: 70%;
-  object-fit: contain;
-}
-
-.infoContainer {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.periodeBadge {
-  display: inline-block;
-  background: #ebf8ff;
-  color: #2b6cb0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  width: fit-content;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1a202c;
-  margin: 0 0 0.5rem;
-  line-height: 1.2;
-}
-
-.description {
-  color: #64748b;
-  line-height: 1.6;
-  font-size: 1rem;
-  max-width: 700px;
-}
-
-/* --- STATS BADGE (Di dalam Filter Bar) --- */
-.statsBadge {
-  display: flex;
-  align-items: center;
-  height: 42px; /* Samakan dengan tinggi input filter */
-  padding: 0 1rem;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #718096;
-  white-space: nowrap;
-}
-
-/* --- CARD GRID --- */
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
-  animation: fadeIn 0.5s ease;
-}
-
-.emptyState {
-  text-align: center;
-  padding: 4rem;
-  color: #a0aec0;
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 1px dashed #cbd5e0;
-}
-
-/* --- RESPONSIVE --- */
-@media (max-width: 768px) {
-  .heroSection {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 1.5rem;
-  }
-
-  .infoContainer {
-    align-items: center;
-  }
-
-  .title {
-    font-size: 1.5rem;
-  }
-
-  .cardGrid {
-    grid-template-columns: repeat(
-      auto-fill,
-      minmax(100%, 1fr)
-    ); /* 1 Kolom di HP */
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.editDivisiBtn {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  background: white;
-  border: 1px solid #e2e8f0;
+  /* Hapus margin-bottom di sini karena sudah dihandle container */
+  /* margin-bottom: 1rem; */
   padding: 0.5rem 1rem;
   border-radius: 8px;
-
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #64748b;
-  cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  z-index: 10;
 }
 
-.editDivisiBtn:hover {
-  background: #3182ce;
-  color: white;
-  border-color: #3182ce;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2);
+.backButton:hover {
+  color: #1e293b;
+  background-color: #e2e8f0;
 }
 
-/* Mobile Tweak */
-@media (max-width: 768px) {
-  .editDivisiBtn {
-    position: relative; /* Di HP jangan absolute, biar ngalir */
-    top: auto;
-    right: auto;
-    margin-top: 1rem;
-    width: 100%;
-    justify-content: center;
-  }
+/* src/pages/DivisiDetail.module.css */
+
+/* --- STICKY NAV --- */
+/* src/pages/DivisiDetail.module.css */
+
+.stickyHeader {
+  position: -webkit-sticky; /* Support untuk Safari */
+  position: sticky;
+
+  /* --- BAGIAN KRUSIAL --- */
+  /* Jika ada Navbar, ganti 0 dengan tinggi navbar Anda (misal 64px atau 70px) */
+  /* Coba angka ini dulu: */
+  top: 70px;
+
+  z-index: 1000; /* Pastikan dia di atas elemen lain */
+
+  /* Styling Background */
+  background-color: rgba(248, 250, 252, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e2e8f0;
+
+  /* Layout */
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem; /* Negatif margin untuk melawan padding PageContainer */
+  padding: 1rem 1.5rem;
+  width: calc(100% + 3rem); /* Kompensasi margin negatif */
 }
+
+/* --- TOMBOL KEMBALI (Modifikasi sedikit) --- */

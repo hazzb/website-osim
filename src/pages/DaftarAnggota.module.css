@@ -1,183 +1,139 @@
 /* src/pages/DaftarAnggota.module.css */
 
-/* --- 1. HEADER UTAMA --- */
+/* --- HEADER & ACTIONS --- */
 .header-section {
   margin-bottom: 1rem;
 }
 
-.page-title {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #1e293b; /* Slate-800 */
-  margin: 0;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  color: #64748b; /* Slate-500 */
-  margin: 0.2rem 0 0;
-  font-size: 1rem;
-}
-
-/* --- 2. TOMBOL PINTASAN ADMIN (Action Buttons) --- */
 .action-buttons {
   display: flex;
+  gap: 0.5rem;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
 }
 
 .modern-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  border: none;
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
   color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: transform 0.1s, opacity 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 .modern-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
-
 .modern-button:active {
   transform: translateY(0);
 }
 
-/* Warna Tombol Admin */
 .btn-blue {
   background-color: #3b82f6;
-} /* Anggota */
-.btn-blue:hover {
-  background-color: #2563eb;
 }
-
 .btn-orange {
   background-color: #f97316;
-} /* Divisi */
-.btn-orange:hover {
-  background-color: #ea580c;
 }
-
 .btn-purple {
   background-color: #8b5cf6;
-} /* Periode */
-.btn-purple:hover {
-  background-color: #7c3aed;
 }
 
-/* --- 3. CONTAINER UTAMA --- */
+/* --- CONTAINER UTAMA --- */
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Jarak antar Card Divisi */
+  padding-bottom: 4rem;
+}
 
-/* --- 4. SECTION PER DIVISI --- */
+/* --- CARD DIVISI (INI YANG ANDA INGINKAN) --- */
 .divisi-section {
-  position: relative;
-  animation: fadeIn 0.5s ease-out;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px; /* Sudut membulat */
+  padding: 1.5rem; /* Jarak dalam card */
+
+  /* Efek Bayangan agar terlihat 'mengambang' */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
+  transition: all 0.3s ease;
 }
 
-/* Header Divisi (Flexbox: Judul Kiri - Link Kanan) */
+.divisi-section:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  border-color: #cbd5e0;
+}
+
+/* --- HEADER DI DALAM CARD --- */
 .divisi-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 1rem;
+  border-bottom: 2px dashed #f1f5f9; /* Garis pemisah di bawah judul divisi */
 }
 
 .divisi-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  padding: 4px;
 }
 
 .divisi-title {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #334155;
-  margin: 0;
-}
-
-/* --- 5. GRID KARTU ANGGOTA --- */
-.card-grid {
-  display: grid;
-  /* Responsive: Min lebar kartu 280px, sisanya auto fill */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-/* --- 6. EMPTY STATE (Saat data kosong) --- */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 5rem 1rem;
-  background-color: white;
-  border: 2px dashed #e2e8f0;
-  border-radius: 16px;
-  margin-top: 2rem;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.empty-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1e293b;
-  margin: 0 0 0.5rem;
-}
-
-.empty-desc {
-  color: #64748b;
   margin: 0;
 }
 
-/* --- ANIMASI --- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* --- GRID ANGGOTA (KARTU KECIL) --- */
+.card-grid {
+  display: grid;
+  /* Grid Responsif: Otomatis mengisi kolom */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
 }
 
-/* --- RESPONSIVE MOBILE --- */
+/* --- EMPTY STATE --- */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #64748b;
+  background: white;
+  border-radius: 16px;
+  border: 2px dashed #e2e8f0;
+}
+
+/* RESPONSIF MOBILE */
 @media (max-width: 640px) {
+  .divisi-section {
+    padding: 1rem; /* Padding lebih kecil di HP */
+    border-radius: 12px;
+  }
+
   .divisi-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
 
-  /* Saat mobile, tombol Lihat Detail pindah ke bawah judul tapi full width row */
-  .divisi-header > div:last-child {
-    width: 100%;
-    justify-content: space-between;
-    margin-top: 4px;
+  .divisi-logo {
+    width: 40px;
+    height: 40px;
   }
 
   .card-grid {
-    grid-template-columns: 1fr; /* 1 Kolom penuh di HP */
-  }
-
-  .action-buttons {
-    overflow-x: auto; /* Scroll horizontal jika tombol banyak */
-    padding-bottom: 4px;
+    grid-template-columns: 1fr; /* 1 Kolom di HP */
   }
 }

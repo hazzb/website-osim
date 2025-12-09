@@ -1,5 +1,7 @@
 import React from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const LayoutModular = ({ data, isAdmin, onEdit, onDelete }) => {
   return (
@@ -29,7 +31,11 @@ const LayoutModular = ({ data, isAdmin, onEdit, onDelete }) => {
               marginBottom: "1.5rem",
             }}
           >
-            {item.isi}
+            <div className="prose-content">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {item.isi}
+              </ReactMarkdown>
+            </div>
           </p>
 
           {/* TOMBOL ADMIN */}

@@ -1,5 +1,7 @@
 import React from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const LayoutZigZag = ({ data, isAdmin, onEdit, onDelete }) => {
   return (
@@ -66,7 +68,11 @@ const LayoutZigZag = ({ data, isAdmin, onEdit, onDelete }) => {
                   whiteSpace: "pre-line" /* Fix Enter */,
                 }}
               >
-                {item.isi}
+                <div className="prose-content">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {item.isi}
+                  </ReactMarkdown>
+                </div>
               </p>
 
               {isAdmin && (

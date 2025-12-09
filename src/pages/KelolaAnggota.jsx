@@ -611,44 +611,15 @@ function KelolaAnggota() {
             />
 
             {/* Upload Foto */}
-            <div className={formStyles.colSpan12}>
-              <label className={formStyles.formLabel}>Foto Profil</label>
-              <div className={formStyles.uploadRow}>
-                <div
-                  className={formStyles.previewBox}
-                  style={{ borderRadius: "50%" }}
-                >
-                  {formPreview ? (
-                    <img src={formPreview} alt="Preview" />
-                  ) : (
-                    <FiUser size={24} color="#cbd5e0" />
-                  )}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label
-                    className={formStyles.uploadBtn}
-                    style={{ width: "fit-content" }}
-                  >
-                    Pilih File
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      hidden
-                    />
-                  </label>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#94a3b8",
-                      marginLeft: "0.5rem",
-                    }}
-                  >
-                    Max 500KB
-                  </span>
-                </div>
-              </div>
-            </div>
+            <FormInput
+              type="file"
+              label="Foto Profil"
+              onChange={handleFileChange}
+              preview={formPreview} // State preview dari parent
+              accept="image/*"
+              helper="Max 200 KB (JPG/PNG)"
+              span={12}
+            />
           </div>
 
           <div className={formStyles.formFooter}>
