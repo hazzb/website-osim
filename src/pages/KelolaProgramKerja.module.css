@@ -1,0 +1,145 @@
+/* src/pages/KelolaProgramKerja.module.css */
+
+/* --- HEADER & FILTER (Meniru style standar) --- */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.filterContainer {
+  display: flex;
+  margin-bottom: 1.5rem;
+}
+
+.searchInputGroup {
+  position: relative;
+  width: 300px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+}
+
+/* --- TABEL KHUSUS (Agar Lega) --- */
+.tableContainer {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow-x: auto; /* Agar bisa discroll kesamping jika layar kecil */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px; /* KUNCI: Paksa tabel selebar minimal 1000px */
+}
+
+.table thead {
+  background: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+/* Atur lebar kolom satu per satu agar rapi */
+.colNo {
+  width: 60px;
+  text-align: center;
+}
+.colNama {
+  width: 30%;
+}
+.colTanggal {
+  width: 15%;
+}
+.colPelaksana {
+  width: 20%;
+}
+.colStatus {
+  width: 15%;
+  text-align: center;
+}
+.colAksi {
+  width: 120px;
+  text-align: right;
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+/* --- ACTION BUTTONS --- */
+.actionCell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.btnAction {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnEdit:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+.btnDelete:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* --- PAGINATION --- */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.pageBtn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

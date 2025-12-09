@@ -1,6 +1,6 @@
 /* src/components/admin/AdminTable.module.css */
 
-/* Header Halaman */
+/* HEADER HALAMAN */
 .adminPageHeader {
   display: flex;
   justify-content: space-between;
@@ -10,7 +10,7 @@
   gap: 1rem;
 }
 
-/* Filter & Search */
+/* FILTER & SEARCH */
 .tableFilterContainer {
   margin-bottom: 1.5rem;
   display: flex;
@@ -25,10 +25,9 @@
   align-items: center;
 }
 
-.searchInputGroup span {
+.searchInputGroup svg {
   position: absolute;
   left: 12px;
-  color: #94a3b8;
   pointer-events: none;
 }
 
@@ -47,7 +46,7 @@
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
 }
 
-/* Tabel Utama */
+/* TABEL UTAMA */
 .tableContainer {
   width: 100%;
   overflow-x: auto;
@@ -83,10 +82,6 @@
   transition: background-color 0.1s;
 }
 
-.table tbody tr:last-child {
-  border-bottom: none;
-}
-
 .table tbody tr:hover {
   background-color: #f8fafc;
 }
@@ -98,34 +93,23 @@
   font-size: 0.9rem;
 }
 
-/* Avatar/Logo */
-.avatarCell {
-  width: 60px;
-  text-align: center;
-}
-
-.avatarImage {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  object-fit: cover;
-  background-color: #f1f5f9;
-  border: 1px solid #e2e8f0;
-}
-
-/* Tombol Aksi */
+/* TOMBOL AKSI */
 .actionCell {
   display: flex;
   gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .btnAction {
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s;
 }
 
@@ -135,43 +119,44 @@
   color: #475569;
 }
 .btnEdit:hover {
-  border-color: #3182ce;
-  color: #3182ce;
-  background-color: #ebf8ff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background-color: #eff6ff;
 }
 
 .btnDelete {
   background-color: white;
   border-color: #fed7d7;
-  color: #e53e3e;
+  color: #ef4444;
 }
 .btnDelete:hover {
-  background-color: #fff5f5;
-  border-color: #e53e3e;
+  background-color: #fef2f2;
+  border-color: #ef4444;
 }
 
-/* Badge Status */
+/* BADGE */
 .badge {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 99px;
   font-size: 0.75rem;
   font-weight: 600;
+  display: inline-block;
 }
 .badgeGray {
   background: #f1f5f9;
   color: #64748b;
 }
 .badgeGreen {
-  background: #d1fae5;
-  color: #065f46;
+  background: #dcfce7;
+  color: #166534;
 }
 
-/* Pagination */
+/* PAGINATION */
 .paginationContainer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   padding: 0 0.5rem;
 }
 
@@ -179,211 +164,39 @@
   font-size: 0.85rem;
   color: #64748b;
 }
-
 .paginationButtons {
   display: flex;
   gap: 0.5rem;
 }
 
 .paginationButton {
-  padding: 6px 12px;
+  padding: 0.5rem 1rem;
   border: 1px solid #e2e8f0;
   background: white;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
   color: #475569;
 }
-
 .paginationButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background: #f8fafc;
+}
+.paginationButton:not(:disabled):hover {
+  border-color: #cbd5e0;
+  color: #1e293b;
+}
+.tableWide {
+  min-width: 1000px; /* Paksa tabel melebar minimal 1000px */
 }
 
-.paginationButton:not(:disabled):hover {
-  background-color: #f1f5f9; /* src/components/admin/AdminTable.module.css */
+/* Utility untuk mengatur lebar kolom */
+.colFixed {
+  width: 1%; /* Agar kolom menyusut sesuai konten (misal: No, Aksi) */
+  white-space: nowrap;
+}
 
-  /* --- HEADER HALAMAN --- */
-  .adminPageHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  /* --- CONTAINER FILTER (Wrapper untuk FilterBar Anda) --- */
-  /* Ini memastikan FilterBar Anda punya jarak yang pas dengan tabel */
-  .tableFilterContainer {
-    margin-bottom: 1.5rem;
-    width: 100%;
-  }
-
-  /* --- TABEL UTAMA --- */
-  .tableContainer {
-    width: 100%;
-    overflow-x: auto; /* Scroll horizontal jika tabel lebar */
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    position: relative; /* Penting */
-  }
-
-  .table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px; /* Mencegah kolom gepeng di HP */
-  }
-
-  .table thead {
-    background-color: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-  }
-
-  .table th {
-    padding: 1rem;
-    text-align: left;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #64748b;
-    white-space: nowrap; /* Mencegah judul kolom turun baris */
-  }
-
-  .table tbody tr {
-    border-bottom: 1px solid #f1f5f9;
-    transition: background-color 0.1s;
-  }
-
-  .table tbody tr:last-child {
-    border-bottom: none;
-  }
-
-  .table tbody tr:hover {
-    background-color: #f8fafc;
-  }
-
-  .table td {
-    padding: 1rem;
-    vertical-align: middle;
-    color: #334155;
-    font-size: 0.9rem;
-  }
-
-  /* --- LOGO / AVATAR --- */
-  .avatarCell {
-    width: 60px;
-    text-align: center;
-  }
-
-  .avatarImage {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    object-fit: cover;
-    background-color: #f1f5f9;
-    border: 1px solid #e2e8f0;
-  }
-
-  /* --- BADGE STATUS --- */
-  .badge {
-    padding: 4px 10px;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-block;
-  }
-  .badgeGray {
-    background: #f1f5f9;
-    color: #64748b;
-  }
-  .badgeGreen {
-    background: #dcfce7;
-    color: #166534;
-  }
-
-  /* --- TOMBOL AKSI --- */
-  .actionCell {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btnAction {
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-
-  .btnEdit {
-    background-color: white;
-    border-color: #cbd5e0;
-    color: #475569;
-  }
-  .btnEdit:hover {
-    border-color: #3b82f6;
-    color: #3b82f6;
-    background-color: #eff6ff;
-  }
-
-  .btnDelete {
-    background-color: white;
-    border-color: #fed7d7;
-    color: #ef4444;
-  }
-  .btnDelete:hover {
-    background-color: #fef2f2;
-    border-color: #ef4444;
-  }
-
-  /* --- PAGINATION --- */
-  .paginationContainer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1.5rem;
-    padding: 0 0.5rem;
-  }
-
-  .paginationInfo {
-    font-size: 0.85rem;
-    color: #64748b;
-  }
-
-  .paginationButtons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .paginationButton {
-    padding: 0.5rem 1rem;
-    border: 1px solid #e2e8f0;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    color: #475569;
-    transition: all 0.2s;
-  }
-
-  .paginationButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: #f8fafc;
-  }
-
-  .paginationButton:not(:disabled):hover {
-    border-color: #cbd5e0;
-    color: #1e293b;
-  }
-  color: #1e293b;
+.colFluid {
+  width: auto; /* Kolom ini akan mengambil sisa ruang */
 }

@@ -1,40 +1,13 @@
-:root { /* --- 1. PRIMARY COLORS (TEAL/TOSCA - Dari Logo) --- */ /* Warna utama
-untuk Header, Tombol Utama, Link aktif */ --primary: #0e7490; /* Cyan-700: Teal
-Profesional */ --primary-hover: #155e75; /* Lebih gelap saat hover */
---primary-light: #ecfeff; /* Background soft untuk item aktif */
---primary-border: #a5f3fc; /* Border tipis */ /* --- 2. SECONDARY COLORS
-(GOLD/ORANGE - Dari Padi & Orang) --- */ /* Warna aksen untuk Ikon penting,
-Badge, Highlight */ --secondary: #d97706; /* Amber-600: Emas/Oranye tegas */
---secondary-light: #fffbeb; /* Kuning sangat muda */ /* --- 3. NEUTRAL / SURFACE
-(Background) --- */ --bg-page: #f8fafc; /* Slate-50: Putih gading sangat muda
-(enak di mata) */ --bg-card: #ffffff; /* Putih bersih untuk kartu */ --border:
-#e2e8f0; /* Slate-200: Garis pemisah halus */ /* --- 4. TEXT COLORS --- */
---text-main: #164e63; /* Cyan-900: Hitam kebiruan (Serasi dengan Primary) */
---text-body: #475569; /* Slate-600: Abu tua untuk paragraf */ --text-muted:
-#94a3b8; /* Slate-400: Abu muda untuk label/placeholder */ /* --- 5. SYSTEM
-COLORS (Tetap standar UI) --- */ --danger: #ef4444; /* Merah Error */
---danger-light: #fef2f2; --success: #10b981; /* Hijau Sukses */ --warning:
-#f59e0b; /* Kuning Peringatan */ /* --- 6. SHADOWS & RADIUS --- */ --radius:
-12px; /* Sudut membulat modern */ --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
---shadow-md: 0 4px 6px -1px rgb(14 116 144 / 0.1); /* Bayangan sedikit kebiruan
-*/ --shadow-lg: 0 10px 15px -3px rgb(14 116 144 / 0.1); } /* --- GLOBAL STYLES
---- */ body { margin: 0; background-color: var(--bg-page); color:
-var(--text-main); font-family: 'Inter', system-ui, -apple-system, sans-serif;
--webkit-font-smoothing: antialiased; } /* Scrollbar Cantik */
-::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background:
-transparent; } ::-webkit-scrollbar-thumb { background-color: #cbd5e1;
-border-radius: 20px; } ::-webkit-scrollbar-thumb:hover { background-color:
-#94a3b8; } /* --- UTILITY CLASSES --- */ /* Button Standard */ .button {
-padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
-border: 1px solid transparent; cursor: pointer; transition: all 0.2s; display:
-inline-flex; align-items: center; justify-content: center; gap: 0.5rem; } /*
-Primary Button (Teal) */ .button-primary { background-color: var(--primary);
-color: white; box-shadow: 0 2px 4px rgba(14, 116, 144, 0.2); }
-.button-primary:hover { background-color: var(--primary-hover); transform:
-translateY(-1px); box-shadow: 0 4px 6px rgba(14, 116, 144, 0.3); }
-.button-primary:disabled { background-color: var(--text-muted); cursor:
-not-allowed; transform: none; box-shadow: none; } /* Secondary Button
-(White/Outline) */ .button-secondary { background-color: white; border: 1px
-solid var(--border); color: var(--text-body); } .button-secondary:hover {
-background-color: var(--bg-page); border-color: var(--text-muted); color:
-var(--text-main); }
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>website-osim</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

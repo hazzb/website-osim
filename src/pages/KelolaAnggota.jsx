@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 
@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import PageContainer from "../components/ui/PageContainer.jsx";
 import Modal from "../components/Modal.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
+import FormInput from "../components/admin/FormInput.jsx"; // PENTING
 import {
   FilterBar,
   FilterSelect,
@@ -15,17 +16,23 @@ import {
 // Styles & Icons
 import tableStyles from "../components/admin/AdminTable.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
-import { FiPlus, FiEdit, FiTrash2, FiSearch, FiUser } from "react-icons/fi";
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiSearch,
+  FiUser,
+  FiImage,
+} from "react-icons/fi";
 
 const PER_PAGE = 10;
 
 function KelolaAnggota() {
   const { session } = useAuth();
 
-  // --- STATE DATA & TABEL ---
+  // --- STATE DATA UTAMA ---
   const [anggotaList, setAnggotaList] = useState([]);
   const [loadingTable, setLoadingTable] = useState(true);
-  const [error, setError] = useState(null);
 
   // --- STATE FILTER & PAGINATION ---
   const [selectedPeriodeId, setSelectedPeriodeId] = useState("");
@@ -44,40 +51,61 @@ function KelolaAnggota() {
   // File Upload
   const [formFile, setFormFile] = useState(null);
   const [formPreview, setFormPreview] = useState(null);
-  const [existingFotoUrl, setExistingFotoUrl] = useState(null);
 
-  // --- STATE DROPDOWN ---
-  const [periodeList, setPeriodeList] = useState([]);
-  const [divisiFilterList, setDivisiFilterList] = useState([]); // List Divisi untuk Filter (Atas)
-  const [divisiFormList, setDivisiFormList] = useState([]); // List Divisi untuk Form (Modal)
-  const [jabatanList, setJabatanList] = useState([]); // List Jabatan untuk Form (Modal)
+  // --- STATE REFERENSI (DROPDOWN) ---
+  const [periodeList, setPeriodeList] = useState([]); // Semua Periode
+  const [allDivisi, setAllDivisi] = useState([]); // Semua Divisi (Raw)
+  const [allJabatan, setAllJabatan] = useState([]); // Semua Master Jabatan
+  const [jabatanLinks, setJabatanLinks] = useState([]); // Relasi Divisi-Jabatan
+
+  // State Dinamis untuk Form (Hasil Filter)
+  const [formDivisiOptions, setFormDivisiOptions] = useState([]);
+  const [formJabatanOptions, setFormJabatanOptions] = useState([]);
 
   // =================================================================
-  // 1. FETCH DATA AWAL (Periode)
+  // 1. FETCH DATA REFERENSI (Sekali di awal)
   // =================================================================
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchRefs = async () => {
       try {
-        const { data } = await supabase
+        // 1. Periode
+        const { data: pData } = await supabase
           .from("periode_jabatan")
           .select("*")
           .order("tahun_mulai", { ascending: false });
-        setPeriodeList(data || []);
-
-        // Default filter ke periode aktif (atau yang pertama)
-        if (data?.length > 0) {
-          const active = data.find((p) => p.is_active);
-          setSelectedPeriodeId(active ? active.id : data[0].id);
+        setPeriodeList(pData || []);
+        if (pData?.length > 0) {
+          const active = pData.find((p) => p.is_active);
+          setSelectedPeriodeId(active ? active.id : pData[0].id);
         }
+
+        // 2. Divisi
+        const { data: dData } = await supabase
+          .from("divisi")
+          .select("*")
+          .order("urutan");
+        setAllDivisi(dData || []);
+
+        // 3. Master Jabatan
+        const { data: jData } = await supabase
+          .from("master_jabatan")
+          .select("*");
+        setAllJabatan(jData || []);
+
+        // 4. Link Divisi-Jabatan
+        const { data: lData } = await supabase
+          .from("divisi_jabatan_link")
+          .select("*");
+        setJabatanLinks(lData || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching refs:", err);
       }
     };
-    fetchInitialData();
+    fetchRefs();
   }, []);
 
   // =================================================================
-  // 2. FETCH DATA TABEL (Reactive terhadap Filter)
+  // 2. FETCH DATA TABEL (Reactive)
   // =================================================================
   useEffect(() => {
     if (!selectedPeriodeId) return;
@@ -85,37 +113,28 @@ function KelolaAnggota() {
     const loadTableData = async () => {
       setLoadingTable(true);
       try {
-        // A. Ambil Divisi untuk Filter (Sesuai periode yang dipilih di filter bar)
-        const { data: divData } = await supabase
-          .from("divisi")
-          .select("id, nama_divisi")
-          .eq("periode_id", selectedPeriodeId)
-          .order("urutan");
-        setDivisiFilterList(divData || []);
-
-        // B. Ambil Data Anggota
         const from = (currentPage - 1) * PER_PAGE;
         const to = from + PER_PAGE - 1;
 
         let query = supabase
-          .from("anggota_detail_view") // Pastikan view ini ada di Database Anda
+          .from("anggota_detail_view") // Pastikan View ini ada
           .select("*", { count: "exact" })
           .eq("periode_id", selectedPeriodeId)
-          .order("urutan", { ascending: true }) // Urut berdasarkan divisi urutan
-          .order("nama", { ascending: true })
-          .range(from, to);
+          .range(from, to)
+          .order("urutan", { ascending: true }) // Urutan Divisi
+          .order("nama", { ascending: true });
 
         if (selectedDivisiId !== "semua")
           query = query.eq("divisi_id", selectedDivisiId);
         if (searchTerm) query = query.ilike("nama", `%${searchTerm}%`);
 
-        const { data, error, count } = await query;
+        const { data, count, error } = await query;
         if (error) throw error;
 
         setAnggotaList(data || []);
         setTotalCount(count || 0);
       } catch (err) {
-        setError("Gagal memuat data: " + err.message);
+        console.error(err);
       } finally {
         setLoadingTable(false);
       }
@@ -125,66 +144,77 @@ function KelolaAnggota() {
   }, [selectedPeriodeId, selectedDivisiId, currentPage, searchTerm]);
 
   // =================================================================
-  // 3. LOGIC FORM (Cascading Dropdown)
+  // 3. LOGIC FORM & CASCADING DROPDOWN
   // =================================================================
 
-  // Ambil divisi untuk form modal (berdasarkan periode yang dipilih di form)
-  const fetchDivisiForForm = async (pId) => {
-    const { data } = await supabase
-      .from("divisi")
-      .select("id, nama_divisi")
-      .eq("periode_id", pId)
-      .order("urutan");
-    setDivisiFormList(data || []);
+  // Helper: Filter Divisi berdasarkan Periode
+  const filterDivisiByPeriode = (pId) => {
+    const filtered = allDivisi.filter(
+      (d) => String(d.periode_id) === String(pId)
+    );
+    setFormDivisiOptions(filtered);
   };
 
-  // Ambil jabatan untuk form modal (berdasarkan divisi yang dipilih di form)
-  const fetchJabatanForDivisi = async (dId) => {
+  // Helper: Filter Jabatan berdasarkan Divisi (Logic Inti)
+  const filterJabatanByDivisi = (dId) => {
     if (!dId) {
-      setJabatanList([]);
+      setFormJabatanOptions([]);
       return;
     }
-    const { data } = await supabase
-      .from("divisi_jabatan_link")
-      .select("master_jabatan (id, nama_jabatan)")
-      .eq("divisi_id", dId);
+    // Cari ID jabatan yang boleh untuk divisi ini
+    const allowedIds = jabatanLinks
+      .filter((l) => String(l.divisi_id) === String(dId))
+      .map((l) => l.jabatan_id);
 
-    if (data) {
-      setJabatanList(data.map((item) => item.master_jabatan));
+    // Jika tidak ada settingan (kosong), tampilkan jabatan tipe 'Divisi' & 'Umum' sebagai fallback
+    // Agar tidak macet kalau admin lupa setting relasi
+    if (allowedIds.length === 0) {
+      const fallback = allJabatan.filter((j) => j.tipe_jabatan !== "Inti");
+      setFormJabatanOptions(fallback);
+    } else {
+      const filtered = allJabatan.filter((j) => allowedIds.includes(j.id));
+      setFormJabatanOptions(filtered);
     }
   };
 
   const openModal = async (item = null) => {
     setFormFile(null);
     setFormPreview(null);
-    setExistingFotoUrl(null);
-    setJabatanList([]); // Reset jabatan
 
     if (item) {
-      // EDIT MODE
+      // EDIT
       setEditingId(item.id);
-      // Fetch data asli (bukan view) agar ID relasinya benar
+      // Fetch single data agar ID relasinya akurat
       const { data } = await supabase
         .from("anggota")
         .select("*")
         .eq("id", item.id)
         .single();
-      setFormData(data);
-      setExistingFotoUrl(data.foto_url);
-      setFormPreview(data.foto_url);
+      if (data) {
+        setFormData(data);
+        setFormPreview(data.foto_url);
 
-      // Isi dropdown sesuai data yang diedit
-      await fetchDivisiForForm(data.periode_id);
-      await fetchJabatanForDivisi(data.divisi_id);
+        // Trigger filter dropdown agar terisi sesuai data yg diedit
+        filterDivisiByPeriode(data.periode_id);
+        filterJabatanByDivisi(data.divisi_id);
+      }
     } else {
-      // ADD MODE
+      // ADD
       setEditingId(null);
+      // Default ke periode yang sedang dipilih di filter
       setFormData({
+        nama: "",
         jenis_kelamin: "Ikhwan",
-        periode_id: selectedPeriodeId, // Default ke periode yang sedang dilihat
+        alamat: "",
+        motto: "",
+        instagram_username: "",
+        periode_id: selectedPeriodeId,
+        divisi_id: "",
+        jabatan_di_divisi: "", // String
       });
-      // Isi dropdown default
-      await fetchDivisiForForm(selectedPeriodeId);
+
+      filterDivisiByPeriode(selectedPeriodeId);
+      setFormJabatanOptions([]); // Reset jabatan
     }
     setIsModalOpen(true);
   };
@@ -193,18 +223,19 @@ function KelolaAnggota() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Logika Cascading Dropdown (Periode -> Divisi -> Jabatan)
+    // CASCADING LOGIC
     if (name === "periode_id") {
       setFormData((prev) => ({
         ...prev,
         divisi_id: "",
         jabatan_di_divisi: "",
       }));
-      fetchDivisiForForm(value);
+      filterDivisiByPeriode(value);
+      setFormJabatanOptions([]);
     }
     if (name === "divisi_id") {
       setFormData((prev) => ({ ...prev, jabatan_di_divisi: "" }));
-      fetchJabatanForDivisi(value);
+      filterJabatanByDivisi(value);
     }
   };
 
@@ -220,13 +251,11 @@ function KelolaAnggota() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      let finalFotoUrl = existingFotoUrl;
+      let finalFotoUrl = formData.foto_url;
 
-      // Upload Foto
       if (formFile) {
         const ext = formFile.name.split(".").pop();
         const fileName = `anggota_${Date.now()}.${ext}`;
-        // Upload ke bucket 'logos' -> folder 'anggota'
         const { error: upErr } = await supabase.storage
           .from("logos")
           .upload(`anggota/${fileName}`, formFile);
@@ -245,7 +274,7 @@ function KelolaAnggota() {
         instagram_username: formData.instagram_username,
         periode_id: formData.periode_id,
         divisi_id: formData.divisi_id,
-        jabatan_di_divisi: formData.jabatan_di_divisi,
+        jabatan_di_divisi: formData.jabatan_di_divisi, // Simpan Nama Jabatan (String)
         foto_url: finalFotoUrl,
       };
 
@@ -255,7 +284,6 @@ function KelolaAnggota() {
         await supabase.from("anggota").insert(payload);
       }
 
-      // Refresh halaman sederhana agar data terupdate
       window.location.reload();
     } catch (err) {
       alert("Gagal: " + err.message);
@@ -267,7 +295,6 @@ function KelolaAnggota() {
     if (!window.confirm("Hapus anggota ini?")) return;
     try {
       await supabase.from("anggota").delete().eq("id", id);
-      // Update state lokal biar cepat
       setAnggotaList((prev) => prev.filter((a) => a.id !== id));
     } catch (err) {
       alert(err.message);
@@ -278,95 +305,84 @@ function KelolaAnggota() {
   // 4. RENDER UI
   // =================================================================
 
+  // Filter list divisi untuk bagian ATAS (Filter Bar)
+  const filterDivisiList = allDivisi.filter(
+    (d) => String(d.periode_id) === String(selectedPeriodeId)
+  );
+
   if (loadingTable && !selectedPeriodeId)
     return (
       <PageContainer breadcrumbText="Memuat...">
-        <LoadingState message="Menyiapkan data..." />
+        <LoadingState />
       </PageContainer>
     );
 
   return (
     <PageContainer breadcrumbText="Kelola Anggota">
-      {/* === STICKY HEADER & FILTER === */}
-      <div
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          backgroundColor: "#f8fafc",
-          paddingBottom: "1rem",
-          paddingTop: "0.5rem",
-          margin: "0 -1.5rem",
-          paddingLeft: "1.5rem",
-          paddingRight: "1.5rem",
-          borderBottom: "1px solid #e2e8f0",
-        }}
-      >
-        {/* Header Title & Tombol Tambah */}
-        <div className={tableStyles.adminPageHeader}>
-          <h1
-            style={{
-              fontSize: "1.5rem",
-              fontWeight: "700",
-              color: "#1e293b",
-              margin: 0,
-            }}
-          >
-            Database Anggota
-          </h1>
-          <button
-            onClick={() => openModal()}
-            className="button button-primary"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-          >
-            <FiPlus /> Tambah Anggota
-          </button>
+      {/* HEADER */}
+      <div className={tableStyles.adminPageHeader}>
+        <div>
+          <h1 className="page-title">Database Anggota</h1>
+          <p style={{ color: "var(--text-muted)" }}>
+            Data seluruh pengurus organisasi.
+          </p>
         </div>
+        <button
+          onClick={() => openModal()}
+          className="button button-primary"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
+          <FiPlus /> Tambah Anggota
+        </button>
+      </div>
 
-        {/* Filter Bar */}
-        <FilterBar>
-          {/* Filter Periode */}
-          <FilterSelect
-            label="Periode"
-            value={selectedPeriodeId}
-            onChange={(e) => setSelectedPeriodeId(e.target.value)}
-          >
-            {periodeList.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nama_kabinet}
-              </option>
-            ))}
-          </FilterSelect>
+      {/* FILTER BAR */}
+      <div
+        className={tableStyles.tableFilterContainer}
+        style={{ flexWrap: "wrap" }}
+      >
+        <FilterSelect
+          label="Periode"
+          value={selectedPeriodeId}
+          onChange={(e) => setSelectedPeriodeId(e.target.value)}
+        >
+          {periodeList.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nama_kabinet}
+            </option>
+          ))}
+        </FilterSelect>
 
-          {/* Filter Divisi */}
-          <FilterSelect
-            label="Divisi"
-            value={selectedDivisiId}
-            onChange={(e) => setSelectedDivisiId(e.target.value)}
-          >
-            <option value="semua">Semua Divisi</option>
-            {divisiFilterList.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.nama_divisi}
-              </option>
-            ))}
-          </FilterSelect>
+        <FilterSelect
+          label="Divisi"
+          value={selectedDivisiId}
+          onChange={(e) => setSelectedDivisiId(e.target.value)}
+        >
+          <option value="semua">Semua Divisi</option>
+          {filterDivisiList.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.nama_divisi}
+            </option>
+          ))}
+        </FilterSelect>
 
-          {/* Search */}
-          <FilterSearch
+        <div
+          className={tableStyles.searchInputGroup}
+          style={{ maxWidth: "250px" }}
+        >
+          <FiSearch style={{ color: "var(--text-muted)" }} />
+          <input
+            type="text"
             placeholder="Cari nama..."
+            className={tableStyles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </FilterBar>
+        </div>
       </div>
-      {/* === END STICKY === */}
 
-      {/* TABEL DATA */}
-      <div
-        className={tableStyles.tableContainer}
-        style={{ marginTop: "1.5rem" }}
-      >
+      {/* TABLE */}
+      <div className={tableStyles.tableContainer}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -375,20 +391,11 @@ function KelolaAnggota() {
               <th>Divisi</th>
               <th>Jabatan</th>
               <th>Gender</th>
-              <th style={{ width: "120px" }}>Aksi</th>
+              <th style={{ width: "100px", textAlign: "right" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {loadingTable ? (
-              <tr>
-                <td
-                  colSpan="6"
-                  style={{ textAlign: "center", padding: "2rem" }}
-                >
-                  Memuat data...
-                </td>
-              </tr>
-            ) : anggotaList.length === 0 ? (
+            {anggotaList.length === 0 ? (
               <tr>
                 <td
                   colSpan="6"
@@ -398,36 +405,23 @@ function KelolaAnggota() {
                     color: "#94a3b8",
                   }}
                 >
-                  Tidak ada data anggota.
+                  Tidak ada data.
                 </td>
               </tr>
             ) : (
               anggotaList.map((item) => (
                 <tr key={item.id}>
-                  <td className={tableStyles.avatarCell}>
-                    {item.foto_url ? (
-                      <img
-                        src={item.foto_url}
-                        className={tableStyles.avatarImage}
-                        alt="foto"
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "8px",
-                          background: "#f1f5f9",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          margin: "0 auto",
-                          color: "#cbd5e0",
-                        }}
-                      >
-                        <FiUser />
-                      </div>
-                    )}
+                  <td>
+                    <div
+                      className={formStyles.previewBox}
+                      style={{ width: 40, height: 40, borderRadius: "50%" }}
+                    >
+                      {item.foto_url ? (
+                        <img src={item.foto_url} alt="foto" />
+                      ) : (
+                        <FiUser color="#cbd5e0" />
+                      )}
+                    </div>
                   </td>
                   <td style={{ fontWeight: "600", color: "#1e293b" }}>
                     {item.nama}
@@ -446,14 +440,12 @@ function KelolaAnggota() {
                       <button
                         onClick={() => openModal(item)}
                         className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
-                        title="Edit"
                       >
                         <FiEdit />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}
                         className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
-                        title="Hapus"
                       >
                         <FiTrash2 />
                       </button>
@@ -467,29 +459,31 @@ function KelolaAnggota() {
       </div>
 
       {/* PAGINATION */}
-      <div className={tableStyles.paginationContainer}>
-        <span className={tableStyles.paginationInfo}>
-          Halaman {currentPage} dari {totalPages || 1}
-        </span>
-        <div className={tableStyles.paginationButtons}>
-          <button
-            className={tableStyles.paginationButton}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Prev
-          </button>
-          <button
-            className={tableStyles.paginationButton}
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            Next
-          </button>
+      {totalPages > 1 && (
+        <div className={tableStyles.paginationContainer}>
+          <span className={tableStyles.paginationInfo}>
+            Halaman {currentPage} dari {totalPages}
+          </span>
+          <div className={tableStyles.paginationButtons}>
+            <button
+              className={tableStyles.paginationButton}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            <button
+              className={tableStyles.paginationButton}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* MODAL FORM */}
+      {/* --- FORM YANG DIPERBAIKI (GRID & LOGIC) --- */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -497,63 +491,39 @@ function KelolaAnggota() {
       >
         <form onSubmit={handleSubmit}>
           <div className={formStyles.formGrid}>
-            {/* Nama */}
-            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Nama Lengkap</label>
-              <input
-                type="text"
-                name="nama"
-                required
-                value={formData.nama || ""}
-                onChange={handleFormChange}
-                className={formStyles.formInput}
-              />
-            </div>
+            {/* Nama (Span 8) */}
+            <FormInput
+              label="Nama Lengkap"
+              name="nama"
+              value={formData.nama || ""}
+              onChange={handleFormChange}
+              required
+              span={8}
+            />
 
-            {/* Gender */}
-            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Gender</label>
-              <select
+            {/* Gender (Span 4) */}
+            <div className={formStyles.colSpan4}>
+              <FormInput
+                label="Gender"
                 name="jenis_kelamin"
+                type="select"
                 value={formData.jenis_kelamin || "Ikhwan"}
                 onChange={handleFormChange}
-                className={formStyles.formSelect}
               >
                 <option value="Ikhwan">Ikhwan</option>
                 <option value="Akhwat">Akhwat</option>
-              </select>
+              </FormInput>
             </div>
 
-            {/* Instagram */}
-            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>
-                Instagram (Opsional)
-              </label>
-              <input
-                type="text"
-                name="instagram_username"
-                value={formData.instagram_username || ""}
-                onChange={handleFormChange}
-                className={formStyles.formInput}
-                placeholder="username"
-              />
-            </div>
-
-            {/* Divider */}
-            <div
-              className={formStyles.colSpan2}
-              style={{ borderTop: "1px dashed #e2e8f0", margin: "0.5rem 0" }}
-            ></div>
-
-            {/* Periode */}
-            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Periode</label>
-              <select
+            {/* Periode (Span 6) */}
+            <div className={formStyles.colSpan6}>
+              <FormInput
+                label="Periode"
                 name="periode_id"
-                required
+                type="select"
                 value={formData.periode_id || ""}
                 onChange={handleFormChange}
-                className={formStyles.formSelect}
+                required
               >
                 <option value="">-- Pilih --</option>
                 {periodeList.map((p) => (
@@ -561,124 +531,122 @@ function KelolaAnggota() {
                     {p.nama_kabinet}
                   </option>
                 ))}
-              </select>
+              </FormInput>
             </div>
 
-            {/* Divisi */}
-            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Divisi</label>
-              <select
+            {/* Divisi (Span 6) - Filtered */}
+            <div className={formStyles.colSpan6}>
+              <FormInput
+                label="Divisi"
                 name="divisi_id"
-                required
+                type="select"
                 value={formData.divisi_id || ""}
                 onChange={handleFormChange}
+                required
                 disabled={!formData.periode_id}
-                className={formStyles.formSelect}
               >
-                <option value="">-- Pilih --</option>
-                {divisiFormList.map((d) => (
+                <option value="">-- Pilih Divisi --</option>
+                {formDivisiOptions.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.nama_divisi}
                   </option>
                 ))}
-              </select>
+              </FormInput>
             </div>
 
-            {/* Jabatan */}
-            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Jabatan</label>
-              <select
-                name="jabatan_di_divisi"
-                required
+            {/* Jabatan (Full 12) - Filtered */}
+            <div className={formStyles.colSpan12}>
+              <FormInput
+                label="Jabatan"
+                name="jabatan_di_divisi" // Sesuai kolom database (String)
+                type="select"
                 value={formData.jabatan_di_divisi || ""}
                 onChange={handleFormChange}
+                required
                 disabled={!formData.divisi_id}
-                className={formStyles.formSelect}
+                helper={
+                  formData.divisi_id && formJabatanOptions.length === 0
+                    ? "Belum ada jabatan yang diatur untuk divisi ini. Silakan atur di menu Divisi."
+                    : ""
+                }
               >
                 <option value="">-- Pilih Jabatan --</option>
-                {jabatanList.map((j) => (
+                {formJabatanOptions.map((j) => (
+                  // VALUE MENGGUNAKAN NAMA (STRING) AGAR SESUAI DATABASE
                   <option key={j.id} value={j.nama_jabatan}>
                     {j.nama_jabatan}
                   </option>
                 ))}
-              </select>
-              <p className={formStyles.formHelper}>
-                Jabatan muncul sesuai divisi. Atur di 'Master Jabatan'.
-              </p>
+              </FormInput>
             </div>
 
-            {/* Alamat & Motto */}
-            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Alamat</label>
-              <input
-                type="text"
+            {/* Instagram & Alamat */}
+            <div className={formStyles.colSpan6}>
+              <FormInput
+                label="Instagram"
+                name="instagram_username"
+                value={formData.instagram_username || ""}
+                onChange={handleFormChange}
+                placeholder="username"
+              />
+            </div>
+            <div className={formStyles.colSpan6}>
+              <FormInput
+                label="Alamat"
                 name="alamat"
                 value={formData.alamat || ""}
                 onChange={handleFormChange}
-                className={formStyles.formInput}
-              />
-            </div>
-            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Motto Hidup</label>
-              <textarea
-                name="motto"
-                value={formData.motto || ""}
-                onChange={handleFormChange}
-                className={formStyles.formTextarea}
-                rows="2"
               />
             </div>
 
-            {/* Foto */}
-            <div
-              className={`${formStyles.colSpan2} ${formStyles.uploadSection}`}
-            >
+            {/* Motto */}
+            <FormInput
+              label="Motto"
+              name="motto"
+              type="textarea"
+              value={formData.motto || ""}
+              onChange={handleFormChange}
+              span={12}
+              rows={2}
+            />
+
+            {/* Upload Foto */}
+            <div className={formStyles.colSpan12}>
               <label className={formStyles.formLabel}>Foto Profil</label>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1rem",
-                  alignItems: "center",
-                  marginTop: "0.5rem",
-                }}
-              >
+              <div className={formStyles.uploadRow}>
                 <div
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    borderRadius: "50%",
-                    overflow: "hidden",
-                    border: "1px solid #cbd5e0",
-                    flexShrink: 0,
-                  }}
+                  className={formStyles.previewBox}
+                  style={{ borderRadius: "50%" }}
                 >
                   {formPreview ? (
-                    <img
-                      src={formPreview}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                      alt="preview"
-                    />
+                    <img src={formPreview} alt="Preview" />
                   ) : (
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        background: "#f1f5f9",
-                      }}
-                    ></div>
+                    <FiUser size={24} color="#cbd5e0" />
                   )}
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className={formStyles.formInput}
-                  style={{ flex: 1 }}
-                />
+                <div style={{ flex: 1 }}>
+                  <label
+                    className={formStyles.uploadBtn}
+                    style={{ width: "fit-content" }}
+                  >
+                    Pilih File
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      hidden
+                    />
+                  </label>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#94a3b8",
+                      marginLeft: "0.5rem",
+                    }}
+                  >
+                    Max 500KB
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -688,7 +656,6 @@ function KelolaAnggota() {
               type="button"
               onClick={() => setIsModalOpen(false)}
               className="button button-secondary"
-              disabled={modalLoading}
             >
               Batal
             </button>

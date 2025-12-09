@@ -1,55 +1,79 @@
-/* src/pages/Login.module.css */
+/* src/pages/LoginPage.module.css */
 
+/* Container Utama: Background gradasi lembut */
 .login-container {
   min-height: 100vh;
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Gradasi Background yang modern (Biru ke Ungu lembut) */
-  background: linear-gradient(135deg, #ebf8ff 0%, #e9d8fd 100%);
-  padding: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
 }
 
+/* Kartu Login */
 .login-card {
-  background: white;
   width: 100%;
-  max-width: 400px;
-  padding: 2.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  max-width: 420px;
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02);
   text-align: center;
+  animation: slideUp 0.5s ease-out;
 }
 
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo */
 .logo-container {
-  margin-bottom: 1.5rem;
   display: flex;
   justify-content: center;
+  margin-bottom: 1.5rem;
 }
 
 .logo {
-  width: 80px;
   height: 80px;
+  width: auto;
   object-fit: contain;
-  /* Opsional: Drop shadow pada logo */
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
+  color: #0c4a6e; /* Sky-900 */
+  margin: 0 0 0.5rem;
 }
 
 .subtitle {
-  font-size: 0.9rem;
-  color: #718096;
+  color: #64748b; /* Slate-500 */
+  font-size: 0.95rem;
   margin-bottom: 2rem;
+  line-height: 1.5;
 }
 
-/* FORM STYLES */
+/* Error Box */
+.error-box {
+  background-color: #fef2f2;
+  color: #ef4444;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+/* Form Styles */
 .form-group {
   margin-bottom: 1.25rem;
   text-align: left;
@@ -57,9 +81,9 @@
 
 .label {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #4a5568;
+  color: #334155; /* Slate-700 */
   margin-bottom: 0.5rem;
 }
 
@@ -71,81 +95,86 @@
 
 .input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  padding-right: 2.5rem; /* Ruang untuk ikon mata */
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  font-size: 0.95rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #1e293b;
   transition: all 0.2s;
-  outline: none;
+  background-color: #f8fafc;
 }
 
 .input:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+  outline: none;
+  border-color: #38bdf8; /* Sky-400 */
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
 }
 
-/* Tombol Mata (Show Password) */
+.input::placeholder {
+  color: #94a3b8;
+}
+
+/* Toggle Password (Mata) */
 .toggle-password {
   position: absolute;
-  right: 0.75rem;
+  right: 1rem;
   background: none;
   border: none;
-  color: #a0aec0;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  color: #94a3b8;
+  padding: 0;
   display: flex;
   align-items: center;
-  padding: 0;
-}
-.toggle-password:hover {
-  color: #4a5568;
+  transition: color 0.2s;
 }
 
-/* Tombol Login */
+.toggle-password:hover {
+  color: #334155;
+}
+
+/* Button Login */
 .btn-login {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #3182ce;
+  padding: 0.9rem;
+  background-color: #0ea5e9; /* Sky-500 */
   color: white;
-  font-weight: 700;
   border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
+  border-radius: 10px;
   font-size: 1rem;
-  transition: background 0.2s;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
   margin-top: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
 }
 
 .btn-login:hover {
-  background-color: #2b6cb0;
+  background-color: #0284c7; /* Sky-600 */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 10px -1px rgba(14, 165, 233, 0.3);
 }
 
 .btn-login:disabled {
-  background-color: #cbd5e0;
+  background-color: #94a3b8;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* Error Message */
-.error-box {
-  background-color: #fff5f5;
-  border: 1px solid #feb2b2;
-  color: #c53030;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
+/* Link Kembali */
 .home-link {
-  display: block;
-  margin-top: 1.5rem;
-  font-size: 0.85rem;
-  color: #718096;
+  display: inline-block;
+  margin-top: 2rem;
+  color: #64748b;
   text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s;
 }
+
 .home-link:hover {
-  color: #2b6cb0;
+  color: #0ea5e9;
   text-decoration: underline;
 }

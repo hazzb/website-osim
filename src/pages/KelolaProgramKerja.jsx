@@ -1,21 +1,32 @@
-// src/pages/KelolaProgramKerja.jsx
-// --- VERSI 12.1 (Form Refactored) ---
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
-import { useLocation } from "react-router-dom";
 import { useAdminTable } from "../hooks/useAdminTable";
 
 // Components
-import styles from "../components/admin/AdminTable.module.css";
+import PageContainer from "../components/ui/PageContainer.jsx";
 import Modal from "../components/Modal.jsx";
-// Gunakan komponen form yang sama dengan halaman Detail (REUSABLE)
+import LoadingState from "../components/ui/LoadingState.jsx";
+
+// PENTING: Import Form yang sudah ada di folder components
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
-function KelolaProgramKerja() {
-  const location = useLocation();
+// Styles
+import tableStyles from "../components/admin/AdminTable.module.css";
 
-  // 1. TABLE HOOK
+// Icons
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiSearch,
+  FiCalendar,
+  FiCheckCircle,
+  FiClock,
+  FiActivity,
+} from "react-icons/fi";
+
+function KelolaProgramKerja() {
+  // --- 1. SETUP TABLE HOOK ---
   const {
     data: progjaList,
     loading,
@@ -29,87 +40,66 @@ function KelolaProgramKerja() {
     refreshData,
   } = useAdminTable({
     tableName: "program_kerja",
-    // Select lengkap dengan join
-    select: `
-      *, 
-      divisi (id, nama_divisi), 
-      periode_jabatan (id, nama_kabinet),
-      anggota (id, nama) 
-    `,
     searchColumn: "nama_acara",
+    select: "*, divisi(nama_divisi), periode_jabatan(nama_kabinet)",
     defaultOrder: { column: "tanggal", ascending: false },
   });
 
-  // 2. STATE
+  // --- 2. STATE ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [modalLoading, setModalLoading] = useState(false);
 
-  // Dropdowns
-  const [periodeList, setPeriodeList] = useState([]);
+  // Dropdown Data (Untuk dilempar ke Form)
   const [divisiList, setDivisiList] = useState([]);
-  const [anggotaList, setAnggotaList] = useState([]);
+  const [periodeList, setPeriodeList] = useState([]);
+  const [anggotaList, setAnggotaList] = useState([]); // Tambahan jika form butuh PJ
 
+  // --- 3. FETCH DROPDOWN ---
   useEffect(() => {
-    const fetchDropdowns = async () => {
-      const { data: pData } = await supabase
-        .from("periode_jabatan")
-        .select("id, nama_kabinet")
-        .order("tahun_mulai", { ascending: false });
-      setPeriodeList(pData || []);
-      const { data: dData } = await supabase
+    const fetchHelpers = async () => {
+      // Ambil Divisi
+      const { data: divData } = await supabase
         .from("divisi")
         .select("id, nama_divisi")
         .order("nama_divisi");
-      setDivisiList(dData || []);
-      const { data: aData } = await supabase
+      setDivisiList(divData || []);
+
+      // Ambil Periode
+      const { data: perData } = await supabase
+        .from("periode_jabatan")
+        .select("id, nama_kabinet")
+        .order("tahun_mulai", { ascending: false });
+      setPeriodeList(perData || []);
+
+      // Ambil Anggota (Untuk PJ)
+      const { data: angData } = await supabase
         .from("anggota")
         .select("id, nama")
         .order("nama");
-      setAnggotaList(aData || []);
+      setAnggotaList(angData || []);
     };
-    fetchDropdowns();
+    fetchHelpers();
   }, []);
 
-  // Auto Open Modal dari Navigasi
-  useEffect(() => {
-    if (location.state?.editId && progjaList.length > 0 && !isModalOpen) {
-      const targetId = parseInt(location.state.editId) || location.state.editId;
-      const itemToEdit = progjaList.find((p) => p.id === targetId);
-      if (itemToEdit) {
-        openModal(itemToEdit);
-        window.history.replaceState({}, document.title);
-      }
-    }
-  }, [location.state, progjaList]);
-
-  // 3. HANDLERS
+  // --- 4. HANDLERS ---
   const openModal = (item = null) => {
     if (item) {
       setEditingId(item.id);
-      setFormData({
-        nama_acara: item.nama_acara,
-        tanggal: item.tanggal,
-        status: item.status,
-        deskripsi: item.deskripsi || "",
-        link_dokumentasi: item.link_dokumentasi || "",
-        divisi_id: item.divisi_id,
-        penanggung_jawab_id: item.penanggung_jawab_id,
-        periode_id: item.periode_id,
-        embed_html: item.embed_html || "",
-      });
+      setFormData(item);
     } else {
       setEditingId(null);
+      const today = new Date().toISOString().split("T")[0];
       setFormData({
-        status: "Rencana",
-        periode_id: periodeList[0]?.id,
         nama_acara: "",
-        tanggal: "",
+        status: "Rencana",
+        tanggal: today,
+        divisi_id: divisiList[0]?.id || "",
+        periode_id: periodeList[0]?.id || "",
+        penanggung_jawab_id: "", // Jika ada relasi PJ
         deskripsi: "",
         link_dokumentasi: "",
-        divisi_id: "",
-        penanggung_jawab_id: "",
         embed_html: "",
       });
     }
@@ -124,57 +114,90 @@ function KelolaProgramKerja() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      // Payload bersih sesuai schema
-      const payload = {
-        nama_acara: formData.nama_acara,
-        tanggal: formData.tanggal,
-        status: formData.status,
-        deskripsi: formData.deskripsi,
-        link_dokumentasi: formData.link_dokumentasi,
-        divisi_id: formData.divisi_id,
-        penanggung_jawab_id: formData.penanggung_jawab_id,
-        periode_id: formData.periode_id,
-        embed_html: formData.embed_html,
-      };
+      const payload = { ...formData }; // Kirim semua data form
 
       if (editingId) {
-        const { error } = await supabase
+        await supabase
           .from("program_kerja")
           .update(payload)
           .eq("id", editingId);
-        if (error) throw error;
-        alert("Program kerja diperbarui!");
       } else {
-        const { error } = await supabase.from("program_kerja").insert(payload);
-        if (error) throw error;
-        alert("Program kerja ditambahkan!");
+        await supabase.from("program_kerja").insert(payload);
       }
 
+      alert("Berhasil disimpan!");
       setIsModalOpen(false);
       refreshData();
     } catch (err) {
-      alert("Gagal: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setModalLoading(false);
     }
   };
 
+  const getStatusBadge = (status) => {
+    const styleBase = {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "4px",
+      fontSize: "0.8rem",
+      fontWeight: "600",
+      padding: "4px 10px",
+      borderRadius: "6px",
+    };
+    if (status === "Selesai")
+      return (
+        <span style={{ ...styleBase, background: "#dcfce7", color: "#166534" }}>
+          <FiCheckCircle size={12} /> Selesai
+        </span>
+      );
+    if (status === "Akan Datang")
+      return (
+        <span style={{ ...styleBase, background: "#fef3c7", color: "#b45309" }}>
+          <FiClock size={12} /> Akan Datang
+        </span>
+      );
+    return (
+      <span style={{ ...styleBase, background: "#f1f5f9", color: "#64748b" }}>
+        <FiActivity size={12} /> Rencana
+      </span>
+    );
+  };
+
+  if (loading)
+    return (
+      <PageContainer breadcrumbText="Memuat...">
+        <LoadingState message="Memuat program kerja..." />
+      </PageContainer>
+    );
+
   return (
-    <div className="main-content">
-      <div className={styles["admin-page-header"]}>
-        <h1 className="page-title">Kelola Program Kerja</h1>
-        <button onClick={() => openModal()} className="button button-primary">
-          + Tambah Progja
+    <PageContainer breadcrumbText="Program Kerja">
+      {/* HEADER PAGE */}
+      <div className={tableStyles.adminPageHeader}>
+        <div>
+          <h1 className="page-title">Kelola Program Kerja</h1>
+          <p style={{ color: "var(--text-muted)" }}>
+            Daftar kegiatan dan acara organisasi.
+          </p>
+        </div>
+        <button
+          onClick={() => openModal()}
+          className="button button-primary"
+          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+        >
+          <FiPlus /> Tambah Progja
         </button>
       </div>
 
-      <div className={styles["table-filter-container"]}>
-        <div className={styles["search-input-group"]}>
-          <span>🔍</span>
+      {/* FILTER SEARCH */}
+      <div className={tableStyles.tableFilterContainer}>
+        <div className={tableStyles.searchInputGroup}>
+          <FiSearch style={{ color: "var(--text-muted)" }} />
           <input
             type="text"
-            placeholder="Cari acara..."
-            className={styles["search-input"]}
+            placeholder="Cari nama acara..."
+            className={tableStyles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -183,71 +206,83 @@ function KelolaProgramKerja() {
 
       {error && <p className="error-text">{error}</p>}
 
-      <div className={styles["table-container"]}>
-        <table className={styles["admin-table"]}>
+      {/* TABLE (Menggunakan class tableWide agar kolom lega) */}
+      <div className={tableStyles.tableContainer}>
+        <table className={`${tableStyles.table} ${tableStyles.tableWide}`}>
           <thead>
             <tr>
-              <th>Nama Acara</th>
-              <th>Divisi</th>
-              <th>PJ</th>
-              <th>Tanggal</th>
-              <th>Status</th>
-              <th>Aksi</th>
+              <th style={{ width: "50px" }}>No</th>
+              <th style={{ minWidth: "250px" }}>Nama Acara</th>
+              <th style={{ width: "150px" }}>Tanggal</th>
+              <th style={{ width: "180px" }}>Pelaksana</th>
+              <th style={{ width: "120px", textAlign: "center" }}>Status</th>
+              <th style={{ width: "100px", textAlign: "right" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {progjaList.length === 0 ? (
               <tr>
-                <td colSpan="6" className="loading-text">
-                  Memuat...
+                <td
+                  colSpan="6"
+                  className="info-text"
+                  style={{ textAlign: "center", padding: "2rem" }}
+                >
+                  Belum ada data program kerja.
                 </td>
               </tr>
             ) : (
-              progjaList.map((item) => (
+              progjaList.map((item, index) => (
                 <tr key={item.id}>
-                  <td>
-                    <strong>{item.nama_acara}</strong>
+                  <td style={{ textAlign: "center" }}>
+                    {(currentPage - 1) * 10 + index + 1}
                   </td>
-                  <td>{item.divisi?.nama_divisi || "-"}</td>
-                  <td>{item.anggota?.nama || "-"}</td>
-                  <td>{new Date(item.tanggal).toLocaleDateString("id-ID")}</td>
                   <td>
                     <span
-                      style={{
-                        padding: "2px 8px",
-                        borderRadius: "99px",
-                        fontSize: "0.75rem",
-                        fontWeight: "bold",
-                        backgroundColor:
-                          item.status === "Selesai"
-                            ? "#def7ec"
-                            : item.status === "Akan Datang"
-                            ? "#e1effe"
-                            : "#fdf6b2",
-                        color:
-                          item.status === "Selesai"
-                            ? "#03543f"
-                            : item.status === "Akan Datang"
-                            ? "#1e429f"
-                            : "#723b13",
-                      }}
+                      style={{ fontWeight: "600", color: "var(--text-main)" }}
                     >
-                      {item.status}
+                      {item.nama_acara}
                     </span>
                   </td>
-                  <td className={styles["actions-cell"]}>
-                    <button
-                      onClick={() => openModal(item)}
-                      className={`${styles["button-table"]} ${styles["button-edit"]}`}
+                  <td>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        fontSize: "0.9rem",
+                      }}
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className={`${styles["button-table"]} ${styles["button-delete"]}`}
+                      <FiCalendar size={14} color="#64748b" />
+                      {new Date(item.tanggal).toLocaleDateString("id-ID")}
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      style={{ fontSize: "0.9rem", color: "var(--text-body)" }}
                     >
-                      Hapus
-                    </button>
+                      {item.divisi?.nama_divisi || "Semua Divisi"}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    {getStatusBadge(item.status)}
+                  </td>
+                  <td>
+                    <div className={tableStyles.actionCell}>
+                      <button
+                        onClick={() => openModal(item)}
+                        className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
+                        title="Edit"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
+                        title="Hapus"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -256,46 +291,53 @@ function KelolaProgramKerja() {
         </table>
       </div>
 
-      <div className={styles["pagination-container"]}>
-        <span className={styles["pagination-info"]}>
-          Halaman {currentPage} dari {totalPages}
-        </span>
-        <div className={styles["pagination-buttons"]}>
-          <button
-            className={styles["pagination-button"]}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            disabled={currentPage === 1}
-          >
-            Prev
-          </button>
-          <button
-            className={styles["pagination-button"]}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <div className={tableStyles.paginationContainer}>
+          <span className={tableStyles.paginationInfo}>
+            Halaman {currentPage} dari {totalPages}
+          </span>
+          <div className={tableStyles.paginationButtons}>
+            <button
+              className={tableStyles.paginationButton}
+              onClick={() => setCurrentPage((p) => p - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            <button
+              className={tableStyles.paginationButton}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* MODAL MENGGUNAKAN KOMPONEN TERPISAH */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? "Edit Program Kerja" : "Tambah Program Kerja"}
-      >
-        <ProgramKerjaForm
-          formData={formData}
-          onChange={handleFormChange}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsModalOpen(false)}
-          loading={modalLoading}
-          periodeList={periodeList}
-          divisiList={divisiList}
-          anggotaList={anggotaList}
-        />
-      </Modal>
-    </div>
+      {/* MODAL FORM REUSABLE */}
+      {isModalOpen && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={editingId ? "Edit Program Kerja" : "Tambah Program Kerja"}
+          maxWidth="800px" // Agar form terlihat lega
+        >
+          {/* GUNAKAN KOMPONEN FORM YANG SUDAH ADA */}
+          <ProgramKerjaForm
+            formData={formData}
+            onChange={handleFormChange}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+            loading={modalLoading}
+            periodeList={periodeList}
+            divisiList={divisiList}
+            anggotaList={anggotaList} // Jika butuh list anggota untuk PJ
+          />
+        </Modal>
+      )}
+    </PageContainer>
   );
 }
 

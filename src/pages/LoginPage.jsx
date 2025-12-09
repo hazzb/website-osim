@@ -1,10 +1,8 @@
 // src/pages/Login.jsx
-// --- VERSI MODERN & RESPONSIF ---
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate, Link } from "react-router-dom";
-import styles from "./LoginPage.module.css";
+import styles from "./LoginPage.module.css"; // Pastikan nama file CSS sesuai
 
 function Login() {
   const navigate = useNavigate();
@@ -14,6 +12,22 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  // 1. Ambil Logo dari Database (Supaya Dinamis)
+  useEffect(() => {
+    const fetchLogo = async () => {
+      const { data } = await supabase
+        .from("pengaturan")
+        .select("logo_osis_url")
+        .eq("id", 1)
+        .single();
+      if (data && data.logo_osis_url) {
+        setLogoUrl(data.logo_osis_url);
+      }
+    };
+    fetchLogo();
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,12 +42,11 @@ function Login() {
 
       if (error) throw error;
 
-      // Login Sukses
       if (data.user) {
-        navigate("/dashboard"); // Arahkan ke dashboard admin
+        navigate("/dashboard");
       }
     } catch (error) {
-      setErrorMsg("Email atau password salah. Silakan coba lagi.");
+      setErrorMsg("Email atau password salah. Coba lagi ya.");
     } finally {
       setLoading(false);
     }
@@ -42,23 +55,18 @@ function Login() {
   return (
     <div className={styles["login-container"]}>
       <div className={styles["login-card"]}>
-        {/* Logo Organisasi */}
+        {/* LOGO */}
         <div className={styles["logo-container"]}>
-          {/* Ganti src ini dengan path logo Anda yang sebenarnya */}
-          <img
-            src="/logo-osim.png"
-            alt="Logo OSIM"
-            className={styles.logo}
-            onError={(e) => {
-              e.target.style.display = "none";
-            }} // Sembunyikan jika gambar tidak ada
-          />
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo OSIS" className={styles.logo} />
+          ) : (
+            // Placeholder Icon jika logo belum diload/tidak ada
+            <div style={{ fontSize: "3rem" }}>🔐</div>
+          )}
         </div>
 
-        <h1 className={styles.title}>Selamat Datang</h1>
-        <p className={styles.subtitle}>
-          Silakan login untuk masuk ke panel admin
-        </p>
+        <h1 className={styles.title}>Login Admin</h1>
+        <p className={styles.subtitle}>Masuk untuk mengelola website</p>
 
         {errorMsg && <div className={styles["error-box"]}>⚠️ {errorMsg}</div>}
 
@@ -74,7 +82,7 @@ function Login() {
                 className={styles.input}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@sekolah.sch.id"
+                placeholder="nama@email.com"
                 required
               />
             </div>
@@ -91,15 +99,15 @@ function Login() {
                 className={styles.input}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password..."
+                placeholder="••••••••"
                 required
               />
-              {/* Tombol Mata (Show/Hide) */}
               <button
                 type="button"
                 className={styles["toggle-password"]}
                 onClick={() => setShowPassword(!showPassword)}
-                tabIndex="-1" // Agar tidak bisa di-tab
+                tabIndex="-1"
+                title={showPassword ? "Sembunyikan" : "Tampilkan"}
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
@@ -111,7 +119,7 @@ function Login() {
             className={styles["btn-login"]}
             disabled={loading}
           >
-            {loading ? "Memproses..." : "Masuk Sekarang"}
+            {loading ? "Memproses..." : "Masuk Dashboard"}
           </button>
         </form>
 

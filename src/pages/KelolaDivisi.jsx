@@ -6,36 +6,39 @@ import { useAuth } from "../context/AuthContext";
 import PageContainer from "../components/ui/PageContainer.jsx";
 import Modal from "../components/Modal.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
+import FormInput from "../components/admin/FormInput.jsx"; // IMPORT PENTING
 
-// Styles (Menggunakan style tabel global yang kita buat tadi)
+// Styles (Pastikan path ini benar)
 import tableStyles from "../components/admin/AdminTable.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
 
 // Icons
-import { FiPlus, FiEdit, FiTrash2, FiSearch, FiUsers } from "react-icons/fi";
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiSearch,
+  FiUsers,
+  FiImage,
+} from "react-icons/fi";
 
 function KelolaDivisi() {
   const { session } = useAuth();
 
-  // Data States
+  // --- STATE (Sama seperti kode asli Anda) ---
   const [dataList, setDataList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [periodeList, setPeriodeList] = useState([]); // Dropdown Periode
-
-  // Filter State
+  const [periodeList, setPeriodeList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modal & Form States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
-
-  // File Upload State
   const [formFile, setFormFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // --- 1. FETCH DATA ---
+  // --- FETCH DATA ---
   useEffect(() => {
     fetchData();
     fetchPeriode();
@@ -66,20 +69,17 @@ function KelolaDivisi() {
     setPeriodeList(data || []);
   };
 
-  // --- 2. HANDLERS FORM ---
+  // --- HANDLERS ---
   const openModal = (item = null) => {
     setFormFile(null);
     setPreview(null);
 
     if (item) {
-      // Mode Edit
       setEditingId(item.id);
       setFormData(item);
       setPreview(item.logo_url);
     } else {
-      // Mode Tambah
       setEditingId(null);
-      // Default urutan +10 dari yang terakhir
       const lastOrder =
         dataList.length > 0 ? dataList[dataList.length - 1].urutan : 0;
       setFormData({
@@ -110,16 +110,13 @@ function KelolaDivisi() {
     try {
       let finalLogoUrl = formData.logo_url;
 
-      // Upload Logo jika ada file baru
       if (formFile) {
         const ext = formFile.name.split(".").pop();
         const fileName = `divisi_${Date.now()}.${ext}`;
-        // Upload ke bucket 'logos' (sesuai yang ada)
         const { error: upErr } = await supabase.storage
           .from("logos")
           .upload(`divisi/${fileName}`, formFile);
         if (upErr) throw upErr;
-
         const { data: urlData } = supabase.storage
           .from("logos")
           .getPublicUrl(`divisi/${fileName}`);
@@ -142,7 +139,7 @@ function KelolaDivisi() {
 
       alert("Berhasil disimpan!");
       setIsModalOpen(false);
-      fetchData(); // Refresh tabel
+      fetchData();
     } catch (err) {
       alert("Gagal: " + err.message);
     } finally {
@@ -151,27 +148,19 @@ function KelolaDivisi() {
   };
 
   const handleDelete = async (id) => {
-    if (
-      !window.confirm(
-        "Hapus divisi ini? Anggota di dalamnya mungkin akan kehilangan data divisi."
-      )
-    )
-      return;
+    if (!window.confirm("Hapus divisi ini?")) return;
     try {
-      const { error } = await supabase.from("divisi").delete().eq("id", id);
-      if (error) throw error;
+      await supabase.from("divisi").delete().eq("id", id);
       setDataList((prev) => prev.filter((d) => d.id !== id));
     } catch (err) {
       alert("Gagal hapus: " + err.message);
     }
   };
 
-  // --- 3. FILTER LOGIC ---
   const filteredData = dataList.filter((item) =>
     item.nama_divisi.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- RENDER ---
   if (loading)
     return (
       <PageContainer breadcrumbText="Memuat...">
@@ -181,44 +170,14 @@ function KelolaDivisi() {
 
   return (
     <PageContainer breadcrumbText="Kelola Divisi">
-      {/* HEADER & SEARCH */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1.5rem",
-          flexWrap: "wrap",
-          gap: "1rem",
-        }}
-      >
-        {/* Search Bar */}
-        <div style={{ position: "relative", minWidth: "300px" }}>
-          <FiSearch
-            style={{
-              position: "absolute",
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#94a3b8",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Cari nama divisi..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "0.6rem 1rem 0.6rem 2.5rem",
-              borderRadius: "8px",
-              border: "1px solid #e2e8f0",
-              fontSize: "0.9rem",
-            }}
-          />
+      {/* HEADER & FILTER (Menggunakan Class CSS CamelCase yang Benar) */}
+      <div className={tableStyles.adminPageHeader}>
+        <div>
+          <h1 className="page-title">Kelola Divisi</h1>
+          <p style={{ color: "var(--text-muted)" }}>
+            Daftar unit kerja organisasi.
+          </p>
         </div>
-
-        {/* Tombol Tambah */}
         <button
           onClick={() => openModal()}
           className="button button-primary"
@@ -228,17 +187,30 @@ function KelolaDivisi() {
         </button>
       </div>
 
-      {/* TABEL DATA */}
+      <div className={tableStyles.tableFilterContainer}>
+        <div className={tableStyles.searchInputGroup}>
+          <FiSearch style={{ color: "#94a3b8" }} />
+          <input
+            type="text"
+            placeholder="Cari nama divisi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={tableStyles.searchInput}
+          />
+        </div>
+      </div>
+
+      {/* TABLE CONTAINER (Struktur Tabel Asli Anda, hanya ClassName disesuaikan) */}
       <div className={tableStyles.tableContainer}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
               <th style={{ width: "50px" }}>No</th>
-              <th style={{ width: "80px" }}>Logo</th>
+              <th style={{ width: "60px" }}>Logo</th>
               <th>Nama Divisi</th>
               <th>Periode</th>
               <th>Urutan</th>
-              <th style={{ width: "150px" }}>Aksi</th>
+              <th style={{ textAlign: "right", width: "150px" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -266,11 +238,11 @@ function KelolaDivisi() {
                         height: "40px",
                         borderRadius: "8px",
                         overflow: "hidden",
-                        background: "#f1f5f9",
+                        border: "1px solid #e2e8f0",
+                        background: "#f8fafc",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        border: "1px solid #e2e8f0",
                       }}
                     >
                       {item.logo_url ? (
@@ -324,130 +296,111 @@ function KelolaDivisi() {
         </table>
       </div>
 
-      {/* MODAL FORM - Update ClassName ke CamelCase */}
+      {/* --- FORM INI YANG DIPERBAIKI --- */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? "Edit Divisi" : "Tambah Divisi Baru"}
       >
         <form onSubmit={handleSubmit}>
+          {/* Gunakan Grid System dari AdminForm.module.css */}
           <div className={formStyles.formGrid}>
-            {" "}
-            {/* Ganti formStyles['form-grid'] jadi .formGrid */}
-            {/* Nama Divisi */}
-            <div className={`${formStyles.colSpan2} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Nama Divisi</label>
-              <input
-                type="text"
-                name="nama_divisi"
-                required
-                value={formData.nama_divisi || ""}
-                onChange={handleFormChange}
-                className={formStyles.formInput}
-              />
-            </div>
-            {/* Urutan */}
-            <div className={`${formStyles.colSpan1} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Urutan</label>
-              <input
-                type="number"
-                name="urutan"
-                value={formData.urutan || ""}
-                onChange={handleFormChange}
-                className={formStyles.formInput}
-              />
-            </div>
-            {/* Periode */}
-            <div className={`${formStyles.colSpan3} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>Periode Jabatan</label>
-              <select
-                name="periode_id"
-                required
-                value={formData.periode_id || ""}
-                onChange={handleFormChange}
-                className={formStyles.formSelect}
-              >
-                <option value="">-- Pilih Periode --</option>
-                {periodeList.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nama_kabinet}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {/* Deskripsi */}
-            <div className={`${formStyles.colSpan3} ${formStyles.formGroup}`}>
-              <label className={formStyles.formLabel}>
-                Deskripsi / Tugas Pokok
-              </label>
-              <textarea
-                name="deskripsi"
-                rows="4"
-                value={formData.deskripsi || ""}
-                onChange={handleFormChange}
-                className={formStyles.formTextarea}
-                placeholder="Jelaskan tugas utama divisi ini..."
-              />
-            </div>
-            {/* Logo Upload */}
-            <div
-              className={`${formStyles.colSpan3} ${formStyles.uploadSection}`}
+            {/* Nama Divisi (Lebar: 8 kolom) */}
+            <FormInput
+              label="Nama Divisi"
+              name="nama_divisi"
+              value={formData.nama_divisi || ""}
+              onChange={handleFormChange}
+              required
+              span={8}
+            />
+
+            {/* Urutan (Lebar: 4 kolom) */}
+            <FormInput
+              label="Urutan"
+              name="urutan"
+              type="number"
+              value={formData.urutan || ""}
+              onChange={handleFormChange}
+              span={4}
+            />
+
+            {/* Periode (Lebar: Full 12 kolom) */}
+            <FormInput
+              label="Periode Jabatan"
+              name="periode_id"
+              type="select"
+              value={formData.periode_id || ""}
+              onChange={handleFormChange}
+              required
+              span={12}
             >
+              <option value="">-- Pilih Periode --</option>
+              {periodeList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama_kabinet}
+                </option>
+              ))}
+            </FormInput>
+
+            {/* Deskripsi (Lebar: Full 12 kolom) */}
+            <FormInput
+              label="Deskripsi / Tugas"
+              name="deskripsi"
+              type="textarea"
+              value={formData.deskripsi || ""}
+              onChange={handleFormChange}
+              span={12}
+              rows={3}
+              placeholder="Jelaskan tugas utama divisi ini..."
+            />
+
+            {/* Upload Logo (Custom Style dari CSS Module) */}
+            <div className={formStyles.colSpan12}>
               <label className={formStyles.formLabel}>
                 Logo Divisi (Opsional)
               </label>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1rem",
-                  alignItems: "center",
-                  marginTop: "0.5rem",
-                }}
-              >
-                <div
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "hidden",
-                  }}
-                >
+              <div className={formStyles.uploadRow}>
+                <div className={formStyles.previewBox}>
                   {preview ? (
-                    <img
-                      src={preview}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                      alt="preview"
-                    />
+                    <img src={preview} alt="Logo" />
                   ) : (
-                    <FiUsers style={{ fontSize: "1.5rem", color: "#cbd5e0" }} />
+                    <FiImage size={24} color="#ccc" />
                   )}
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className={formStyles.formInput}
-                  style={{ flex: 1 }}
-                />
+                <div style={{ flex: 1 }}>
+                  <label
+                    className={formStyles.uploadBtn}
+                    style={{ width: "fit-content" }}
+                  >
+                    Pilih File
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      hidden
+                    />
+                  </label>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#94a3b8",
+                      marginLeft: "0.5rem",
+                    }}
+                  >
+                    Max 200KB
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Footer Tombol */}
           <div className={formStyles.formFooter}>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
               className="button button-secondary"
-              disabled={modalLoading}
             >
               Batal
             </button>
