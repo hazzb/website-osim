@@ -4,7 +4,7 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import styles from "./Footer.module.css";
 
-// IMPORT ICONS (Update: Tambah FiGithub & FiHeart)
+// IMPORT ICONS
 import {
   FiSettings,
   FiHome,
@@ -29,22 +29,35 @@ const Footer = () => {
 
   const currentYear = new Date().getFullYear();
   const [info, setInfo] = useState(null);
+  const [activePeriode, setActivePeriode] = useState("");
 
   useEffect(() => {
     const fetchInfo = async () => {
+      // 1. Info Umum
       const { data } = await supabase
         .from("pengaturan")
         .select("*")
         .eq("id", 1)
         .single();
       if (data) setInfo(data);
+
+      // 2. Periode Aktif (Untuk Managed By)
+      const { data: periode } = await supabase
+        .from("periode_jabatan")
+        .select("tahun_mulai, tahun_selesai")
+        .eq("is_active", true)
+        .single();
+
+      if (periode) {
+        setActivePeriode(`${periode.tahun_mulai}/${periode.tahun_selesai}`);
+      } else {
+        setActivePeriode(`${currentYear}/${currentYear + 1}`);
+      }
     };
     fetchInfo();
-  }, []);
+  }, [currentYear]);
 
-  // --- LOGIKA SEMBUNYIKAN FOOTER ---
-  // Sembunyikan footer di halaman Admin Dashboard & Login
-  // Tambahkan '/kelola-' agar halaman admin lainnya juga bersih
+  // Logic Sembunyikan Footer
   const hideFooterPaths = ["/login", "/dashboard"];
   const isHidden =
     hideFooterPaths.includes(location.pathname) ||
@@ -56,7 +69,7 @@ const Footer = () => {
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
-        {/* KOLOM 1: IDENTITAS & LOGO */}
+        {/* KOLOM 1: IDENTITAS */}
         <div className={styles.infoSection}>
           <div className={styles.logoRow}>
             {info.logo_sekolah_url && (
@@ -74,7 +87,6 @@ const Footer = () => {
               />
             )}
           </div>
-
           <div className={styles.brandRow}>
             <h3 className={styles.brandName}>{info.nama_organisasi}</h3>
             {isAdmin && (
@@ -87,10 +99,8 @@ const Footer = () => {
               </button>
             )}
           </div>
-
           <p className={styles.schoolName}>{info.nama_sekolah}</p>
           <p className={styles.brandDesc}>{info.deskripsi_singkat}</p>
-
           <div className={styles.socialRow}>
             {info.instagram_url && (
               <a
@@ -98,7 +108,6 @@ const Footer = () => {
                 target="_blank"
                 rel="noreferrer"
                 className={styles.socialIcon}
-                title="Instagram"
               >
                 <FiInstagram size={20} />
               </a>
@@ -109,7 +118,6 @@ const Footer = () => {
                 target="_blank"
                 rel="noreferrer"
                 className={styles.socialIcon}
-                title="YouTube"
               >
                 <FiYoutube size={20} />
               </a>
@@ -120,7 +128,6 @@ const Footer = () => {
                 target="_blank"
                 rel="noreferrer"
                 className={styles.socialIcon}
-                title="TikTok"
               >
                 <FaTiktok size={18} />
               </a>
@@ -128,7 +135,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* KOLOM 2: NAVIGASI */}
+        {/* KOLOM 2: JELAJAHI */}
         <div className={styles.linksSection}>
           <h4 className={styles.columnTitle}>Jelajahi</h4>
           <div className={styles.linkGroup}>
@@ -138,7 +145,7 @@ const Footer = () => {
             <Link to="/visi-misi" className={styles.footerLink}>
               <FiTarget size={16} /> Visi & Misi
             </Link>
-            <Link to="/anggota" className={styles.footerLink}>
+            <Link to="/daftar-anggota" className={styles.footerLink}>
               <FiUsers size={16} /> Daftar Anggota
             </Link>
             <Link to="/program-kerja" className={styles.footerLink}>
@@ -165,13 +172,22 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* BAGIAN BAWAH (COPYRIGHT & SIGNATURE) */}
+      {/* --- BAGIAN BAWAH (3 BAGIAN) --- */}
       <div className={styles.copyright}>
+        {/* 1. Copyright Text */}
         <div>
           &copy; {currentYear} {info.nama_organisasi}. All Rights Reserved.
         </div>
 
-        {/* --- SIGNATURE BARU --- */}
+        {/* 2. MANAGED BY (BARU - DI TENGAH) */}
+        <div className={styles.managedBy}>
+          <span>Managed by</span>
+          <strong style={{ color: "#0284c7" }}>Divisi Media</strong>
+          <span>|</span>
+          <span>{activePeriode}</span>
+        </div>
+
+        {/* 3. SIGNATURE GITHUB (TETAP ADA) */}
         <div className={styles.signature}>
           <span>Made with</span>
           <FiHeart
@@ -182,7 +198,7 @@ const Footer = () => {
           />
           <span>by</span>
           <a
-            href="https://github.com/username-anda/repo-anda" // GANTI LINK INI
+            href="https://github.com/username-anda" // Ganti link github Anda
             target="_blank"
             rel="noreferrer"
             className={styles.githubLink}

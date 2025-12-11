@@ -4,25 +4,25 @@ import { useAuth } from "../context/AuthContext";
 import styles from "./VisiMisi.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
 
-// --- LIBRARY MARKDOWN (BARU) ---
+// Library Markdown
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-// UI Components
+// Utils & Helpers
+import { uploadImage } from "../utils/uploadHelper"; // IMPORT HELPER UPLOAD
+
+// Components
 import PageContainer from "../components/ui/PageContainer.jsx";
 import { VisiMisiSkeleton } from "../components/ui/Skeletons.jsx";
 import Modal from "../components/Modal.jsx";
 
-// Forms & Reorder
+// Forms & Layouts
 import VisiMisiForm from "../components/forms/VisiMisiForm.jsx";
 import KontenReorderModal from "../components/admin/KontenReorderModal.jsx";
-
-// Layouts
 import LayoutModular from "../components/layouts/visimisi/LayoutModular.jsx";
 import LayoutSplit from "../components/layouts/visimisi/LayoutSplit.jsx";
 import LayoutZigZag from "../components/layouts/visimisi/LayoutZigZag.jsx";
 
-// ICONS
 import {
   FiEdit,
   FiLayout,
@@ -39,22 +39,23 @@ function VisiMisi() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // States Data
   const [contents, setContents] = useState([]);
-
-  // States Pengaturan
   const [layoutMode, setLayoutMode] = useState("modular");
   const [showHero, setShowHero] = useState(true);
-
   const [loading, setLoading] = useState(true);
 
-  // Modals
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReorderOpen, setIsReorderOpen] = useState(false);
   const [isSettingOpen, setIsSettingOpen] = useState(false);
+
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
+
+  // STATE BARU UNTUK FILE
+  const [formFile, setFormFile] = useState(null);
+  const [formPreview, setFormPreview] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -63,7 +64,6 @@ function VisiMisi() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Ambil Pengaturan (Layout & Hero)
       const { data: settings } = await supabase
         .from("pengaturan")
         .select("visi_misi_layout, tampilkan_hero")
@@ -75,7 +75,6 @@ function VisiMisi() {
         setShowHero(settings.tampilkan_hero !== false);
       }
 
-      // 2. Ambil Konten
       const { data, error } = await supabase
         .from("konten_halaman")
         .select("*")
@@ -91,12 +90,92 @@ function VisiMisi() {
     }
   };
 
-  // --- LOGIC PEMBAGIAN KONTEN ---
   const heroContent = showHero && contents.length > 0 ? contents[0] : null;
   const gridContents =
     showHero && contents.length > 0 ? contents.slice(1) : contents;
 
-  // Handlers
+  // --- HANDLER MODAL ---
+  const openModal = (item = null) => {
+    setFormFile(null); // Reset file baru
+    setFormPreview(null); // Reset preview
+
+    if (item) {
+      setEditingId(item.id);
+      setFormData(item);
+      setFormPreview(item.image_url); // Tampilkan gambar lama jika ada
+    } else {
+      setEditingId(null);
+      const lastOrder =
+        contents.length > 0 ? contents[contents.length - 1].urutan : 0;
+      setFormData({
+        judul: "",
+        isi: "",
+        image_url: "", // Field baru di DB
+        urutan: lastOrder + 10,
+        page_type: "visimisi",
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  // --- HANDLER FILE ---
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormFile(file);
+      setFormPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleFormChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  // --- SUBMIT DENGAN GAMBAR ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+
+    try {
+      let finalImageUrl = formData.image_url;
+
+      // 1. Upload jika ada file baru
+      if (formFile) {
+        finalImageUrl = await uploadImage(formFile, "visimisi"); // Simpan di folder visimisi
+      }
+
+      // 2. Siapkan Payload
+      const payload = {
+        ...formData,
+        image_url: finalImageUrl, // Update URL gambar
+        page_type: "visimisi",
+      };
+
+      if (editingId)
+        await supabase
+          .from("konten_halaman")
+          .update(payload)
+          .eq("id", editingId);
+      else await supabase.from("konten_halaman").insert(payload);
+
+      fetchData();
+      setIsModalOpen(false);
+    } catch (err) {
+      alert("Gagal: " + (err.message || err));
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Hapus konten ini?")) return;
+    try {
+      await supabase.from("konten_halaman").delete().eq("id", id);
+      setContents((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      alert("Gagal: " + err.message);
+    }
+  };
+
   const handleLayoutChange = async (mode) => {
     setLayoutMode(mode);
     try {
@@ -119,61 +198,8 @@ function VisiMisi() {
         .eq("id", 1);
     } catch (err) {
       setShowHero(!newValue);
-      console.error(err);
     }
   };
-
-  const openModal = (item = null) => {
-    if (item) {
-      setEditingId(item.id);
-      setFormData(item);
-    } else {
-      setEditingId(null);
-      const lastOrder =
-        contents.length > 0 ? contents[contents.length - 1].urutan : 0;
-      setFormData({
-        judul: "",
-        isi: "",
-        urutan: lastOrder + 10,
-        page_type: "visimisi",
-      });
-    }
-    setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setModalLoading(true);
-    try {
-      const payload = { ...formData, page_type: "visimisi" };
-      if (editingId)
-        await supabase
-          .from("konten_halaman")
-          .update(payload)
-          .eq("id", editingId);
-      else await supabase.from("konten_halaman").insert(payload);
-
-      fetchData();
-      setIsModalOpen(false);
-    } catch (err) {
-      alert("Gagal: " + err.message);
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Hapus konten ini?")) return;
-    try {
-      await supabase.from("konten_halaman").delete().eq("id", id);
-      setContents((prev) => prev.filter((c) => c.id !== id));
-    } catch (err) {
-      alert("Gagal: " + err.message);
-    }
-  };
-
-  const handleFormChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const renderLayout = () => {
     const props = {
@@ -193,13 +219,12 @@ function VisiMisi() {
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <PageContainer breadcrumbText="Memuat...">
         <VisiMisiSkeleton />
       </PageContainer>
     );
-  }
 
   return (
     <PageContainer breadcrumbText="Visi & Misi">
@@ -211,14 +236,12 @@ function VisiMisi() {
             <button
               onClick={() => setIsReorderOpen(true)}
               className={styles.settingBtn}
-              title="Atur Urutan"
             >
               <FiLayers /> Atur Urutan
             </button>
             <button
               onClick={() => setIsSettingOpen(true)}
               className={styles.settingBtn}
-              title="Ganti Tampilan"
             >
               <FiLayout /> Tampilan
             </button>
@@ -226,26 +249,35 @@ function VisiMisi() {
         )}
       </div>
 
-      {/* HERO CONTENT (Updated with Markdown) */}
+      {/* HERO CONTENT */}
       {showHero && (
         <div className={styles.heroWrapper}>
           {heroContent ? (
             <div className={styles.heroContent}>
               <h1 className={styles.pageTitle}>{heroContent.judul}</h1>
-
-              {/* --- PERBAIKAN: Gunakan ReactMarkdown --- */}
+              {/* Gambar Hero (Jika Ada) */}
+              {heroContent.image_url && (
+                <img
+                  src={heroContent.image_url}
+                  alt={heroContent.judul}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "300px",
+                    borderRadius: "12px",
+                    marginBottom: "1.5rem",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
               <div className={styles.markdownContent}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {heroContent.isi}
                 </ReactMarkdown>
               </div>
-              {/* --------------------------------------- */}
-
               {isAdmin && (
                 <button
                   onClick={() => openModal(heroContent)}
                   className={styles.editHeroBtn}
-                  title="Edit Judul Utama"
                 >
                   <FiEdit />
                 </button>
@@ -267,10 +299,9 @@ function VisiMisi() {
         </div>
       )}
 
-      {/* DYNAMIC CONTENT GRID */}
+      {/* DYNAMIC CONTENT */}
       <div className={styles.contentWrapper}>
         {renderLayout()}
-
         {isAdmin && (
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
             <button onClick={() => openModal()} className={styles.addBtn}>
@@ -280,7 +311,7 @@ function VisiMisi() {
         )}
       </div>
 
-      {/* --- MODAL FORM --- */}
+      {/* FORM MODAL */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -289,35 +320,34 @@ function VisiMisi() {
         <VisiMisiForm
           formData={formData}
           onChange={handleFormChange}
+          onFileChange={handleFileChange} // Handler file
+          preview={formPreview} // Preview
           onSubmit={handleSubmit}
           onCancel={() => setIsModalOpen(false)}
           loading={modalLoading}
         />
       </Modal>
 
-      {/* --- MODAL REORDER --- */}
-      {isAdmin && (
-        <Modal
+      {/* REORDER & SETTINGS MODALS (SAMA SEPERTI SEBELUMNYA) */}
+      <Modal
+        isOpen={isReorderOpen}
+        onClose={() => setIsReorderOpen(false)}
+        title="Atur Urutan"
+      >
+        <KontenReorderModal
           isOpen={isReorderOpen}
           onClose={() => setIsReorderOpen(false)}
-          title="Atur Urutan Konten"
-        >
-          <KontenReorderModal
-            isOpen={isReorderOpen}
-            onClose={() => setIsReorderOpen(false)}
-            contentList={contents}
-            onSuccess={fetchData}
-          />
-        </Modal>
-      )}
+          contentList={contents}
+          onSuccess={fetchData}
+        />
+      </Modal>
 
-      {/* --- MODAL SETTING TAMPILAN --- */}
       <Modal
         isOpen={isSettingOpen}
         onClose={() => setIsSettingOpen(false)}
         title="Pengaturan Tampilan"
       >
-        {/* Settings Content... (Sama seperti sebelumnya) */}
+        {/* ... Isi modal setting sama seperti kode sebelumnya ... */}
         <div
           style={{
             marginBottom: "1.5rem",
@@ -360,7 +390,6 @@ function VisiMisi() {
             </div>
           </label>
         </div>
-
         <div>
           <span
             style={{
@@ -408,7 +437,6 @@ function VisiMisi() {
             </div>
           </div>
         </div>
-
         <div className={formStyles.formFooter} style={{ marginTop: "2rem" }}>
           <button
             onClick={() => setIsSettingOpen(false)}
