@@ -1,88 +1,202 @@
 /* src/components/layouts/visimisi/LayoutZigZag.module.css */
 
-.grid {
+/* Inisialisasi Counter untuk nomor urut (01, 02, dst) */
+.container {
   display: flex;
   flex-direction: column;
-  gap: 4rem;
+  gap: 8rem; /* Jarak antar section SANGAT LEGA */
+  padding: 4rem 0;
+  counter-reset: section-counter;
 }
 
-.card {
+/* --- ROW WRAPPER --- */
+.row {
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  flex-direction: column; /* Mobile: Tumpuk ke bawah */
+  gap: 3rem;
+  align-items: center;
   position: relative;
-  padding: 2.5rem;
-  background: white;
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-  border: 1px solid #edf2f7;
 }
 
-@media (min-width: 768px) {
-  .card {
+/* DESKTOP: ZIG-ZAG MAGIC */
+@media (min-width: 1024px) {
+  .row {
     flex-direction: row;
-    align-items: center;
-    gap: 4rem;
+    justify-content: space-between;
+    gap: 6rem; /* Jarak horizontal lega */
   }
 
-  /* Item Genap Dibalik (Kanan -> Kiri) */
-  .card:nth-child(even) {
+  /* Baris Genap: Balik Urutan (Gambar Kanan, Teks Kiri) */
+  .row:nth-child(even) {
     flex-direction: row-reverse;
+  }
+}
+
+/* --- GAMBAR (IMAGE) --- */
+.imageWrapper {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Dekorasi Kotak di belakang gambar (Offset) */
+.imageWrapper::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #e2e8f0; /* Garis tipis */
+  border-radius: 24px;
+  z-index: -1;
+  transition: transform 0.4s ease;
+}
+
+/* Efek Hover: Kotak belakang bergerak */
+.row:hover .imageWrapper::before {
+  transform: translate(15px, 15px);
+  border-color: #3b82f6; /* Berubah jadi biru */
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 4/3; /* Rasio landscape standar */
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15); /* Bayangan dalam */
+  transition: transform 0.4s ease;
+}
+
+.row:hover .image {
+  transform: scale(1.02); /* Zoom sangat halus */
+}
+
+/* --- KONTEN TEKS --- */
+.contentWrapper {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* --- NOMOR URUT OTOMATIS (Watermark) --- */
+.contentWrapper::before {
+  counter-increment: section-counter;
+  content: "0" counter(section-counter);
+
+  position: absolute;
+  top: -60px;
+  left: 0;
+
+  font-size: 8rem; /* Sangat Besar */
+  font-weight: 900;
+  color: #f1f5f9; /* Abu-abu sangat pudar (Watermark) */
+  line-height: 1;
+  z-index: -1;
+  font-family: sans-serif;
+  letter-spacing: -0.05em;
+}
+
+/* Posisi nomor urut untuk baris genap (di kanan) */
+@media (min-width: 1024px) {
+  .row:nth-child(even) .contentWrapper::before {
+    left: auto;
+    right: 0;
+  }
+
+  /* Text align kanan untuk baris genap biar dinamis */
+  .row:nth-child(even) .contentWrapper {
+    align-items: flex-end;
     text-align: right;
   }
-
-  .cardHeader {
-    flex: 0 0 35%;
-  }
-  .cardBody {
-    flex: 1;
-  }
-
-  /* Tombol admin ikut align */
-  .card:nth-child(even) .adminActions {
-    justify-content: flex-end;
-  }
 }
 
-.cardTitle {
-  font-size: 3rem;
-  font-weight: 900;
-  color: #3182ce; /* Aksen Biru */
-  line-height: 1;
-  margin: 0 0 1rem 0;
+/* --- TYPOGRAPHY --- */
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  position: relative;
 }
 
-.cardBody {
-  font-size: 1.1rem;
-  color: #4a5568;
-  line-height: 1.9;
-  white-space: pre-wrap;
-}
-
-/* Admin Buttons */
-.adminActions {
-  display: flex;
-  gap: 0.5rem;
+/* Garis hiasan di bawah judul */
+.title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 6px;
+  background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+  border-radius: 4px;
   margin-top: 1rem;
 }
 
-.iconBtn {
-  width: 36px;
-  height: 36px;
+/* Pindahkan garis ke kanan untuk baris genap */
+@media (min-width: 1024px) {
+  .row:nth-child(even) .title::after {
+    margin-left: auto; /* Dorong ke kanan */
+    background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+  }
+}
+
+.bodyContent {
+  font-size: 1.125rem; /* 18px */
+  color: #475569;
+  line-height: 1.8;
+}
+
+/* JIKA TIDAK ADA GAMBAR (Center Mode) */
+.fullWidth {
+  text-align: center;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.fullWidth .title::after {
+  margin: 1rem auto; /* Garis di tengah */
+}
+.fullWidth::before {
+  left: 50%;
+  transform: translateX(-50%); /* Nomor di tengah */
+}
+
+/* --- ADMIN --- */
+.adminControls {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  width: 100%;
+}
+@media (min-width: 1024px) {
+  .row:nth-child(even) .adminControls {
+    justify-content: flex-end; /* Tombol admin di kanan */
+  }
+}
+
+.textBtn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid #cbd5e0;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
+  gap: 0.5rem;
+  transition: 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.iconBtn:hover {
-  background: #2d3748;
-  color: white;
-  border-color: #2d3748;
+.textBtn:hover {
+  color: #3b82f6;
 }
 .deleteBtn:hover {
-  background: #e53e3e;
-  border-color: #e53e3e;
+  color: #ef4444;
 }
