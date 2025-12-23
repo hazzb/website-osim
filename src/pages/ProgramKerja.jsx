@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import styles from "./ProgramKerja.module.css";
 import { ProgjaSkeletonGrid } from "../components/ui/Skeletons.jsx";
 import {
-  FilterBar,
   FilterSelect,
   FilterPill,
 } from "../components/ui/FilterBar.jsx";
@@ -16,80 +15,33 @@ import {
   FiCalendar,
   FiTarget,
   FiCheckCircle,
+  FiSearch, // <--- SUDAH DITAMBAHKAN
 } from "react-icons/fi";
 
 // COMPONENTS
 import PageContainer from "../components/ui/PageContainer.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import Modal from "../components/Modal.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
-// --- KOMPONEN SKELETON BARU (Agar Loading Terlihat Bagus) ---
-const ProgjaSkeleton = () => (
-  <div className={styles["progja-grid"]}>
-    {[1, 2, 3, 4].map((i) => (
-      <div
-        key={i}
-        style={{
-          background: "white",
-          borderRadius: "12px",
-          border: "1px solid #e2e8f0",
-          height: "200px",
-          padding: "1.5rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
-        <div
-          style={{
-            width: "60%",
-            height: "24px",
-            background: "#f1f5f9",
-            borderRadius: "4px",
-          }}
-        ></div>
-        <div
-          style={{
-            width: "40%",
-            height: "16px",
-            background: "#f1f5f9",
-            borderRadius: "4px",
-          }}
-        ></div>
-        <div
-          style={{
-            width: "100%",
-            height: "12px",
-            background: "#f1f5f9",
-            borderRadius: "4px",
-            marginTop: "auto",
-          }}
-        ></div>
-      </div>
-    ))}
-  </div>
-);
-
-// --- KOMPONEN TOGGLE KHUSUS ADMIN ---
+// --- KOMPONEN TOGGLE (TETAP SAMA) ---
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   return (
     <div
-      className={`${styles["toggle-wrapper"]} ${
-        isEnabled ? styles.active : ""
-      }`}
+      className={`${styles.toggleWrapper} ${isEnabled ? styles.active : ""}`}
       onClick={() => !isSaving && onToggle(!isEnabled)}
       title={isEnabled ? `Sembunyikan ${label}` : `Tampilkan ${label}`}
     >
-      <div className={styles["toggle-switch"]}>
-        <div className={styles["toggle-knob"]}></div>
+      <div className={styles.toggleSwitch}>
+        <div className={styles.toggleKnob}></div>
       </div>
-      <span className={styles["toggle-label"]}>{label}</span>
+      <span className={styles.toggleLabel}>{label}</span>
     </div>
   );
 }
 
-// --- HELPER INSTAGRAM EMBED ---
+// --- HELPER INSTAGRAM EMBED (TETAP SAMA) ---
 function processInstagramEmbeds() {
   if (window.instgrm?.Embeds?.process) {
     window.instgrm.Embeds.process();
@@ -110,7 +62,7 @@ function ProgramKerja() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // --- STATES ---
+  // --- STATES (TETAP SAMA) ---
   const [progjaList, setProgjaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [divisiOptions, setDivisiOptions] = useState([]);
@@ -118,6 +70,7 @@ function ProgramKerja() {
   // Filter States
   const [selectedStatus, setSelectedStatus] = useState("semua");
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
+  const [searchTerm, setSearchTerm] = useState(""); // State untuk Search
 
   // Admin Settings
   const [pengaturan, setPengaturan] = useState({
@@ -139,7 +92,7 @@ function ProgramKerja() {
   const [formDivisiList, setFormDivisiList] = useState([]);
   const [formAnggotaList, setFormAnggotaList] = useState([]);
 
-  // --- FETCH DATA ---
+  // --- FETCH DATA (TETAP SAMA) ---
   useEffect(() => {
     fetchData();
   }, []);
@@ -147,25 +100,14 @@ function ProgramKerja() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: settings } = await supabase
-        .from("pengaturan")
-        .select("*")
-        .eq("id", 1)
-        .single();
+      const { data: settings } = await supabase.from("pengaturan").select("*").eq("id", 1).single();
       if (settings) setPengaturan(settings);
 
-      const { data: progja, error } = await supabase
-        .from("program_kerja_detail_view")
-        .select("*")
-        .order("tanggal", { ascending: false });
+      const { data: progja, error } = await supabase.from("program_kerja_detail_view").select("*").order("tanggal", { ascending: false });
       if (error) throw error;
 
       setProgjaList(progja || []);
-
-      // Ambil list divisi unik untuk filter
-      const uniqueDivisi = [
-        ...new Set(progja.map((p) => p.nama_divisi).filter(Boolean)),
-      ];
+      const uniqueDivisi = [...new Set(progja.map((p) => p.nama_divisi).filter(Boolean))];
       setDivisiOptions(uniqueDivisi.sort());
     } catch (err) {
       console.error(err);
@@ -176,24 +118,15 @@ function ProgramKerja() {
 
   const fetchFormDropdowns = async () => {
     if (formPeriodeList.length > 0) return;
-    const { data: p } = await supabase
-      .from("periode_jabatan")
-      .select("id, nama_kabinet")
-      .order("tahun_mulai", { ascending: false });
+    const { data: p } = await supabase.from("periode_jabatan").select("id, nama_kabinet").order("tahun_mulai", { ascending: false });
     setFormPeriodeList(p || []);
-    const { data: d } = await supabase
-      .from("divisi")
-      .select("id, nama_divisi")
-      .order("nama_divisi");
+    const { data: d } = await supabase.from("divisi").select("id, nama_divisi").order("nama_divisi");
     setFormDivisiList(d || []);
-    const { data: a } = await supabase
-      .from("anggota")
-      .select("id, nama")
-      .order("nama");
+    const { data: a } = await supabase.from("anggota").select("id, nama").order("nama");
     setFormAnggotaList(a || []);
   };
 
-  // --- EFFECTS ---
+  // --- EFFECTS (TETAP SAMA) ---
   const progjaListRef = useRef(progjaList);
   useEffect(() => {
     progjaListRef.current = progjaList;
@@ -201,15 +134,12 @@ function ProgramKerja() {
     return () => clearTimeout(timer);
   }, [progjaList, selectedStatus, selectedDivisi]);
 
-  // --- HANDLERS ---
+  // --- HANDLERS (TETAP SAMA) ---
   const handleToggleSetting = async (key, newValue) => {
     setIsSavingSetting(true);
     setPengaturan((prev) => ({ ...prev, [key]: newValue }));
     try {
-      await supabase
-        .from("pengaturan")
-        .update({ [key]: newValue })
-        .eq("id", 1);
+      await supabase.from("pengaturan").update({ [key]: newValue }).eq("id", 1);
     } catch (err) {
       setPengaturan((prev) => ({ ...prev, [key]: !newValue }));
     } finally {
@@ -251,10 +181,7 @@ function ProgramKerja() {
   const handleDelete = async (id) => {
     if (!window.confirm("Yakin hapus program kerja ini?")) return;
     try {
-      const { error } = await supabase
-        .from("program_kerja")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("program_kerja").delete().eq("id", id);
       if (error) throw error;
       setProgjaList((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
@@ -270,13 +197,8 @@ function ProgramKerja() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      if (editingId)
-        await supabase
-          .from("program_kerja")
-          .update(formData)
-          .eq("id", editingId);
+      if (editingId) await supabase.from("program_kerja").update(formData).eq("id", editingId);
       else await supabase.from("program_kerja").insert(formData);
-
       alert("Berhasil disimpan!");
       setIsModalOpen(false);
       fetchData();
@@ -290,45 +212,34 @@ function ProgramKerja() {
   // --- FILTER LOGIC ---
   const visibleStatusOptions = useMemo(() => {
     const options = ["Semua"];
-    if (isAdmin || pengaturan.tampilkan_progja_akan_datang)
-      options.push("Akan Datang");
+    if (isAdmin || pengaturan.tampilkan_progja_akan_datang) options.push("Akan Datang");
     if (isAdmin || pengaturan.tampilkan_progja_rencana) options.push("Rencana");
     if (isAdmin || pengaturan.tampilkan_progja_selesai) options.push("Selesai");
     return options;
   }, [isAdmin, pengaturan]);
 
   useEffect(() => {
-    if (
-      !visibleStatusOptions.includes(
-        selectedStatus === "Semua" ? "Semua" : selectedStatus
-      )
-    )
+    if (!visibleStatusOptions.includes(selectedStatus === "Semua" ? "Semua" : selectedStatus))
       setSelectedStatus("semua");
   }, [visibleStatusOptions, selectedStatus]);
 
   const filteredList = progjaList.filter((item) => {
-    if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi)
-      return false;
-    if (selectedStatus !== "semua" && item.status !== selectedStatus)
-      return false;
+    if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi) return false;
+    if (selectedStatus !== "semua" && item.status !== selectedStatus) return false;
+    
+    // Filter Search
+    if (searchTerm !== "" && !item.nama_acara.toLowerCase().includes(searchTerm.toLowerCase())) return false;
 
     if (!isAdmin || viewPublicMode) {
       if (item.tampilkan_di_publik === false) return false;
-      if (item.status === "Rencana" && !pengaturan.tampilkan_progja_rencana)
-        return false;
-      if (
-        item.status === "Akan Datang" &&
-        !pengaturan.tampilkan_progja_akan_datang
-      )
-        return false;
-      if (item.status === "Selesai" && !pengaturan.tampilkan_progja_selesai)
-        return false;
+      if (item.status === "Rencana" && !pengaturan.tampilkan_progja_rencana) return false;
+      if (item.status === "Akan Datang" && !pengaturan.tampilkan_progja_akan_datang) return false;
+      if (item.status === "Selesai" && !pengaturan.tampilkan_progja_selesai) return false;
     }
     return true;
   });
 
-  const getListBySection = (status) =>
-    filteredList.filter((item) => item.status === status);
+  const getListBySection = (status) => filteredList.filter((item) => item.status === status);
 
   // --- RENDER SECTION HELPER ---
   const renderSection = (title, list, statusKey, cssClass, Icon) => {
@@ -336,31 +247,21 @@ function ProgramKerja() {
     if (list.length === 0) return null;
     if ((!isAdmin || viewPublicMode) && !isGlobalVisible) return null;
 
-    const isAdminViewStyle =
-      isAdmin && !viewPublicMode && !isGlobalVisible
-        ? {
-            opacity: 0.75,
-            border: "2px dashed #cbd5e0",
-            background: "#f8fafc",
-            padding: "1rem",
-            borderRadius: "12px",
-          }
+    const isAdminViewStyle = isAdmin && !viewPublicMode && !isGlobalVisible
+        ? { opacity: 0.75, border: "2px dashed #cbd5e0", background: "#f8fafc", padding: "1rem", borderRadius: "12px" }
         : {};
 
     return (
-      <section className={styles["timeline-section"]} style={isAdminViewStyle}>
-        <div className={styles["section-header"]}>
-          <h2 className={`${styles["section-title"]} ${styles[cssClass]}`}>
-            {Icon && <span className={styles["title-icon"]}>{Icon}</span>}
+      <section className={styles.timelineSection} style={isAdminViewStyle}>
+        <div className={styles.sectionHeader}>
+          <h2 className={`${styles.sectionTitle} ${styles[cssClass]}`}>
+            {Icon && <span style={{display:'flex', alignItems:'center'}}>{Icon}</span>}
             {title}
           </h2>
-          <span className={styles["section-count"]}>{list.length}</span>
-          {isAdmin && !viewPublicMode && !isGlobalVisible && (
-            <span className={styles["hidden-badge"]}>Hidden</span>
-          )}
+          <span className={styles.sectionCount}>{list.length}</span>
         </div>
 
-        <div className={styles["progja-grid"]}>
+        <div className={styles.progjaGrid}>
           {list.map((item) => (
             <ProgramKerjaCard
               key={item.id}
@@ -378,162 +279,94 @@ function ProgramKerja() {
   // --- MAIN RENDER ---
   return (
     <PageContainer breadcrumbText="Program Kerja">
-      {/* 1. HEADER & ADMIN CONTROLS */}
-      <div className={styles["header-section"]}>
-        <div>
-          <h1
-            className="page-title"
-            style={{
-              fontSize: "1.8rem",
-              fontWeight: "800",
-              color: "#1e293b",
-              margin: 0,
-            }}
-          >
-            Program Kerja
-          </h1>
-          <p
-            style={{ color: "#64748b", margin: "0.2rem 0 0", fontSize: "1rem" }}
-          >
-            Timeline kegiatan dan acara organisasi.
-          </p>
-        </div>
+      
+      <PageHeader
+        title="Program Kerja"
+        subtitle="Agenda Kegiatan & Event"
+        
+        actions={null} // Kosongkan actions utama agar rapi
 
-        {isAdmin && (
-          <div
-            className={styles["admin-controls"]}
-            style={{ marginTop: "1rem" }}
-          >
-            {/* marginTop agar ada jarak jika layar kecil */}
-
-            <div className={styles["admin-toggles"]}>
-              {/* ... (AdminToggle code tetap sama) ... */}
-              <AdminToggle
-                label="Akan Datang"
-                isEnabled={pengaturan.tampilkan_progja_akan_datang !== false}
-                onToggle={(v) =>
-                  handleToggleSetting("tampilkan_progja_akan_datang", v)
-                }
-                isSaving={isSavingSetting}
-              />
-              <AdminToggle
-                label="Rencana"
-                isEnabled={pengaturan.tampilkan_progja_rencana !== false}
-                onToggle={(v) =>
-                  handleToggleSetting("tampilkan_progja_rencana", v)
-                }
-                isSaving={isSavingSetting}
-              />
-              <AdminToggle
-                label="Selesai"
-                isEnabled={pengaturan.tampilkan_progja_selesai !== false}
-                onToggle={(v) =>
-                  handleToggleSetting("tampilkan_progja_selesai", v)
-                }
-                isSaving={isSavingSetting}
-              />
-            </div>
-
-            <button
-              onClick={() => openModal()}
-              className="button button-primary"
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-            >
-              <FiPlus /> Tambah Program
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* 2. FILTER BAR */}
-      <FilterBar>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          {visibleStatusOptions.map((status) => (
-            <FilterPill
-              key={status}
-              label={status}
-              active={
-                selectedStatus === (status === "Semua" ? "semua" : status)
-              }
-              onClick={() =>
-                setSelectedStatus(status === "Semua" ? "semua" : status)
-              }
+        // SEARCH BAR
+        searchBar={
+          <div style={{ position: "relative", width: "100%" }}>
+            <FiSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+            <input
+              type="text"
+              placeholder="Cari acara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", border: "1px solid #cbd5e0", borderRadius: "8px", fontSize: "0.9rem", height: "38px" }}
             />
-          ))}
-        </div>
-
-        <FilterSelect
-          label="Divisi"
-          value={selectedDivisi}
-          onChange={(e) => setSelectedDivisi(e.target.value)}
-        >
-          <option value="semua">Semua Divisi</option>
-          {divisiOptions.map((div, idx) => (
-            <option key={idx} value={div}>
-              {div}
-            </option>
-          ))}
-        </FilterSelect>
-
-        {isAdmin && (
-          <div className={styles["preview-toggle-wrapper"]}>
-            <button
-              className={`${styles["preview-btn"]} ${
-                viewPublicMode ? styles.active : ""
-              }`}
-              onClick={() => setViewPublicMode(!viewPublicMode)}
-              title={
-                viewPublicMode
-                  ? "Keluar dari mode preview"
-                  : "Lihat sebagai tamu"
-              }
-            >
-              {viewPublicMode ? <FiEyeOff /> : <FiEye />}
-              <span>Preview Tamu</span>
-            </button>
           </div>
-        )}
-      </FilterBar>
+        }
 
-      {/* 3. CONTENT LIST / LOADING SKELETON */}
+        // MENU OPSI
+        options={isAdmin && (
+          <>
+             {/* Tombol Utama */}
+             <button onClick={() => openModal()} className={`${styles.modernButton} ${styles.btnGreen}`} style={{width:'100%'}}>
+                <FiPlus /> Tambah Program Kerja
+             </button>
+             
+             {/* Divider Kecil */}
+             <div style={{width:'100%', height:'1px', background:'#e2e8f0', margin:'0.5rem 0'}}></div>
+             
+             {/* Toggle Settings */}
+             <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', width:'100%'}}>
+                <span style={{fontSize:'0.85rem', fontWeight:600, color:'#64748b'}}>Tampilan:</span>
+                <AdminToggle label="Akan Datang" isEnabled={pengaturan.tampilkan_progja_akan_datang !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_akan_datang", v)} isSaving={isSavingSetting} />
+                <AdminToggle label="Rencana" isEnabled={pengaturan.tampilkan_progja_rencana !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_rencana", v)} isSaving={isSavingSetting} />
+                <AdminToggle label="Selesai" isEnabled={pengaturan.tampilkan_progja_selesai !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_selesai", v)} isSaving={isSavingSetting} />
+             </div>
+          </>
+        )}
+
+        // FILTER (Status & Divisi)
+        filters={
+          <>
+            <div style={{ width: '100%' }}>
+               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <span style={{fontSize:'0.85rem', fontWeight:600, color:'#64748b'}}>Status:</span>
+                  {visibleStatusOptions.map((status) => (
+                    <FilterPill key={status} label={status} active={selectedStatus === (status === "Semua" ? "semua" : status)} onClick={() => setSelectedStatus(status === "Semua" ? "semua" : status)} />
+                  ))}
+               </div>
+            </div>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <FilterSelect label="Divisi" value={selectedDivisi} onChange={(e) => setSelectedDivisi(e.target.value)}>
+                <option value="semua">Semua Divisi</option>
+                {divisiOptions.map((div, idx) => <option key={idx} value={div}>{div}</option>)}
+              </FilterSelect>
+            </div>
+            {isAdmin && (
+              <div className={styles.previewToggleWrapper} style={{ marginLeft: 'auto' }}>
+                <button className={`${styles.previewBtn} ${viewPublicMode ? styles.active : ""}`} onClick={() => setViewPublicMode(!viewPublicMode)}>
+                  {viewPublicMode ? <FiEyeOff /> : <FiEye />} View as Guest
+                </button>
+              </div>
+            )}
+          </>
+        }
+      />
+
+      {/* CONTENT LIST */}
       {loading ? (
-        /* --- BAGIAN SKELETON MAKSIMAL --- */
         <ProgjaSkeletonGrid />
       ) : filteredList.length === 0 ? (
-        <div className={styles["empty-state"]}>
-          <span className={styles["empty-icon"]}>📭</span>
-          <h3 className={styles["empty-title"]}>Belum ada Program Kerja</h3>
-          <p className={styles["empty-desc"]}>
-            Tidak ada data yang sesuai dengan filter Anda.
-          </p>
+        <div className={styles.emptyState}>
+          <span style={{fontSize:'3rem', display:'block', marginBottom:'1rem'}}>📅</span>
+          <h3 style={{fontSize:'1.2rem', fontWeight:700, margin:0}}>Belum ada Program Kerja</h3>
+          <p>Tidak ada data yang sesuai dengan filter Anda.</p>
         </div>
       ) : (
-        <div className={styles["content-wrapper"]}>
-          {renderSection(
-            "Akan Datang",
-            getListBySection("Akan Datang"),
-            "tampilkan_progja_akan_datang",
-            "title-akan-datang",
-            <FiCalendar />
-          )}
-          {renderSection(
-            "Rencana Program",
-            getListBySection("Rencana"),
-            "tampilkan_progja_rencana",
-            "title-rencana",
-            <FiTarget />
-          )}
-          {renderSection(
-            "Terlaksana / Selesai",
-            getListBySection("Selesai"),
-            "tampilkan_progja_selesai",
-            "title-selesai",
-            <FiCheckCircle />
-          )}
+        <div className={styles.contentWrapper}>
+          {renderSection("Akan Datang", getListBySection("Akan Datang"), "tampilkan_progja_akan_datang", "titleAkanDatang", <FiCalendar />)}
+          {renderSection("Rencana Program", getListBySection("Rencana"), "tampilkan_progja_rencana", "titleRencana", <FiTarget />)}
+          {renderSection("Terlaksana / Selesai", getListBySection("Selesai"), "tampilkan_progja_selesai", "titleSelesai", <FiCheckCircle />)}
         </div>
       )}
 
-      {/* 4. MODAL FORM */}
+      {/* MODAL FORM */}
       {isAdmin && (
         <Modal
           isOpen={isModalOpen}

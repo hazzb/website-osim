@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect } from "react";
 import FormInput from "../admin/FormInput.jsx";
 import formStyles from "../admin/AdminForm.module.css";
-import { FiUser, FiImage } from "react-icons/fi";
+import { FiUser, FiUpload, FiInstagram } from "react-icons/fi";
 
 const AnggotaForm = ({
   formData,
@@ -13,103 +13,103 @@ const AnggotaForm = ({
   periodeList = [],
   divisiList = [],
   jabatanList = [],
-  jabatanLinks = [], // Data relasi Divisi <-> Jabatan
   preview,
 }) => {
-  // --- LOGIC FILTER JABATAN ---
+  
+  // --- 1. LOGIC FILTER JABATAN CERDAS ---
   const filteredJabatanList = useMemo(() => {
-    // 1. Jika Divisi Belum Dipilih -> Jangan tampilkan jabatan apapun (atau tampilkan semua, tergantung preferensi)
+    // Jika belum pilih divisi, kosongkan
     if (!formData.divisi_id) return [];
 
-    // 2. Cari ID Jabatan yang boleh muncul untuk Divisi ini
-    const allowedJabatanIds = jabatanLinks
-      .filter((link) => String(link.divisi_id) === String(formData.divisi_id))
-      .map((link) => link.jabatan_id);
+    // Cari data divisi yang dipilih untuk tahu TIPE-nya
+    const selectedDivisi = divisiList.find(d => String(d.id) === String(formData.divisi_id));
+    
+    if (!selectedDivisi) return [];
 
-    // 3. Jika tidak ada link khusus (divisi bebas), mungkin tampilkan semua jabatan 'Divisi' & 'Umum'
-    // Tapi karena kita ingin strict, kita kosongkan saja jika belum diatur relasinya.
-    if (allowedJabatanIds.length === 0) {
-      // OPSI: Kembalikan jabatan bertipe 'Divisi' & 'Umum' sebagai fallback jika lupa setting relasi
-      return jabatanList.filter((j) => j.tipe_jabatan !== "Inti");
+    // JIKA DIVISI INTI (BPH)
+    if (selectedDivisi.tipe === 'Inti') {
+       // Tampilkan hanya jabatan 'Inti' (Ketua OSIS, Sekre, Bendahara)
+       return jabatanList.filter(j => j.tipe_jabatan === 'Inti');
+    } 
+    
+    // JIKA DIVISI UMUM (Sekbid)
+    else {
+       // Tampilkan jabatan 'Divisi' (Ketua Divisi, Staf)
+       return jabatanList.filter(j => j.tipe_jabatan === 'Divisi');
     }
 
-    // 4. Filter Master Jabatan berdasarkan ID yang diizinkan
-    return jabatanList.filter((jabatan) =>
-      allowedJabatanIds.includes(jabatan.id)
-    );
-  }, [formData.divisi_id, jabatanLinks, jabatanList]);
+  }, [formData.divisi_id, divisiList, jabatanList]);
 
-  // --- LOGIC OTOMATIS GANTI JABATAN ---
-  // Jika user ganti divisi, dan jabatan yang lama tidak valid lagi, reset jabatannya
+
+  // --- 2. LOGIC RESET JABATAN SAAT DIVISI BERUBAH ---
   useEffect(() => {
+    // Cek apakah jabatan yang sedang dipilih masih valid di daftar baru?
     const isJabatanValid = filteredJabatanList.some(
       (j) => String(j.id) === String(formData.jabatan_id)
     );
 
-    // Jika jabatan terisi tapi tidak ada di list baru, reset ke kosong
+    // Jika tidak valid (misal pindah dari BPH ke IT), reset jabatan jadi kosong
     if (formData.jabatan_id && !isJabatanValid) {
-      // Kita perlu memanggil onChange secara manual untuk mereset
-      // Simulasi event object
       onChange({ target: { name: "jabatan_id", value: "" } });
     }
-  }, [formData.divisi_id]); // Trigger setiap divisi berubah
+  }, [formData.divisi_id, filteredJabatanList]);
+
 
   return (
     <form onSubmit={onSubmit}>
-      <div className={formStyles.formGrid}>
-        {/* Nama Lengkap */}
-        <FormInput
-          label="Nama Lengkap"
-          name="nama"
-          value={formData.nama || ""}
-          onChange={onChange}
-          required
-          span={8}
-          placeholder="Nama sesuai KTP/Kartu Pelajar"
-        />
-
-        {/* Gender */}
+      {/* Grid Gap diperkecil (0.75rem) agar padat */}
+      <div className={formStyles.formGrid} style={{ gap: "0.75rem" }}>
+        
+        {/* BARIS 1: Nama (8) & Gender (4) */}
+        <div className={formStyles.colSpan8}>
+          <FormInput
+            label="Nama Lengkap"
+            name="nama"
+            value={formData.nama || ""}
+            onChange={onChange}
+            required
+            placeholder="Sesuai KTP"
+          />
+        </div>
         <div className={formStyles.colSpan4}>
           <FormInput
-            label="Jenis Kelamin"
+            label="Gender"
             name="jenis_kelamin"
             type="select"
             value={formData.jenis_kelamin || "Ikhwan"}
             onChange={onChange}
           >
-            <option value="Ikhwan">Ikhwan</option>
-            <option value="Akhwat">Akhwat</option>
+            <option value="Ikhwan">Laki-laki</option>
+            <option value="Akhwat">Perempuan</option>
           </FormInput>
         </div>
 
-        {/* Instagram */}
+        {/* BARIS 2: IG (6) & Alamat (6) */}
         <div className={formStyles.colSpan6}>
           <FormInput
-            label="Instagram (Username)"
+            label="Instagram"
             name="instagram_username"
             value={formData.instagram_username || ""}
             onChange={onChange}
-            placeholder="tanpa @"
+            placeholder="username"
+            helper={
+              <span style={{ display: "flex", alignItems: "center", gap: "2px", fontSize: "0.7rem" }}>
+                <FiInstagram /> Tanpa @
+              </span>
+            }
           />
         </div>
-
-        {/* Alamat */}
         <div className={formStyles.colSpan6}>
           <FormInput
             label="Alamat Singkat"
             name="alamat"
             value={formData.alamat || ""}
             onChange={onChange}
-            placeholder="Contoh: Jl. Mawar No. 10"
+            placeholder="Kecamatan/Kota"
           />
         </div>
 
-        <div
-          className={formStyles.colSpan12}
-          style={{ borderTop: "1px dashed #e2e8f0", margin: "0.5rem 0" }}
-        ></div>
-
-        {/* Periode */}
+        {/* BARIS 3: Periode (4) - Divisi (4) - Jabatan (4) */}
         <div className={formStyles.colSpan4}>
           <FormInput
             label="Periode"
@@ -119,7 +119,7 @@ const AnggotaForm = ({
             onChange={onChange}
             required
           >
-            <option value="">-- Pilih Periode --</option>
+            <option value="">Pilih...</option>
             {periodeList.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.nama_kabinet}
@@ -127,8 +127,6 @@ const AnggotaForm = ({
             ))}
           </FormInput>
         </div>
-
-        {/* Divisi */}
         <div className={formStyles.colSpan4}>
           <FormInput
             label="Divisi"
@@ -139,32 +137,26 @@ const AnggotaForm = ({
             required
             disabled={!formData.periode_id}
           >
-            <option value="">-- Pilih Divisi --</option>
+            <option value="">Pilih...</option>
             {divisiList.map((d) => (
               <option key={d.id} value={d.id}>
-                {d.nama_divisi}
+                {d.nama_divisi} {d.tipe === 'Inti' ? '(Inti)' : ''}
               </option>
             ))}
           </FormInput>
         </div>
-
-        {/* Jabatan (FILTERED) */}
         <div className={formStyles.colSpan4}>
           <FormInput
             label="Jabatan"
-            name="jabatan_id" // Pastikan namanya jabatan_id, bukan jabatan_di_divisi (sesuaikan DB)
+            name="jabatan_id"
             type="select"
             value={formData.jabatan_id || ""}
             onChange={onChange}
             required
             disabled={!formData.divisi_id}
-            helper={
-              formData.divisi_id && filteredJabatanList.length === 0
-                ? "Belum ada jabatan yg diatur utk divisi ini."
-                : ""
-            }
+            helper={formData.divisi_id && filteredJabatanList.length === 0 ? "Tidak ada jabatan sesuai." : ""}
           >
-            <option value="">-- Pilih Jabatan --</option>
+            <option value="">Pilih...</option>
             {filteredJabatanList.map((j) => (
               <option key={j.id} value={j.id}>
                 {j.nama_jabatan}
@@ -173,77 +165,48 @@ const AnggotaForm = ({
           </FormInput>
         </div>
 
-        {/* Motto */}
+        {/* BARIS 4: Motto (12) */}
         <FormInput
-          label="Motto Hidup"
+          label="Motto"
           name="motto"
           type="textarea"
           value={formData.motto || ""}
           onChange={onChange}
           span={12}
-          rows={2}
-          placeholder="Kata-kata motivasi..."
+          rows={1}
+          placeholder="Kata motivasi singkat..."
         />
 
-        {/* Upload Foto */}
+        {/* BARIS 5: Foto Profil Compact */}
         <div className={formStyles.colSpan12}>
-          <label className={formStyles.formLabel}>Foto Profil</label>
-          <div className={formStyles.uploadRow}>
-            <div
-              className={formStyles.previewBox}
-              style={{ borderRadius: "50%", width: "60px", height: "60px" }}
-            >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", padding: "0.5rem", border: "1px solid #e2e8f0", borderRadius: "6px", background: "#f8fafc" }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", background: "#fff", border: "1px solid #cbd5e0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+                <img src={preview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
-                <FiUser size={24} color="#cbd5e0" />
+                <FiUser size={20} color="#cbd5e0" />
               )}
             </div>
-            <div style={{ flex: 1 }}>
-              <label
-                className={formStyles.uploadBtn}
-                style={{ width: "fit-content" }}
-              >
-                Pilih Foto
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={onFileChange}
-                  hidden
-                />
-              </label>
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--text-muted)",
-                  marginLeft: "0.5rem",
-                }}
-              >
-                Max 500KB (Wajah)
-              </span>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "#334155" }}>Foto Profil</label>
+                <p style={{ margin: 0, fontSize: "0.7rem", color: "#64748b" }}>Max 500KB</p>
+              </div>
+              <div>
+                <input type="file" id="foto_anggota" name="foto_url" accept="image/*" onChange={onFileChange} style={{ display: "none" }} />
+                <label htmlFor="foto_anggota" className="button button-secondary" style={{ padding: "0.25rem 0.6rem", fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "4px", cursor: "pointer", height: "auto" }}>
+                  <FiUpload size={12} /> {preview ? "Ganti" : "Upload"}
+                </label>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className={formStyles.formFooter}>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="button button-secondary"
-        >
-          Batal
-        </button>
-        <button
-          type="submit"
-          className="button button-primary"
-          disabled={loading}
-        >
-          {loading ? "Menyimpan..." : "Simpan Data"}
+      <div className={formStyles.formFooter} style={{ marginTop: "1rem" }}>
+        <button type="button" onClick={onCancel} className="button button-secondary">Batal</button>
+        <button type="submit" className="button button-primary" disabled={loading}>
+          {loading ? "Simpan..." : "Simpan"}
         </button>
       </div>
     </form>

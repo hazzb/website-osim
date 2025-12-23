@@ -4,89 +4,123 @@ import { useAuth } from "../context/AuthContext";
 
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-import Modal from "../components/Modal.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx"; // <--- IMPORT HEADER BARU
 import LoadingState from "../components/ui/LoadingState.jsx";
-import FormInput from "../components/admin/FormInput.jsx"; // IMPORT PENTING
+import Modal from "../components/Modal.jsx";
+import DivisiForm from "../components/forms/DivisiForm.jsx";
+import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
 
-// Styles (Pastikan path ini benar)
+// Utils
+import { uploadImage } from "../utils/uploadHelper";
+
+// Styles
 import tableStyles from "../components/admin/AdminTable.module.css";
-import formStyles from "../components/admin/AdminForm.module.css";
+import styles from "./DaftarAnggota.module.css"; // Kita pinjam style tombol dari sini agar seragam
 
 // Icons
 import {
   FiPlus,
   FiEdit,
   FiTrash2,
-  FiSearch,
-  FiUsers,
+  FiCopy,
+  FiInfo,
   FiImage,
+  FiFilter,
+  FiList,
 } from "react-icons/fi";
+import { FilterSelect } from "../components/ui/FilterBar.jsx"; // Gunakan FilterSelect agar seragam
 
 function KelolaDivisi() {
   const { session } = useAuth();
+  const isAdmin = !!session;
 
-  // --- STATE (Sama seperti kode asli Anda) ---
-  const [dataList, setDataList] = useState([]);
+  // --- STATE ---
+  const [periodes, setPeriodes] = useState([]);
+  const [activeTab, setActiveTab] = useState("");
+  const [divisions, setDivisions] = useState([]);
+
   const [loading, setLoading] = useState(true);
-  const [periodeList, setPeriodeList] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState(null);
 
+  // Modal State Form
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [formFile, setFormFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [formPreview, setFormPreview] = useState(null);
 
-  // --- FETCH DATA ---
+  // Modal State Reorder
+  const [showReorderModal, setShowReorderModal] = useState(false);
+
+  // --- DATA FETCHING ---
   useEffect(() => {
-    fetchData();
-    fetchPeriode();
-  }, []);
+    const fetchPeriodes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("periode_jabatan")
+          .select("*")
+          .order("tahun_mulai", { ascending: false });
 
-  const fetchData = async () => {
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setPeriodes(data);
+          const active = data.find((p) => p.is_active) || data[0];
+          setActiveTab(active.id);
+        }
+      } catch (err) {
+        console.error("Gagal load periode:", err);
+        setError("Gagal memuat data periode.");
+      }
+    };
+
+    if (isAdmin) fetchPeriodes();
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (activeTab) {
+      fetchDivisi(activeTab);
+    }
+  }, [activeTab]);
+
+  const fetchDivisi = async (periodeId) => {
     setLoading(true);
+    setError(null);
     try {
       const { data, error } = await supabase
         .from("divisi")
-        .select("*, periode_jabatan(nama_kabinet)")
+        .select("*")
+        .eq("periode_id", periodeId)
         .order("urutan", { ascending: true });
 
       if (error) throw error;
-      setDataList(data || []);
+      setDivisions(data || []);
     } catch (err) {
-      console.error("Error fetching divisi:", err);
+      console.error("Fetch Error:", err);
+      setError("Gagal memuat data divisi.");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchPeriode = async () => {
-    const { data } = await supabase
-      .from("periode_jabatan")
-      .select("id, nama_kabinet")
-      .order("tahun_mulai", { ascending: false });
-    setPeriodeList(data || []);
-  };
-
   // --- HANDLERS ---
   const openModal = (item = null) => {
     setFormFile(null);
-    setPreview(null);
+    setFormPreview(null);
 
     if (item) {
       setEditingId(item.id);
       setFormData(item);
-      setPreview(item.logo_url);
+      setFormPreview(item.logo_url);
     } else {
       setEditingId(null);
-      const lastOrder =
-        dataList.length > 0 ? dataList[dataList.length - 1].urutan : 0;
       setFormData({
         nama_divisi: "",
         deskripsi: "",
-        urutan: lastOrder + 10,
-        periode_id: periodeList[0]?.id || "",
+        urutan: 10,
+        periode_id: activeTab,
+        tipe: "Umum",
       });
     }
     setIsModalOpen(true);
@@ -100,7 +134,7 @@ function KelolaDivisi() {
     const file = e.target.files[0];
     if (file) {
       setFormFile(file);
-      setPreview(URL.createObjectURL(file));
+      setFormPreview(URL.createObjectURL(file));
     }
   };
 
@@ -108,28 +142,18 @@ function KelolaDivisi() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      let finalLogoUrl = formData.logo_url;
-
-      if (formFile) {
-        const ext = formFile.name.split(".").pop();
-        const fileName = `divisi_${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("logos")
-          .upload(`divisi/${fileName}`, formFile);
-        if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage
-          .from("logos")
-          .getPublicUrl(`divisi/${fileName}`);
-        finalLogoUrl = urlData.publicUrl;
-      }
-
-      const payload = {
+      let payload = {
         nama_divisi: formData.nama_divisi,
         deskripsi: formData.deskripsi,
-        urutan: formData.urutan,
-        periode_id: formData.periode_id,
-        logo_url: finalLogoUrl,
+        urutan: parseInt(formData.urutan || 10),
+        periode_id: parseInt(activeTab),
+        tipe: formData.tipe || "Umum",
       };
+
+      if (formFile) {
+        const url = await uploadImage(formFile, "divisi");
+        payload.logo_url = url;
+      }
 
       if (editingId) {
         await supabase.from("divisi").update(payload).eq("id", editingId);
@@ -139,9 +163,9 @@ function KelolaDivisi() {
 
       alert("Berhasil disimpan!");
       setIsModalOpen(false);
-      fetchData();
+      fetchDivisi(activeTab);
     } catch (err) {
-      alert("Gagal: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setModalLoading(false);
     }
@@ -150,270 +174,305 @@ function KelolaDivisi() {
   const handleDelete = async (id) => {
     if (!window.confirm("Hapus divisi ini?")) return;
     try {
-      await supabase.from("divisi").delete().eq("id", id);
-      setDataList((prev) => prev.filter((d) => d.id !== id));
+      const { error } = await supabase.from("divisi").delete().eq("id", id);
+      if (error) throw error;
+      fetchDivisi(activeTab);
     } catch (err) {
       alert("Gagal hapus: " + err.message);
     }
   };
 
-  const filteredData = dataList.filter((item) =>
-    item.nama_divisi.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleImportDivisi = async () => {
+    if (!confirm("Salin semua divisi dari periode sebelumnya?")) return;
+    setLoading(true);
+    try {
+      const { data: lastPeriode } = await supabase
+        .from("periode_jabatan")
+        .select("id")
+        .neq("id", activeTab)
+        .order("tahun_mulai", { ascending: false })
+        .limit(1)
+        .single();
 
-  if (loading)
+      if (!lastPeriode) throw new Error("Tidak ada data periode sebelumnya.");
+
+      const { data: oldDivisions } = await supabase
+        .from("divisi")
+        .select("nama_divisi, deskripsi, logo_url, urutan, tipe")
+        .eq("periode_id", lastPeriode.id);
+
+      if (!oldDivisions?.length) throw new Error("Periode lalu tidak punya divisi.");
+
+      const newDivisions = oldDivisions.map((div) => ({
+        ...div,
+        periode_id: parseInt(activeTab),
+      }));
+
+      const { error } = await supabase.from("divisi").insert(newDivisions);
+      if (error) throw error;
+
+      alert(`Sukses menyalin ${newDivisions.length} divisi!`);
+      fetchDivisi(activeTab);
+    } catch (err) {
+      alert("Gagal import: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- RENDER ---
+
+  if (loading && periodes.length === 0) {
     return (
       <PageContainer breadcrumbText="Memuat...">
-        <LoadingState message="Memuat data divisi..." />
+        <LoadingState message="Memuat sistem..." />
       </PageContainer>
     );
+  }
 
   return (
     <PageContainer breadcrumbText="Kelola Divisi">
-      {/* HEADER & FILTER (Menggunakan Class CSS CamelCase yang Benar) */}
-      <div className={tableStyles.adminPageHeader}>
-        <div>
-          <h1 className="page-title">Kelola Divisi</h1>
-          <p style={{ color: "var(--text-muted)" }}>
-            Daftar unit kerja organisasi.
-          </p>
-        </div>
-        <button
-          onClick={() => openModal()}
-          className="button button-primary"
-          style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-        >
-          <FiPlus /> Tambah Divisi
-        </button>
-      </div>
+      
+      {/* HEADER BARU (MENGGUNAKAN PAGEHEADER) */}
+      <PageHeader
+        title="Kelola Divisi"
+        subtitle="Atur daftar divisi untuk periode ini."
+        
+        // Slot Actions: Tombol Urutkan & Tambah
+        actions={
+          <div style={{display:'flex', gap:'8px'}}>
+             <button 
+                onClick={() => setShowReorderModal(true)} 
+                disabled={loading || divisions.length === 0}
+                className={`${styles.modernButton} ${styles.btnTeal}`}
+             >
+                <FiList /> <span style={{marginLeft:'4px'}}>Urutkan</span>
+             </button>
+             
+             <button 
+                onClick={() => openModal()} 
+                disabled={loading}
+                className={`${styles.modernButton} ${styles.btnBlue}`}
+             >
+                <FiPlus /> <span style={{marginLeft:'4px'}}>Tambah Divisi</span>
+             </button>
+          </div>
+        }
 
-      <div className={tableStyles.tableFilterContainer}>
-        <div className={tableStyles.searchInputGroup}>
-          <FiSearch style={{ color: "#94a3b8" }} />
-          <input
-            type="text"
-            placeholder="Cari nama divisi..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={tableStyles.searchInput}
-          />
-        </div>
-      </div>
+        // Slot Filters: Dropdown Periode
+        filters={
+          <div style={{ minWidth: '250px' }}>
+            <FilterSelect
+              label="Periode Kabinet"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+            >
+              {periodes.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama_kabinet} ({p.tahun_mulai}) {p.is_active ? "✅" : ""}
+                </option>
+              ))}
+            </FilterSelect>
+          </div>
+        }
+      />
 
-      {/* TABLE CONTAINER (Struktur Tabel Asli Anda, hanya ClassName disesuaikan) */}
-      <div className={tableStyles.tableContainer}>
-        <table className={tableStyles.table}>
-          <thead>
-            <tr>
-              <th style={{ width: "50px" }}>No</th>
-              <th style={{ width: "60px" }}>Logo</th>
-              <th>Nama Divisi</th>
-              <th>Periode</th>
-              <th>Urutan</th>
-              <th style={{ textAlign: "right", width: "150px" }}>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length === 0 ? (
-              <tr>
-                <td
-                  colSpan="6"
-                  style={{
-                    textAlign: "center",
-                    padding: "2rem",
-                    color: "#94a3b8",
-                  }}
-                >
-                  Data tidak ditemukan.
-                </td>
-              </tr>
-            ) : (
-              filteredData.map((item, index) => (
-                <tr key={item.id}>
-                  <td>{index + 1}</td>
-                  <td>
-                    <div
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {item.logo_url ? (
-                        <img
-                          src={item.logo_url}
-                          alt="logo"
+      {error && (
+        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
+      )}
+
+      {/* --- CONTENT AREA --- */}
+      {loading ? (
+        <div style={{ padding: "3rem 0" }}>
+          <LoadingState message="Memuat data divisi..." />
+        </div>
+      ) : (
+        <>
+          {divisions.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "3rem",
+                backgroundColor: "#f8fafc",
+                borderRadius: "12px",
+                border: "2px dashed #cbd5e0",
+                marginBottom: "2rem",
+              }}
+            >
+              <FiInfo size={32} color="#94a3b8" style={{ marginBottom: "1rem" }} />
+              <p style={{ color: "#64748b", marginBottom: "1.5rem" }}>
+                Belum ada divisi di periode ini.
+              </p>
+              <button
+                onClick={handleImportDivisi}
+                className="button button-secondary"
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+              >
+                <FiCopy /> Salin Divisi dari Periode Lalu
+              </button>
+            </div>
+          ) : (
+            <div className={tableStyles.tableContainer}>
+              <table className={tableStyles.table}>
+                <thead>
+                  <tr>
+                    <th style={{ width: "60px" }}>Logo</th>
+                    <th>Nama Divisi</th>
+                    <th>Deskripsi</th>
+                    <th style={{ width: "100px" }}>Urutan</th>
+                    <th style={{ textAlign: "right", width: "120px" }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {divisions.map((div) => (
+                    <tr key={div.id}>
+                      <td>
+                        {div.logo_url ? (
+                          <img
+                            src={div.logo_url}
+                            alt="logo"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                              border: "1px solid #e2e8f0",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              background: "#f1f5f9",
+                              borderRadius: "8px",
+                              border: "1px solid #e2e8f0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <FiImage color="#cbd5e0" />
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <span
                           style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
+                            fontWeight: "600",
+                            color: "var(--text-main)",
+                            display: "block",
                           }}
-                        />
-                      ) : (
-                        <FiUsers style={{ color: "#cbd5e0" }} />
-                      )}
-                    </div>
-                  </td>
-                  <td style={{ fontWeight: "600", color: "#1e293b" }}>
-                    {item.nama_divisi}
-                  </td>
-                  <td>
-                    <span
-                      className={`${tableStyles.badge} ${tableStyles.badgeGray}`}
-                    >
-                      {item.periode_jabatan?.nama_kabinet || "-"}
-                    </span>
-                  </td>
-                  <td>{item.urutan}</td>
-                  <td>
-                    <div className={tableStyles.actionCell}>
-                      <button
-                        onClick={() => openModal(item)}
-                        className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
-                        title="Edit"
-                      >
-                        <FiEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
-                        title="Hapus"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                        >
+                          {div.nama_divisi}
+                        </span>
+                        {div.tipe === "Inti" ? (
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              fontWeight: "bold",
+                              background: "#fee2e2",
+                              color: "#dc2626",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              marginTop: "4px",
+                              display: "inline-block",
+                            }}
+                          >
+                            ⭐ PENGURUS INTI
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              fontWeight: "500",
+                              background: "#f1f5f9",
+                              color: "#64748b",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              marginTop: "4px",
+                              display: "inline-block",
+                            }}
+                          >
+                            DIVISI UMUM
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                          {div.deskripsi
+                            ? div.deskripsi.length > 50
+                              ? div.deskripsi.substring(0, 50) + "..."
+                              : div.deskripsi
+                            : "-"}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`${tableStyles.badge} ${tableStyles.badgeGray}`}>
+                          #{div.urutan}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={tableStyles.actionCell}>
+                          <button
+                            onClick={() => openModal(div)}
+                            className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
+                            title="Edit"
+                          >
+                            <FiEdit />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(div.id)}
+                            className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
+                            title="Hapus"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
 
-      {/* --- FORM INI YANG DIPERBAIKI --- */}
+      {/* MODAL FORM */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingId ? "Edit Divisi" : "Tambah Divisi Baru"}
+        title={editingId ? "Edit Divisi" : "Tambah Divisi"}
       >
-        <form onSubmit={handleSubmit}>
-          {/* Gunakan Grid System dari AdminForm.module.css */}
-          <div className={formStyles.formGrid}>
-            {/* Nama Divisi (Lebar: 8 kolom) */}
-            <FormInput
-              label="Nama Divisi"
-              name="nama_divisi"
-              value={formData.nama_divisi || ""}
-              onChange={handleFormChange}
-              required
-              span={8}
-            />
-
-            {/* Urutan (Lebar: 4 kolom) */}
-            <FormInput
-              label="Urutan"
-              name="urutan"
-              type="number"
-              value={formData.urutan || ""}
-              onChange={handleFormChange}
-              span={4}
-            />
-
-            {/* Periode (Lebar: Full 12 kolom) */}
-            <FormInput
-              label="Periode Jabatan"
-              name="periode_id"
-              type="select"
-              value={formData.periode_id || ""}
-              onChange={handleFormChange}
-              required
-              span={12}
-            >
-              <option value="">-- Pilih Periode --</option>
-              {periodeList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nama_kabinet}
-                </option>
-              ))}
-            </FormInput>
-
-            {/* Deskripsi (Lebar: Full 12 kolom) */}
-            <FormInput
-              label="Deskripsi / Tugas"
-              name="deskripsi"
-              type="textarea"
-              value={formData.deskripsi || ""}
-              onChange={handleFormChange}
-              span={12}
-              rows={3}
-              placeholder="Jelaskan tugas utama divisi ini..."
-            />
-
-            {/* Upload Logo (Custom Style dari CSS Module) */}
-            <div className={formStyles.colSpan12}>
-              <label className={formStyles.formLabel}>
-                Logo Divisi (Opsional)
-              </label>
-              <div className={formStyles.uploadRow}>
-                <div className={formStyles.previewBox}>
-                  {preview ? (
-                    <img src={preview} alt="Logo" />
-                  ) : (
-                    <FiImage size={24} color="#ccc" />
-                  )}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label
-                    className={formStyles.uploadBtn}
-                    style={{ width: "fit-content" }}
-                  >
-                    Pilih File
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      hidden
-                    />
-                  </label>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#94a3b8",
-                      marginLeft: "0.5rem",
-                    }}
-                  >
-                    Max 200KB
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Tombol */}
-          <div className={formStyles.formFooter}>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="button button-secondary"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={modalLoading}
-            >
-              {modalLoading ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
-        </form>
+        <DivisiForm
+          formData={formData}
+          onChange={handleFormChange}
+          onFileChange={handleFileChange}
+          preview={formPreview}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+          loading={modalLoading}
+          periodeList={periodes}
+        />
       </Modal>
+
+      {/* MODAL REORDER (Dibungkus Modal karena kontennya polos) */}
+      {showReorderModal && (
+        <Modal
+          isOpen={showReorderModal}
+          onClose={() => setShowReorderModal(false)}
+          title="Atur Urutan Divisi"
+        >
+          <DivisiReorderModal
+            isOpen={true}
+            onClose={() => setShowReorderModal(false)}
+            divisiList={divisions}
+            activePeriodeId={activeTab}
+            onSuccess={() => fetchDivisi(activeTab)}
+          />
+        </Modal>
+      )}
     </PageContainer>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useAdminTable } from "../hooks/useAdminTable";
+import PeriodeForm from "../components/forms/PeriodeForm.jsx";
 
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
@@ -346,82 +347,19 @@ function KelolaPeriode() {
       </div>
 
       {/* MODAL FORM */}
+      {/* MODAL FORM */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? "Edit Periode" : "Tambah Periode Baru"}
       >
-        <form onSubmit={handleSubmit}>
-          <div className={formStyles.formGrid}>
-            <FormInput
-              label="Nama Kabinet"
-              name="nama_kabinet"
-              value={formData.nama_kabinet || ""}
-              onChange={handleFormChange}
-              required
-              span={12}
-              placeholder="Contoh: Kabinet Pembaharu"
-            />
-            <div className={formStyles.colSpan4}>
-              <FormInput
-                label="Tahun Mulai"
-                name="tahun_mulai"
-                type="number"
-                value={formData.tahun_mulai || ""}
-                onChange={handleFormChange}
-                required
-              />
-            </div>
-            <div className={formStyles.colSpan4}>
-              <FormInput
-                label="Tahun Selesai"
-                name="tahun_selesai"
-                type="number"
-                value={formData.tahun_selesai || ""}
-                onChange={handleFormChange}
-                required
-              />
-            </div>
-            <div className={formStyles.colSpan4}>
-              <FormInput
-                label="Status"
-                name="is_active"
-                type="select"
-                value={formData.is_active}
-                onChange={handleFormChange}
-              >
-                <option value={false}>Arsip</option>
-                <option value={true}>Aktif</option>
-              </FormInput>
-            </div>
-            <FormInput
-              label="Motto Kabinet"
-              name="motto_kabinet"
-              type="textarea"
-              value={formData.motto_kabinet || ""}
-              onChange={handleFormChange}
-              span={12}
-              rows={2}
-              placeholder="Slogan atau visi singkat..."
-            />
-          </div>
-          <div className={formStyles.formFooter}>
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="button button-secondary"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={modalLoading}
-            >
-              {modalLoading ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
-        </form>
+        <PeriodeForm
+          formData={formData}
+          onChange={handleFormChange}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsModalOpen(false)}
+          loading={modalLoading}
+        />
       </Modal>
     </PageContainer>
   );

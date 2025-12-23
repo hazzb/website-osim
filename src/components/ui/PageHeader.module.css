@@ -1,0 +1,166 @@
+/* Container Utama */
+.headerContainer {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: #f8fafc;
+    padding: 1rem 1.5rem;
+    margin: 0 -1.5rem 1.5rem -1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); /* Sedikit shadow agar terpisah */
+  }
+  
+  /* Baris 1: Judul & Action Buttons (Tetap Sama) */
+  .topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .titleGroup { flex: 1; min-width: 200px; }
+  .title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0; }
+  .subtitle { font-size: 0.9rem; color: #64748b; margin: 0; }
+  .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  
+  /* Baris 2: Control Row (Search + Toggle Button) - BARU */
+  .controlRow {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+  
+  /* Tombol Toggle Filter */
+  .filterToggleBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.6rem 1rem;
+    background-color: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 38px; /* Samakan tinggi dengan input search */
+    white-space: nowrap;
+  }
+  
+  .filterToggleBtn:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+  }
+  
+  .filterToggleBtn.active {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+    color: #2563eb;
+  }
+  
+  /* Area Search (Agar melebar) */
+  .searchWrapper {
+    flex: 1;
+    position: relative;
+  }
+  
+  /* Baris 3: Area Filter (Collapsible) - BARU */
+  .filterArea {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #e2e8f0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    animation: slideDown 0.2s ease-out;
+  }
+  
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Responsive */
+  @media (max-width: 640px) {
+    .topRow { flex-direction: column; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-top: 0.5rem; }
+    .controlRow { flex-direction: row; } /* Search & Filter tetap sebaris di HP */
+  }
+
+  .controlRow {
+    display: flex;
+    gap: 0.5rem; /* Jarak antar elemen diperkecil */
+    align-items: center;
+  }
+  
+  /* Tombol Toggle Opsi (Mirip Filter tapi beda warna hover) */
+  .optionToggleBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.6rem 1rem;
+    background-color: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 38px;
+    white-space: nowrap;
+  }
+  
+  .optionToggleBtn:hover {
+    background-color: #f8fafc;
+    border-color: #64748b;
+    color: #1e293b;
+  }
+  
+  .optionToggleBtn.active {
+    background-color: #f3e8ff; /* Ungu Muda */
+    border-color: #a855f7;
+    color: #7e22ce;
+  }
+  
+  /* Area Opsi (Collapsible) */
+  .optionsArea {
+    margin-top: 0.5rem;
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    animation: slideDown 0.2s ease-out;
+  }
+  
+  /* Responsif: Search bar ambil sisa ruang */
+  .searchWrapper {
+    flex: 1;
+    position: relative;
+    min-width: 150px;
+  }
+  
+  /* Tombol di dalam area opsi agar seragam */
+  .optionsArea button {
+    flex: 1;
+    min-width: fit-content; /* Agar teks tidak terpotong */
+    justify-content: center;
+  }
+  
+  @media (max-width: 640px) {
+    /* Di HP, tombol opsi dan filter berbagi ruang */
+    .filterToggleBtn, .optionToggleBtn {
+      padding: 0.6rem 0.8rem; /* Sedikit lebih kecil paddingnya */
+    }
+    .optionsArea button {
+      width: 100%; /* Tombol opsi jadi full width di menu */
+    }
+  }

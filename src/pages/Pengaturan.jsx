@@ -87,7 +87,11 @@ function Pengaturan() {
   // 3. Handler Input File (Khusus Logo)
   const handleFileChange = (e, fieldName) => {
     const file = e.target.files[0];
+
     if (file) {
+      // --- KITA HAPUS BAGIAN VALIDASI ALERT DISINI ---
+      // Biarkan helper yang bekerja mengompresnya.
+
       // Simpan file ke state files
       setFiles((prev) => ({ ...prev, [fieldName]: file }));
       // Buat preview URL
@@ -108,13 +112,13 @@ function Pengaturan() {
 
       // A. Upload Logo Sekolah (Jika ada file baru)
       if (files.logo_sekolah) {
-        const url = await uploadImage(files.logo_sekolah, "assets");
+        const url = await uploadImage(files.logo_sekolah, "assets", 0.2);
         updatedData.logo_sekolah_url = url;
       }
 
       // B. Upload Logo OSIS (Jika ada file baru)
       if (files.logo_osis) {
-        const url = await uploadImage(files.logo_osis, "assets");
+        const url = await uploadImage(files.logo_osis, "assets", 0.2);
         updatedData.logo_osis_url = url;
       }
 
@@ -259,7 +263,7 @@ function Pengaturan() {
                 accept="image/*"
                 onChange={(e) => handleFileChange(e, "logo_sekolah")}
                 preview={previews.logo_sekolah}
-                helper="Format PNG transparan disarankan."
+                helper="Maksimal 200 KB. Format PNG transparan."
               />
             </div>
 
@@ -271,7 +275,7 @@ function Pengaturan() {
                 accept="image/*"
                 onChange={(e) => handleFileChange(e, "logo_osis")}
                 preview={previews.logo_osis}
-                helper="Format PNG transparan disarankan."
+                helper="Maksimal 200 KB. Format PNG transparan."
               />
             </div>
           </div>

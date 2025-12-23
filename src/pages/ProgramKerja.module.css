@@ -1,77 +1,123 @@
 /* src/pages/ProgramKerja.module.css */
 
-/* --- HEADER & ADMIN CONTROLS --- */
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+/* --- CONTAINER UTAMA --- */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: #f8fafc;
+  padding: 1rem 1.5rem;
+  margin: 0 -1.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.admin-controls {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
-  margin-bottom: 2rem;
-
+.headerTop {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
-.admin-toggles {
+.headerTitleGroup {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* JUDUL HALAMAN (KECIL - SAMA DENGAN ANGGOTA) */
+.pageTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.pageSubtitle {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ADMIN CONTROLS (TOMBOL & TOGGLE) */
+.adminControls {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
-.admin-controls-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-right: 0.5rem;
+/* GRID TOMBOL (RESPONSIF) */
+@media (max-width: 640px) {
+  .headerTop {
+    flex-direction: column;
+  }
+  .adminControls {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
+/* --- TOMBOL MODERN --- */
+.modernButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.modernButton:hover { opacity: 0.9; }
+.btnGreen { background-color: #10b981; }
+
 /* --- TOGGLE SWITCH (Custom) --- */
-.toggle-wrapper {
+.toggleWrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
   user-select: none;
-  opacity: 0.6;
+  opacity: 0.7;
   transition: opacity 0.2s;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
 }
 
-.toggle-wrapper:hover {
-  opacity: 0.8;
-}
-.toggle-wrapper.active {
+.toggleWrapper:hover {
   opacity: 1;
+  background-color: #f1f5f9;
+}
+.toggleWrapper.active {
+  opacity: 1;
+  border-color: #e2e8f0;
+  background-color: white;
 }
 
-.toggle-switch {
-  width: 36px;
-  height: 20px;
+.toggleSwitch {
+  width: 32px;
+  height: 18px;
   background-color: #cbd5e0;
   border-radius: 99px;
   position: relative;
   transition: background-color 0.2s;
 }
 
-.toggle-wrapper.active .toggle-switch {
-  background-color: #3182ce;
+.toggleWrapper.active .toggleSwitch {
+  background-color: #3b82f6;
 }
 
-.toggle-knob {
-  width: 16px;
-  height: 16px;
+.toggleKnob {
+  width: 14px;
+  height: 14px;
   background-color: white;
   border-radius: 50%;
   position: absolute;
@@ -81,28 +127,28 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.toggle-wrapper.active .toggle-knob {
-  transform: translateX(16px);
+.toggleWrapper.active .toggleKnob {
+  transform: translateX(14px);
 }
 
-.toggle-label {
-  font-size: 0.85rem;
+.toggleLabel {
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #4a5568;
+  color: #475569;
 }
 
 /* --- PREVIEW BUTTON --- */
-.preview-toggle-wrapper {
+.previewToggleWrapper {
   margin-left: auto;
 }
 
-.preview-btn {
+.previewBtn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   background: white;
   border: 1px solid #cbd5e0;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 8px;
   cursor: pointer;
   color: #4a5568;
@@ -111,166 +157,91 @@
   transition: all 0.2s;
 }
 
-.preview-btn:hover {
-  border-color: #a0aec0;
+.previewBtn:hover {
   background-color: #f7fafc;
 }
-.preview-btn.active {
+.previewBtn.active {
   background-color: #ebf8ff;
-  border-color: #3182ce;
-  color: #2b6cb0;
+  border-color: #3b82f6;
+  color: #2563eb;
 }
 
-/* --- SECTIONS (Timeline) --- */
-.content-wrapper {
+/* --- CONTENT SECTIONS --- */
+.contentWrapper {
+  padding-top: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 4rem; /* Jarak antar section diperlebar agar masonry terlihat */
-  margin-top: 2rem;
+  gap: 3rem;
 }
 
-.timeline-section {
-  position: relative;
-  animation: fadeIn 0.6s ease-out forwards;
+.timelineSection {
+  animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 2px solid #f1f5f9;
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin: 0;
+.sectionHeader {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f1f5f9;
 }
 
-.title-icon {
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
   display: flex;
   align-items: center;
-  font-size: 1.6rem;
+  gap: 0.6rem;
 }
 
 /* Warna Judul */
-.title-akan-datang {
-  color: #d97706;
-}
-.title-akan-datang .title-icon {
-  color: #d97706;
-}
+.titleAkanDatang { color: #d97706; }
+.titleRencana { color: #64748b; }
+.titleSelesai { color: #059669; }
 
-.title-rencana {
-  color: #64748b;
-}
-.title-rencana .title-icon {
-  color: #94a3b8;
-}
-
-.title-selesai {
-  color: #059669;
-}
-.title-selesai .title-icon {
-  color: #10b981;
-}
-
-.section-count {
+.sectionCount {
   background: #f1f5f9;
   color: #64748b;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 99px;
-}
-
-.hidden-badge {
-  margin-left: auto;
   font-size: 0.75rem;
-  color: #e53e3e;
-  border: 1px solid #feb2b2;
-  background: #fff5f5;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-weight: 600;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
-/* --- MASONRY LAYOUT (MAGIC HAPPENS HERE) --- */
-.progja-grid {
-  /* Menggunakan CSS Columns untuk efek Masonry Murni */
-  column-count: 3; /* Desktop: 3 Kolom */
-  column-gap: 1.5rem; /* Jarak antar kolom */
+/* --- MASONRY GRID --- */
+.progjaGrid {
+  column-count: 3; 
+  column-gap: 1.5rem;
 }
 
-/* Card Wrapper agar tidak terpotong antar kolom */
-.progja-grid > div {
-  /* Asumsi card dibungkus div */
-  break-inside: avoid; /* Mencegah item terpotong */
-  margin-bottom: 1.5rem; /* Jarak bawah antar item */
-  display: inline-block; /* Penting untuk break-inside */
+.progjaGrid > div {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  display: inline-block;
   width: 100%;
 }
 
+@media (max-width: 1024px) {
+  .progjaGrid { column-count: 2; }
+}
+@media (max-width: 768px) {
+  .progjaGrid { column-count: 1; }
+}
+
 /* --- EMPTY STATE --- */
-.empty-state {
+.emptyState {
   text-align: center;
   padding: 4rem 1rem;
   background: #f9fafb;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 2px dashed #e2e8f0;
   margin-top: 2rem;
-}
-
-.empty-icon {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
-  display: block;
-}
-.empty-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-}
-.empty-desc {
-  color: #718096;
-}
-
-/* --- RESPONSIVE --- */
-@media (max-width: 1024px) {
-  .progja-grid {
-    column-count: 2; /* Tablet: 2 Kolom */
-  }
-}
-
-@media (max-width: 768px) {
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .admin-controls {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .progja-grid {
-    column-count: 1; /* Mobile: 1 Kolom (Stack) */
-  }
+  color: #64748b;
 }

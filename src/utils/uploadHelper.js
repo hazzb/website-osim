@@ -1,20 +1,19 @@
-// src/utils/uploadHelper.js
 import { supabase } from "../supabaseClient";
+import imageCompression from "browser-image-compression";
 
 /**
- * Fungsi reusable untuk upload gambar
- * @param {File} file - File objek dari input
- * @param {string} folder - Nama folder di bucket (misal: 'anggota', 'divisi')
- * @param {number} maxSizeMB - Batas ukuran dalam MB (Default 1MB)
- * @returns {Promise<string>} - Mengembalikan URL Publik gambar
+ * Upload Image dengan Smart Compression (WebP High Quality)
+ * @param {File} file - File asli
+ * @param {string} folder - Folder tujuan
+ * @param {number} maxSizeMB - Target size (Default 1MB)
+ * @returns {Promise<string>} - Public URL
  */
 export const uploadImage = async (file, folder, maxSizeMB = 1) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // 1. Validasi Keberadaan File
       if (!file) return reject("Tidak ada file yang dipilih.");
 
-      // 2. Validasi Tipe File
+      // Validasi tipe file awal
       const allowedTypes = [
         "image/jpeg",
         "image/png",
@@ -25,27 +24,78 @@ export const uploadImage = async (file, folder, maxSizeMB = 1) => {
         return reject("Format file tidak valid. Gunakan JPG, PNG, atau WEBP.");
       }
 
-      // 3. Validasi Ukuran File
-      const maxSizeBytes = maxSizeMB * 1024 * 1024;
-      if (file.size > maxSizeBytes) {
-        return reject(`Ukuran file terlalu besar. Maksimal ${maxSizeMB} MB.`);
+      console.log(`Original: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+
+      // --- KONFIGURASI SMART COMPRESSION ---
+      const options = {
+        maxSizeMB: maxSizeMB,
+
+        // 1. Resize Dimensi:
+        // Untuk Logo/Foto Profil, 1280px sudah sangat tajam (HD).
+        // Jangan biarkan 4000px lolos, itu yang bikin size bengkak.
+        maxWidthOrHeight: 1280,
+
+        // 2. Gunakan WebP:
+        // WebP punya kualitas jauh lebih bagus di ukuran kecil dibanding JPG/PNG
+        fileType: "image/webp",
+
+        // 3. Jaga Kualitas:
+        // Mulai dari 80%. Library akan menurunkannya pelan-pelan HANYA jika masih > maxSizeMB
+        initialQuality: 0.8,
+
+        useWebWorker: true,
+      };
+
+      let fileToUpload = file;
+
+      try {
+        // Lakukan Kompresi
+        const compressedFile = await imageCompression(file, options);
+
+        console.log(
+          `Compressed (WebP): ${(compressedFile.size / 1024 / 1024).toFixed(
+            2
+          )} MB`
+        );
+
+        // Gunakan file kompresi (kecuali jika entah kenapa malah jadi lebih besar)
+        if (compressedFile.size < file.size) {
+          fileToUpload = compressedFile;
+        }
+      } catch (err) {
+        console.warn("Kompresi gagal/dilewati, menggunakan file asli.", err);
       }
 
-      // 4. Generate Nama Unik
-      const fileExt = file.name.split(".").pop();
+      // Validasi Akhir (Hard Limit)
+      // Kita beri toleransi sedikit (10%) dari batas yang diminta biar gak strict banget
+      const limitBytes = maxSizeMB * 1024 * 1024 * 1.1;
+
+      if (fileToUpload.size > limitBytes) {
+        // Jika masih kegedean, kita reject.
+        // Tips: Jika logo Anda 0.2MB masih pecah, berarti gambar aslinya terlalu rumit.
+        return reject(
+          `Gagal mengompres gambar hingga cukup kecil (${maxSizeMB} MB). Coba resize dimensi gambar Anda terlebih dahulu.`
+        );
+      }
+
+      // --- UPLOAD KE SUPABASE ---
+      // Pastikan ekstensi file jadi .webp karena kita convert ke WebP
+      const fileExt = "webp";
       const fileName = `${Date.now()}_${Math.random()
         .toString(36)
         .substring(2, 9)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
 
-      // 5. Upload ke Supabase
       const { error: uploadError } = await supabase.storage
-        .from("logos") // Pastikan nama bucket Anda 'logos'
-        .upload(filePath, file);
+        .from("logos") // Pastikan nama bucket Anda benar
+        .upload(filePath, fileToUpload, {
+          contentType: "image/webp", // Pastikan metadata benar
+          cacheControl: "3600",
+          upsert: false,
+        });
 
       if (uploadError) throw uploadError;
 
-      // 6. Ambil Public URL
       const { data } = supabase.storage.from("logos").getPublicUrl(filePath);
 
       resolve(data.publicUrl);
