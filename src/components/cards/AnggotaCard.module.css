@@ -1,18 +1,15 @@
-/* CONTAINER KARTU UTAMA */
+/* --- CARD STYLES --- */
 .card {
-  position: relative; /* Penting untuk posisi badge & overlay */
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  
-  /* Padding dikurangi sedikit agar compact */
   padding: 1.5rem 1rem; 
-  height: 100%; /* Agar tinggi kartu seragam dalam grid */
+  height: 100%;
   background-color: white;
   border: 1px solid #e2e8f0;
 }
@@ -22,164 +19,209 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 }
 
-/* TEMA WARNA GENDER (Sesuai file asli Anda) */
-.cardIkhwan {
-  background-color: #f0f9ff; /* Biru sangat muda */
-  border-color: #bae6fd;
-}
+.cardIkhwan { background-color: #f0f9ff; border-color: #bae6fd; }
+.cardAkhwat { background-color: #fff1f2; border-color: #fecdd3; }
 
-.cardAkhwat {
-  background-color: #fff1f2; /* Merah muda sangat muda */
-  border-color: #fecdd3;
-}
-
-/* BADGE PERIODE (Melayang di Pojok Kanan Atas) */
+/* Badge Periode */
 .periodeBadge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-  
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
-  
+  top: 10px; right: 10px; z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
   color: #475569;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 99px;
+  font-size: 0.7rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px;
   border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* AREA GAMBAR (WRAPPER) */
+/* Image Wrapper */
 .imageWrapper {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 90px; height: 90px;
   margin-bottom: 1rem;
 }
 
-.cardImage, .imagePlaceholder {
-  width: 100%;
-  height: 100%;
+/* FOTO AGAR BISA DI-ZOOM */
+.cardImage {
+  width: 100%; height: 100%;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid white;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  
+  /* Kursor Zoom */
+  cursor: zoom-in; 
+  transition: transform 0.2s;
+}
+
+.cardImage:hover {
+  transform: scale(1.05); /* Efek membesar dikit saat hover */
 }
 
 .imagePlaceholder {
+  width: 100%; height: 100%;
+  border-radius: 50%;
   background-color: #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   color: #94a3b8;
+  border: 3px solid white;
 }
 
-/* OVERLAY TOMBOL ADMIN (Edit/Hapus) */
+/* Admin Overlay */
 .adminOverlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  border-radius: 50%;
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  border-radius: 50%; 
   background-color: rgba(0, 0, 0, 0.6);
   
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
   gap: 8px;
   
-  opacity: 0;
+  opacity: 0; 
   transition: opacity 0.2s ease;
+
+  /* --- PERBAIKAN UTAMA DI SINI --- */
+  /* Membuat overlay ini "tembus" klik, sehingga klik jatuh ke gambar di belakangnya */
+  pointer-events: none; 
 }
 
-.imageWrapper:hover .adminOverlay {
-  opacity: 1;
+.imageWrapper:hover .adminOverlay { 
+  opacity: 1; 
 }
 
 .actionBtn {
-  background: white;
-  border: none;
-  width: 28px;
+  background: white; 
+  border: none; 
+  width: 28px; 
   height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
   justify-content: center;
-  cursor: pointer;
-  color: #2563eb;
+  cursor: pointer; 
+  color: #2563eb; 
   transition: transform 0.1s;
+
+  /* --- PERBAIKAN UTAMA DI SINI --- */
+  /* Mengaktifkan kembali klik KHUSUS untuk tombol ini */
+  pointer-events: auto; 
 }
 .actionBtn:hover { transform: scale(1.1); }
-
 .deleteBtn { color: #ef4444; }
 
-/* KONTEN TEKS */
+/* Content */
 .cardContent {
-  width: 100%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1; /* Mengisi sisa ruang ke bawah */
+  width: 100%; text-align: center; display: flex; flex-direction: column; flex-grow: 1;
 }
-
 .name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 0.25rem 0;
-  
-  /* Truncate jika nama terlalu panjang */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0 0 0.25rem 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
 .jabatan {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.8rem;
-  color: #475569;
-  margin-bottom: 0.5rem;
+  display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; color: #475569; margin-bottom: 0.5rem;
 }
-
-.subJabatan {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-style: italic;
-}
-
+.subJabatan { font-size: 0.75rem; color: #64748b; font-style: italic; }
 .motto {
-  font-size: 0.75rem;
-  color: #64748b;
-  font-style: italic;
-  margin: 0.5rem 0 auto 0; /* Margin auto bawah mendorong elemen sosmed ke paling bawah */
-  line-height: 1.4;
-  
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Batasi 2 baris */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 0.75rem; color: #64748b; font-style: italic;
+  margin: 0.5rem 0 auto 0; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-
+.alamatRow {
+  font-size: 0.7rem; color: #64748b; margin-top: 0.5rem;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
 .socialLink {
-  margin-top: 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #d946ef; /* Warna Instagram Pink/Ungu */
-  text-decoration: none;
-  padding: 4px 10px;
-  border-radius: 99px;
-  background-color: rgba(255,255,255,0.6);
+  margin-top: 0.8rem; display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.75rem; font-weight: 600; color: #d946ef; text-decoration: none;
+  padding: 4px 10px; border-radius: 99px; background-color: rgba(255,255,255,0.6);
   transition: all 0.2s;
 }
+.socialLink:hover { background-color: white; color: #c026d3; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-.socialLink:hover {
-  background-color: white;
-  color: #c026d3;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+/* --- LIGHTBOX (FULLSCREEN OVERLAY) --- */
+.lightboxOverlay {
+  position: fixed; /* Menutupi layar */
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  
+  /* Z-Index Sangat Tinggi */
+  z-index: 99999 !important; 
+  
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+  backdrop-filter: blur(5px);
 }
+
+.lightboxContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.lightboxImage {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+  border: 2px solid white;
+}
+
+.closeButton {
+  position: absolute;
+  
+  /* Posisi di pojok kanan atas gambar */
+  top: 15px;
+  right: 15px;
+  
+  /* Pastikan di atas gambar */
+  z-index: 20; 
+  
+  /* Styling Tombol */
+  background-color: rgba(0, 0, 0, 0.5); /* Hitam transparan agar terlihat di foto terang */
+  border: 2px solid rgba(255, 255, 255, 0.5); /* Border putih tipis */
+  color: white;
+  width: 40px; 
+  height: 40px; 
+  border-radius: 50%;
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(2px); /* Efek blur di belakang tombol */
+}
+
+.closeButton:hover {
+  background-color: rgba(220, 38, 38, 0.9); /* Merah saat hover */
+  border-color: rgba(220, 38, 38, 0.9);
+  transform: scale(1.1); /* Efek membesar sedikit */
+}
+
+/* Responsif untuk layar kecil (HP) */
+@media (max-width: 640px) {
+    .closeButton {
+       top: 10px;
+       right: 10px;
+       width: 36px;
+       height: 36px;
+    }
+}
+.lightboxCaption {
+  margin-top: 1rem;
+  color: white;
+  text-align: center;
+}
+.lightboxCaption h3 { margin: 0; font-size: 1.2rem; }
+.lightboxCaption p { margin: 0.2rem 0 0; opacity: 0.8; font-size: 0.9rem; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
