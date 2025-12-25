@@ -15,7 +15,7 @@ import {
   FiCalendar,
   FiTarget,
   FiCheckCircle,
-  FiSearch, // <--- SUDAH DITAMBAHKAN
+  FiSearch,
 } from "react-icons/fi";
 
 // COMPONENTS
@@ -25,7 +25,7 @@ import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import Modal from "../components/Modal.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
-// --- KOMPONEN TOGGLE (TETAP SAMA) ---
+// --- KOMPONEN TOGGLE ---
 function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   return (
     <div
@@ -41,7 +41,7 @@ function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
   );
 }
 
-// --- HELPER INSTAGRAM EMBED (TETAP SAMA) ---
+// --- HELPER INSTAGRAM ---
 function processInstagramEmbeds() {
   if (window.instgrm?.Embeds?.process) {
     window.instgrm.Embeds.process();
@@ -62,15 +62,19 @@ function ProgramKerja() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // --- STATES (TETAP SAMA) ---
+  // --- STATES DATA ---
   const [progjaList, setProgjaList] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Dropdown Data
   const [divisiOptions, setDivisiOptions] = useState([]);
+  const [periodeOptions, setPeriodeOptions] = useState([]); // State untuk list periode
 
-  // Filter States
+  // --- FILTER STATES ---
   const [selectedStatus, setSelectedStatus] = useState("semua");
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
-  const [searchTerm, setSearchTerm] = useState(""); // State untuk Search
+  const [selectedPeriode, setSelectedPeriode] = useState("semua"); // Default "semua"
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Admin Settings
   const [pengaturan, setPengaturan] = useState({
@@ -87,12 +91,12 @@ function ProgramKerja() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
 
-  // Dropdowns
+  // Form Dropdowns
   const [formPeriodeList, setFormPeriodeList] = useState([]);
   const [formDivisiList, setFormDivisiList] = useState([]);
   const [formAnggotaList, setFormAnggotaList] = useState([]);
 
-  // --- FETCH DATA (TETAP SAMA) ---
+  // --- FETCH DATA ---
   useEffect(() => {
     fetchData();
   }, []);
@@ -100,9 +104,15 @@ function ProgramKerja() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // 1. Load Settings
       const { data: settings } = await supabase.from("pengaturan").select("*").eq("id", 1).single();
       if (settings) setPengaturan(settings);
 
+      // 2. Load Periode List (Untuk Filter)
+      const { data: periodes } = await supabase.from("periode_jabatan").select("id, nama_kabinet, tahun_mulai").order("tahun_mulai", { ascending: false });
+      setPeriodeOptions(periodes || []);
+
+      // 3. Load All Progja
       const { data: progja, error } = await supabase.from("program_kerja_detail_view").select("*").order("tanggal", { ascending: false });
       if (error) throw error;
 
@@ -126,15 +136,15 @@ function ProgramKerja() {
     setFormAnggotaList(a || []);
   };
 
-  // --- EFFECTS (TETAP SAMA) ---
+  // --- EFFECTS ---
   const progjaListRef = useRef(progjaList);
   useEffect(() => {
     progjaListRef.current = progjaList;
     const timer = setTimeout(processInstagramEmbeds, 500);
     return () => clearTimeout(timer);
-  }, [progjaList, selectedStatus, selectedDivisi]);
+  }, [progjaList, selectedStatus, selectedDivisi, selectedPeriode]);
 
-  // --- HANDLERS (TETAP SAMA) ---
+  // --- HANDLERS ---
   const handleToggleSetting = async (key, newValue) => {
     setIsSavingSetting(true);
     setPengaturan((prev) => ({ ...prev, [key]: newValue }));
@@ -224,12 +234,19 @@ function ProgramKerja() {
   }, [visibleStatusOptions, selectedStatus]);
 
   const filteredList = progjaList.filter((item) => {
+    // 1. Filter Divisi
     if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi) return false;
+    
+    // 2. Filter Status
     if (selectedStatus !== "semua" && item.status !== selectedStatus) return false;
     
-    // Filter Search
+    // 3. Filter Periode (BARU)
+    if (selectedPeriode !== "semua" && String(item.periode_id) !== String(selectedPeriode)) return false;
+
+    // 4. Filter Search
     if (searchTerm !== "" && !item.nama_acara.toLowerCase().includes(searchTerm.toLowerCase())) return false;
 
+    // 5. Filter Visibility (Public/Admin)
     if (!isAdmin || viewPublicMode) {
       if (item.tampilkan_di_publik === false) return false;
       if (item.status === "Rencana" && !pengaturan.tampilkan_progja_rencana) return false;
@@ -241,7 +258,7 @@ function ProgramKerja() {
 
   const getListBySection = (status) => filteredList.filter((item) => item.status === status);
 
-  // --- RENDER SECTION HELPER ---
+  // --- RENDER SECTION ---
   const renderSection = (title, list, statusKey, cssClass, Icon) => {
     const isGlobalVisible = pengaturan[statusKey] !== false;
     if (list.length === 0) return null;
@@ -276,7 +293,6 @@ function ProgramKerja() {
     );
   };
 
-  // --- MAIN RENDER ---
   return (
     <PageContainer breadcrumbText="Program Kerja">
       
@@ -284,7 +300,7 @@ function ProgramKerja() {
         title="Program Kerja"
         subtitle="Agenda Kegiatan & Event"
         
-        actions={null} // Kosongkan actions utama agar rapi
+        actions={null} 
 
         // SEARCH BAR
         searchBar={
@@ -295,7 +311,7 @@ function ProgramKerja() {
               placeholder="Cari acara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", border: "1px solid #cbd5e0", borderRadius: "8px", fontSize: "0.9rem", height: "38px" }}
+              style={{ width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", border: "1px solid #cbd5e0", borderRadius: "8px", fontSize: "0.9rem", height: "34px" }}
             />
           </div>
         }
@@ -303,15 +319,12 @@ function ProgramKerja() {
         // MENU OPSI
         options={isAdmin && (
           <>
-             {/* Tombol Utama */}
              <button onClick={() => openModal()} className={`${styles.modernButton} ${styles.btnGreen}`} style={{width:'100%'}}>
                 <FiPlus /> Tambah Program Kerja
              </button>
              
-             {/* Divider Kecil */}
              <div style={{width:'100%', height:'1px', background:'#e2e8f0', margin:'0.5rem 0'}}></div>
              
-             {/* Toggle Settings */}
              <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', width:'100%'}}>
                 <span style={{fontSize:'0.85rem', fontWeight:600, color:'#64748b'}}>Tampilan:</span>
                 <AdminToggle label="Akan Datang" isEnabled={pengaturan.tampilkan_progja_akan_datang !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_akan_datang", v)} isSaving={isSavingSetting} />
@@ -321,7 +334,7 @@ function ProgramKerja() {
           </>
         )}
 
-        // FILTER (Status & Divisi)
+        // FILTER (Status, Periode, Divisi)
         filters={
           <>
             <div style={{ width: '100%' }}>
@@ -332,12 +345,24 @@ function ProgramKerja() {
                   ))}
                </div>
             </div>
+
+            {/* Filter Periode (Baru Ditambahkan) */}
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <FilterSelect label="Periode" value={selectedPeriode} onChange={(e) => setSelectedPeriode(e.target.value)}>
+                <option value="semua">Semua Periode</option>
+                {periodeOptions.map((p) => (
+                  <option key={p.id} value={p.id}>{p.nama_kabinet} ({p.tahun_mulai})</option>
+                ))}
+              </FilterSelect>
+            </div>
+
             <div style={{ flex: 1, minWidth: '200px' }}>
               <FilterSelect label="Divisi" value={selectedDivisi} onChange={(e) => setSelectedDivisi(e.target.value)}>
                 <option value="semua">Semua Divisi</option>
                 {divisiOptions.map((div, idx) => <option key={idx} value={div}>{div}</option>)}
               </FilterSelect>
             </div>
+
             {isAdmin && (
               <div className={styles.previewToggleWrapper} style={{ marginLeft: 'auto' }}>
                 <button className={`${styles.previewBtn} ${viewPublicMode ? styles.active : ""}`} onClick={() => setViewPublicMode(!viewPublicMode)}>

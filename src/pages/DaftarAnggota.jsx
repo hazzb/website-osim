@@ -3,11 +3,11 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
-// UI Components
+// Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-import PageHeader from "../components/ui/PageHeader.jsx"; // <--- IMPORT KOMPONEN HEADER STANDAR
+import PageHeader from "../components/ui/PageHeader.jsx";
 import { AnggotaSkeletonGrid } from "../components/ui/Skeletons.jsx";
-import { FilterBar, FilterSelect } from "../components/ui/FilterBar.jsx"; // Kita tetap pakai FilterSelect
+import { FilterSelect } from "../components/ui/FilterBar.jsx"; 
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import Modal from "../components/Modal.jsx";
 
@@ -16,7 +16,7 @@ import AnggotaForm from "../components/forms/AnggotaForm.jsx";
 import DivisiForm from "../components/forms/DivisiForm.jsx";
 import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
 import JabatanManager from "../components/admin/JabatanManager.jsx";
-import PeriodeForm from "../components/forms/PeriodeForm.jsx";
+import KabinetWizard from "../components/admin/KabinetWizard.jsx";
 
 // Styles
 import styles from "./DaftarAnggota.module.css";
@@ -31,27 +31,23 @@ import {
   FiPlus,
   FiEdit,
   FiBriefcase,
-  FiList
+  FiList,
+  FiZap
 } from "react-icons/fi";
 
 function DaftarAnggota() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // --- 1. STATE ---
+  // --- STATE ---
   const [periodeList, setPeriodeList] = useState([]);
   const [activeTab, setActiveTab] = useState(""); 
   
-  // Data Master
   const [allDivisi, setAllDivisi] = useState([]); 
   const [jabatanList, setJabatanList] = useState([]);
-  const [jabatanLinks, setJabatanLinks] = useState([]);
-  
-  // Data Filtered
   const [divisiPerPeriode, setDivisiPerPeriode] = useState([]); 
   const [anggotaList, setAnggotaList] = useState([]);
 
-  // UI Filter
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
   const [selectedGender, setSelectedGender] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,6 +55,7 @@ function DaftarAnggota() {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -66,7 +63,7 @@ function DaftarAnggota() {
   const [formFile, setFormFile] = useState(null);
   const [formPreview, setFormPreview] = useState(null);
 
-  // --- 2. FETCH INITIAL DATA ---
+  // --- FETCH DATA ---
   const fetchInitialData = useCallback(async () => {
     setLoading(true);
     try {
@@ -84,9 +81,6 @@ function DaftarAnggota() {
       const { data: jabatans } = await supabase.from("master_jabatan").select("*").order("nama_jabatan", { ascending: true });
       setJabatanList(jabatans || []);
 
-      const { data: links } = await supabase.from("divisi_jabatan_link").select("*");
-      setJabatanLinks(links || []);
-
     } catch (err) {
       console.error("Init Error:", err);
     } finally {
@@ -98,7 +92,6 @@ function DaftarAnggota() {
     fetchInitialData();
   }, []); 
 
-  // --- 3. FETCH ANGGOTA ---
   const fetchAnggota = useCallback(async (periodeId) => {
     if (!periodeId) return;
     setLoading(true);
@@ -127,7 +120,7 @@ function DaftarAnggota() {
     }
   }, [activeTab, fetchAnggota]);
 
-  // --- 4. HANDLERS ---
+  // --- HANDLERS ---
   const getModalTitle = () => {
     if (activeModal === "reorder_divisi") return "Atur Urutan Divisi";
     if (activeModal === "jabatan") return "Kelola Jabatan";
@@ -168,9 +161,7 @@ function DaftarAnggota() {
         setFormData({ nama: "", jenis_kelamin: "Ikhwan", periode_id: activeTab, divisi_id: selectedDivisi !== "semua" ? selectedDivisi : "", jabatan_id: "", instagram_username: "", alamat: "", motto: "" });
       } else if (type === "divisi") {
         setFormData({ nama_divisi: "", deskripsi: "", urutan: 10, periode_id: activeTab, tipe: "Umum" });
-      } else if (type === "periode") {
-        setFormData({ nama_kabinet: "", tahun_mulai: "", tahun_selesai: "", is_active: false, motto_kabinet: "" });
-      }
+      } 
     }
     setIsModalOpen(true);
   };
@@ -188,10 +179,7 @@ function DaftarAnggota() {
       let payload = {};
       let table = "";
 
-      if (activeModal === "periode") {
-        table = "periode_jabatan";
-        payload = { nama_kabinet: formData.nama_kabinet, tahun_mulai: parseInt(formData.tahun_mulai), tahun_selesai: parseInt(formData.tahun_selesai), is_active: formData.is_active === true || formData.is_active === "true", motto_kabinet: formData.motto_kabinet };
-      } else if (activeModal === "divisi") {
+      if (activeModal === "divisi") {
         table = "divisi";
         let logoUrl = formData.logo_url;
         if (formFile) logoUrl = await uploadImage(formFile, "divisi");
@@ -213,13 +201,11 @@ function DaftarAnggota() {
 
       alert("Berhasil disimpan!");
       
-      if (activeModal === "periode") fetchInitialData();
-      else if (activeModal === "anggota") await fetchAnggota(activeTab);
+      if (activeModal === "anggota") await fetchAnggota(activeTab);
       else { fetchInitialData(); fetchAnggota(activeTab); }
 
       closeModal();
     } catch (err) {
-      console.error("Submit Error:", err);
       alert("Gagal menyimpan: " + err.message);
     } finally {
       setModalLoading(false);
@@ -258,61 +244,101 @@ function DaftarAnggota() {
   return (
     <PageContainer breadcrumbText="Daftar Anggota">
       
-      {/* --- MENGGUNAKAN PAGE HEADER STANDAR --- */}
+      {/* HEADER COMPACT */}
       <PageHeader
         title="Daftar Anggota"
-        subtitle="Manajemen Personil"
+        subtitle="Manajemen Personil & Struktur"
         
-        // Actions dikosongkan (atau sisakan 1 tombol utama jika mau)
-        actions={null} 
-
-        // SEARCH BAR
+        // SEARCH & PERIODE FILTER (Sticky Bar)
         searchBar={
-          <div style={{ position: "relative", width: "100%" }}>
-            <FiSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
-            <input
-              type="text"
-              placeholder="Cari nama anggota..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
-            />
+          <div style={{ display: 'flex', gap: '0.5rem', width: '100%', alignItems: 'center' }}>
+            
+            {/* Periode Filter: Tinggi diset 34px agar sejajar tombol */}
+            <div style={{ flex: '0 0 180px' }}>
+               <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '34px', // Compact height
+                    padding: '0 0.8rem',
+                    border: '1px solid #cbd5e0',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    backgroundColor: 'white',
+                    color: '#475569',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+               >
+                  {periodeList.map((p) => (
+                    <option key={p.id} value={p.id}>
+                       {p.nama_kabinet} ({p.tahun_mulai})
+                    </option>
+                  ))}
+               </select>
+            </div>
+
+            {/* Input Search: Tinggi diset 34px */}
+            <div style={{ flex: 1, position: "relative" }}>
+              <FiSearch style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+              <input
+                type="text"
+                placeholder="Cari nama..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '34px', // Compact height
+                  padding: '0 0.8rem 0 2rem',
+                  border: '1px solid #cbd5e0',
+                  borderRadius: '6px',
+                  fontSize: '0.85rem',
+                  outline: 'none'
+                }}
+              />
+            </div>
           </div>
         }
 
-        // MENU OPSI (HIDDEN BUTTONS) - RAPI & RINGKAS!
+        // MENU OPSI (Dropdown)
         options={isAdmin && (
-          <>
-             <button onClick={() => openModal("anggota")} className={`${styles.modernButton} ${styles.btnBlue}`}>
+          <div style={{width:'100%', display:'flex', flexDirection:'column', gap:'0.5rem'}}>
+             {/* Tombol Utama */}
+             <button onClick={() => openModal("anggota")} className={`${styles.modernButton} ${styles.btnBlue}`} style={{width: '100%', justifyContent:'center'}}>
                 <FiPlus /> Tambah Anggota
              </button>
-             <button onClick={() => openModal("divisi")} className={`${styles.modernButton} ${styles.btnOrange}`}>
-                <FiPlus /> Divisi
+
+             <button onClick={() => setIsWizardOpen(true)} className={`${styles.modernButton}`} style={{backgroundColor:'#6366f1', color:'white', width: '100%', border:'none', justifyContent:'center'}}>
+                <FiZap /> Wizard Kabinet
              </button>
-             <button onClick={() => openModal("periode")} className={`${styles.modernButton} ${styles.btnPurple}`}>
-                <FiPlus /> Periode
+
+             <div style={{borderTop:'1px solid #e2e8f0', margin:'0.2rem 0'}}></div>
+
+             <div style={{display:'flex', gap:'0.5rem'}}>
+                <button onClick={() => openModal("divisi")} className={`${styles.modernButton} ${styles.btnOrange}`} style={{flex: 1, justifyContent:'center'}}>
+                    <FiPlus /> Divisi
+                </button>
+                <button onClick={() => openModal("reorder_divisi")} className={`${styles.modernButton} ${styles.btnTeal}`} style={{flex: 1, justifyContent:'center'}}>
+                    <FiList /> Urutkan
+                </button>
+             </div>
+             
+             <button onClick={() => openModal("jabatan")} className={`${styles.modernButton} ${styles.btnCyan}`} style={{width: '100%', justifyContent:'center'}}>
+                <FiBriefcase /> Master Jabatan
              </button>
-             <button onClick={() => openModal("jabatan")} className={`${styles.modernButton} ${styles.btnCyan}`}>
-                <FiBriefcase /> Jabatan
-             </button>
-             <button onClick={() => openModal("reorder_divisi")} className={`${styles.modernButton} ${styles.btnTeal}`}>
-                <FiList /> Urutkan Divisi
-             </button>
-          </>
+          </div>
         )}
 
-        // FILTER (Sama seperti sebelumnya)
+        // FILTER TAMBAHAN (Hidden by default)
         filters={
           <>
             <div style={{ flex: 1, minWidth: '150px' }}>
-              <FilterSelect label="Periode" value={activeTab} onChange={(e) => setActiveTab(e.target.value)}>
-                {periodeList.map((p) => <option key={p.id} value={p.id}>{p.nama_kabinet}</option>)}
-              </FilterSelect>
-            </div>
-            <div style={{ flex: 1, minWidth: '150px' }}>
               <FilterSelect label="Divisi" value={selectedDivisi} onChange={(e) => setSelectedDivisi(e.target.value)}>
                 <option value="semua">Semua Divisi</option>
-                {divisiPerPeriode.map((d) => <option key={d.id} value={d.id}>{d.nama_divisi}</option>)}
+                {divisiPerPeriode.map((d) => (
+                  <option key={d.id} value={d.id}>{d.nama_divisi}</option>
+                ))}
               </FilterSelect>
             </div>
             <div style={{ flex: 1, minWidth: '120px' }}>
@@ -325,7 +351,6 @@ function DaftarAnggota() {
           </>
         }
       />
-      {/* --------------------------------------- */}
 
       {/* CONTENT GRID */}
       {loading ? (
@@ -383,17 +408,14 @@ function DaftarAnggota() {
         </div>
       )}
 
-      {/* MODAL FORM (INPUT DATA) */}
+      {/* MODALS */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
-        {activeModal === "anggota" && <AnggotaForm formData={formData} onChange={handleFormChange} onFileChange={handleFileChange} onSubmit={handleSubmit} onCancel={closeModal} loading={modalLoading} preview={formPreview} periodeList={periodeList} divisiList={divisiPerPeriode} jabatanList={jabatanList} jabatanLinks={jabatanLinks} />}
+        {activeModal === "anggota" && <AnggotaForm formData={formData} onChange={handleFormChange} onFileChange={handleFileChange} onSubmit={handleSubmit} onCancel={closeModal} loading={modalLoading} preview={formPreview} periodeList={periodeList} divisiList={divisiPerPeriode} jabatanList={jabatanList} />}
         {activeModal === "divisi" && <DivisiForm formData={formData} onChange={handleFormChange} onFileChange={handleFileChange} onSubmit={handleSubmit} onCancel={closeModal} loading={modalLoading} periodeList={periodeList} preview={formPreview} />}
-        {activeModal === "periode" && <PeriodeForm formData={formData} onChange={handleFormChange} onSubmit={handleSubmit} onCancel={closeModal} loading={modalLoading} />}
-        
-        {/* JABATAN MANAGER: Kita render di sini sebagai konten modal */}
         {activeModal === "jabatan" && <JabatanManager onClose={closeModal} onSuccess={fetchInitialData} jabatanList={jabatanList} />}
       </Modal>
 
-      {/* MODAL REORDER (MANDIRI DI LUAR) */}
+      {/* MODAL REORDER */}
       {activeModal === "reorder_divisi" && (
         <DivisiReorderModal
           isOpen={true}
@@ -401,6 +423,15 @@ function DaftarAnggota() {
           divisiList={divisiPerPeriode}
           activePeriodeId={activeTab}
           onSuccess={() => fetchInitialData()}
+        />
+      )}
+
+      {/* MODAL WIZARD */}
+      {isWizardOpen && (
+        <KabinetWizard 
+           isOpen={isWizardOpen}
+           onClose={() => setIsWizardOpen(false)}
+           onSuccess={fetchInitialData}
         />
       )}
 

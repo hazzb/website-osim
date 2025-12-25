@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import styles from "./PageHeader.module.css";
-import { FiFilter, FiX, FiMenu, FiGrid } from "react-icons/fi";
+import { FiFilter, FiX, FiGrid } from "react-icons/fi";
 
 const PageHeader = ({ title, subtitle, actions, searchBar, filters, options }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
 
-  // Fungsi toggle agar kalau satu dibuka, yang lain tertutup (opsional, biar rapi)
   const toggleFilter = () => {
     setIsFilterOpen(!isFilterOpen);
     if (!isFilterOpen) setIsOptionsOpen(false);
@@ -18,28 +17,30 @@ const PageHeader = ({ title, subtitle, actions, searchBar, filters, options }) =
   };
 
   return (
+    // Container Utama (Sticky)
     <div className={styles.headerContainer}>
       
-      {/* BARIS 1: Judul & Actions Utama (Opsional, jika ada tombol yg mau tetap tampil) */}
+      {/* 1. Baris Judul */}
       <div className={styles.topRow}>
         <div className={styles.titleGroup}>
           <h2 className={styles.title}>{title}</h2>
           {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         </div>
+        
         {actions && <div className={styles.actions}>{actions}</div>}
       </div>
 
-      {/* BARIS 2: Control Row (Search | Filter | Opsi) */}
+      {/* 2. Baris Kontrol (Search & Filter) */}
       <div className={styles.controlRow}>
         
-        {/* 1. Search Bar (Selalu Ada & Melebar) */}
+        {/* Search Bar */}
         {searchBar && (
           <div className={styles.searchWrapper}>
             {searchBar}
           </div>
         )}
 
-        {/* 2. Tombol Toggle Filter */}
+        {/* Tombol Filter */}
         {filters && (
           <button
             onClick={toggleFilter}
@@ -47,34 +48,30 @@ const PageHeader = ({ title, subtitle, actions, searchBar, filters, options }) =
             title="Filter Data"
           >
             {isFilterOpen ? <FiX /> : <FiFilter />}
-            <span style={{display: 'none', sm: 'inline'}}>Filter</span> 
-            {/* Teks bisa disembunyikan di layar sangat kecil jika mau, tapi CSS flex handle it */}
+            <span style={{ marginLeft: "4px" }}>Filter</span>
           </button>
         )}
 
-        {/* 3. Tombol Toggle Opsi/Menu (BARU) */}
+        {/* Tombol Opsi */}
         {options && (
           <button
             onClick={toggleOptions}
             className={`${styles.optionToggleBtn} ${isOptionsOpen ? styles.active : ""}`}
             title="Menu Opsi"
           >
-            {isOptionsOpen ? <FiX /> : <FiGrid />} {/* Icon Grid/Menu */}
-            <span>Opsi</span>
+            {isOptionsOpen ? <FiX /> : <FiGrid />}
+            <span style={{ marginLeft: "4px" }}>Opsi</span>
           </button>
         )}
       </div>
 
-      {/* BARIS 3: Area Konten Collapsible */}
-      
-      {/* Konten Filter */}
+      {/* 3. Area Dropdown */}
       {isFilterOpen && filters && (
         <div className={styles.filterArea}>
           {filters}
         </div>
       )}
 
-      {/* Konten Opsi */}
       {isOptionsOpen && options && (
         <div className={styles.optionsArea}>
           {options}

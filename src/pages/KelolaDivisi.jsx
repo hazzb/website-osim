@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-import PageHeader from "../components/ui/PageHeader.jsx"; // <--- IMPORT HEADER BARU
+import PageHeader from "../components/ui/PageHeader.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 import Modal from "../components/Modal.jsx";
 import DivisiForm from "../components/forms/DivisiForm.jsx";
@@ -15,9 +15,6 @@ import { uploadImage } from "../utils/uploadHelper";
 
 // Styles
 import tableStyles from "../components/admin/AdminTable.module.css";
-import styles from "./DaftarAnggota.module.css"; // Kita pinjam style tombol dari sini agar seragam
-
-// Icons
 import {
   FiPlus,
   FiEdit,
@@ -28,7 +25,7 @@ import {
   FiFilter,
   FiList,
 } from "react-icons/fi";
-import { FilterSelect } from "../components/ui/FilterBar.jsx"; // Gunakan FilterSelect agar seragam
+import { FilterSelect } from "../components/ui/FilterBar.jsx";
 
 function KelolaDivisi() {
   const { session } = useAuth();
@@ -126,9 +123,11 @@ function KelolaDivisi() {
     setIsModalOpen(true);
   };
 
+  // --- INI FUNGSI YANG SEBELUMNYA HILANG ---
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  // ------------------------------------------
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -233,33 +232,31 @@ function KelolaDivisi() {
   return (
     <PageContainer breadcrumbText="Kelola Divisi">
       
-      {/* HEADER BARU (MENGGUNAKAN PAGEHEADER) */}
+      {/* HEADER BARU */}
       <PageHeader
         title="Kelola Divisi"
         subtitle="Atur daftar divisi untuk periode ini."
-        
-        // Slot Actions: Tombol Urutkan & Tambah
         actions={
           <div style={{display:'flex', gap:'8px'}}>
              <button 
                 onClick={() => setShowReorderModal(true)} 
                 disabled={loading || divisions.length === 0}
-                className={`${styles.modernButton} ${styles.btnTeal}`}
+                className="button"
+                style={{display:'flex', alignItems:'center', gap:'0.5rem', backgroundColor:'#319795', color:'white', border:'none'}}
              >
-                <FiList /> <span style={{marginLeft:'4px'}}>Urutkan</span>
+                <FiList /> Urutkan
              </button>
              
              <button 
                 onClick={() => openModal()} 
                 disabled={loading}
-                className={`${styles.modernButton} ${styles.btnBlue}`}
+                className="button button-primary"
+                style={{display:'flex', alignItems:'center', gap:'0.5rem'}}
              >
-                <FiPlus /> <span style={{marginLeft:'4px'}}>Tambah Divisi</span>
+                <FiPlus /> Tambah Divisi
              </button>
           </div>
         }
-
-        // Slot Filters: Dropdown Periode
         filters={
           <div style={{ minWidth: '250px' }}>
             <FilterSelect
@@ -281,7 +278,7 @@ function KelolaDivisi() {
         <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
       )}
 
-      {/* --- CONTENT AREA --- */}
+      {/* CONTENT AREA */}
       {loading ? (
         <div style={{ padding: "3rem 0" }}>
           <LoadingState message="Memuat data divisi..." />
@@ -457,7 +454,7 @@ function KelolaDivisi() {
         />
       </Modal>
 
-      {/* MODAL REORDER (Dibungkus Modal karena kontennya polos) */}
+      {/* MODAL REORDER */}
       {showReorderModal && (
         <Modal
           isOpen={showReorderModal}

@@ -1,185 +1,244 @@
 /* src/components/Footer.module.css */
 
 .footer {
-  /* BACKGROUND BIRU MUDA TERANG */
+  /* TEMA ASLI */
   background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
-  color: #0c4a6e; /* Teks Biru Gelap agar terbaca */
-  padding: 4rem 0 1.5rem;
+  color: #0c4a6e;
+  
+  /* Layout Compact */
+  padding-top: 3rem;
   margin-top: auto;
   border-top: 1px solid #7dd3fc;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
+/* CONTAINER GRID DESKTOP (Asimetris agar rapi) */
 .container {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
+  
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* Kolom Brand lebih lebar (2fr), Links & Kontak (1fr 1fr) */
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 3rem;
+  align-items: start;
 }
 
-/* --- Brand --- */
+/* --- BAGIAN 1: INFO BRAND --- */
 .infoSection {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
+
 .logoRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.8rem;
 }
+
 .logoImg {
-  height: 60px;
+  height: 40px;
   width: auto;
   object-fit: contain;
 }
 
-.brandName {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #0284c7; /* Sky-600 */
-  margin: 0;
+/* Garis Pemisah Logo */
+.logoSeparator {
+  width: 1px;
+  height: 28px;
+  background-color: #7dd3fc;
+  opacity: 0.6;
 }
 
-.editBtn {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid #7dd3fc;
-  color: #0284c7;
-  padding: 4px;
-  border-radius: 6px;
-  cursor: pointer;
+.brandName {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  line-height: 1.1;
+}
+
+.orgName {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0284c7;
+  letter-spacing: -0.01em;
 }
 
 .schoolName {
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 600;
   color: #0c4a6e;
-  margin: 0;
+  opacity: 0.9;
 }
-.brandDesc {
+
+.description {
   color: #334155;
-  margin: 0;
+  opacity: 0.9;
+  max-width: 320px; 
   font-size: 0.9rem;
+  margin-bottom: 0.2rem;
 }
 
 /* Social Icons */
 .socialRow {
   display: flex;
-  gap: 0.8rem;
-  margin-top: 0.5rem;
+  gap: 0.5rem;
 }
+
 .socialIcon {
-  width: 40px;
-  height: 40px;
-  background: white;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0ea5e9;
-  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  color: #0284c7;
   transition: all 0.2s;
+  font-size: 0.9rem;
 }
 .socialIcon:hover {
-  background: #0ea5e9;
+  background-color: #0284c7;
   color: white;
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
-/* --- Links --- */
-.columnTitle {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #0c4a6e;
-  margin-bottom: 1.5rem;
-  position: relative;
-  display: inline-block;
-}
-.columnTitle::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  width: 40px;
-  height: 3px;
-  background-color: #0ea5e9;
-  border-radius: 2px;
+/* --- BAGIAN 2 & 3: LINKS & KONTAK --- */
+.colTitle {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  color: #0284c7;
 }
 
 .linkGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.6rem;
 }
+
 .footerLink {
-  color: #334155;
+  color: #475569;
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   transition: 0.2s;
   font-weight: 500;
+  font-size: 0.9rem;
 }
 .footerLink:hover {
   color: #0284c7;
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
-/* Contact */
 .contactItem {
   display: flex;
   align-items: flex-start;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-  color: #334155;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+  color: #475569;
+  font-size: 0.9rem;
 }
 .contactIcon {
   color: #0284c7;
   flex-shrink: 0;
   margin-top: 3px;
+  width: 14px;
 }
 
-/* --- Copyright --- */
+/* --- BAGIAN BAWAH: COPYRIGHT --- */
 .copyright {
-  margin-top: 4rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #7dd3fc;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #475569;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-top: 1px solid rgba(125, 211, 252, 0.4);
+  font-size: 0.75rem;
 }
+
+.copyrightContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: #475569;
+}
+
+.managedBy {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 3px 12px;
+  border-radius: 99px;
+  border: 1px solid #bae6fd;
+  font-size: 0.75rem;
+}
+
 .signature {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  opacity: 0.9;
 }
-.githubLink {
+.devLink {
+  font-weight: 700;
   color: #0284c7;
-  font-weight: 600;
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 4px;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.6);
-  padding: 2px 8px;
-  border-radius: 4px;
 }
+.devLink:hover { text-decoration: underline; }
 
-@media (min-width: 768px) {
-  .copyright {
-    flex-direction: row;
-    justify-content: space-between;
-    max-width: 1280px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+
+/* ========================================= */
+/* OPTIMASI MOBILE (2 KOLOM)           */
+/* ========================================= */
+@media (max-width: 768px) {
+  .footer {
+    padding-top: 2rem;
   }
+
+  .container {
+    /* GRID 2 KOLOM */
+    grid-template-columns: 1fr 1fr; 
+    gap: 2rem 1rem; /* Jarak Baris 2rem, Jarak Kolom 1rem (Rapat) */
+    text-align: left; /* Rata Kiri agar rapi */
+  }
+
+  /* 1. INFO SECTION (Logo & Desc) -> FULL WIDTH */
+  .infoSection {
+    grid-column: span 2; 
+    border-bottom: 1px dashed #bae6fd;
+    padding-bottom: 1.5rem;
+    align-items: flex-start; /* Pastikan rata kiri */
+  }
+  
+  .description {
+    max-width: 100%;
+  }
+
+  /* 2. Menu Jelajahi & Kontak -> BERDAMPINGAN (1fr 1fr) */
+  /* Tidak perlu CSS khusus karena grid container sudah mengatur ini */
+
+  /* 3. Copyright Center */
+  .copyrightContainer {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.8rem;
+  }
+  
+  .footerLink:hover { transform: none; }
 }

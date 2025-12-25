@@ -11,14 +11,35 @@ const AnggotaForm = ({
   onCancel,
   loading,
   periodeList = [],
-  divisiList = [],
+  divisiList = [], // Ini berisi SEMUA divisi dari semua periode
   jabatanList = [],
   preview,
 }) => {
-  
-  // --- 1. LOGIC FILTER JABATAN CERDAS ---
+
+  // --- 1. LOGIC FILTER DIVISI BERDASARKAN PERIODE ---
+  const filteredDivisiList = useMemo(() => {
+    if (!formData.periode_id) return [];
+    
+    // Ambil divisi yang periode_id nya sama dengan yang dipilih di form
+    return divisiList.filter(d => String(d.periode_id) === String(formData.periode_id));
+  }, [formData.periode_id, divisiList]);
+
+  // --- 2. LOGIC RESET DIVISI SAAT PERIODE BERUBAH ---
+  useEffect(() => {
+    // Cek apakah divisi yang sedang dipilih ada di daftar periode baru?
+    const isDivisiValid = filteredDivisiList.some(
+      (d) => String(d.id) === String(formData.divisi_id)
+    );
+
+    // Jika periode berubah dan divisi lama jadi tidak valid, reset divisi & jabatan
+    if (formData.divisi_id && !isDivisiValid) {
+      onChange({ target: { name: "divisi_id", value: "" } });
+      onChange({ target: { name: "jabatan_id", value: "" } });
+    }
+  }, [formData.periode_id, filteredDivisiList]);
+
+  // --- 3. LOGIC FILTER JABATAN CERDAS (INTI vs UMUM) ---
   const filteredJabatanList = useMemo(() => {
-    // Jika belum pilih divisi, kosongkan
     if (!formData.divisi_id) return [];
 
     // Cari data divisi yang dipilih untuk tahu TIPE-nya
@@ -26,29 +47,21 @@ const AnggotaForm = ({
     
     if (!selectedDivisi) return [];
 
-    // JIKA DIVISI INTI (BPH)
+    // JIKA DIVISI INTI (BPH) -> Tampilkan Jabatan Inti
     if (selectedDivisi.tipe === 'Inti') {
-       // Tampilkan hanya jabatan 'Inti' (Ketua OSIS, Sekre, Bendahara)
        return jabatanList.filter(j => j.tipe_jabatan === 'Inti');
     } 
-    
-    // JIKA DIVISI UMUM (Sekbid)
+    // JIKA DIVISI UMUM -> Tampilkan Jabatan Struktural
     else {
-       // Tampilkan jabatan 'Divisi' (Ketua Divisi, Staf)
        return jabatanList.filter(j => j.tipe_jabatan === 'Divisi');
     }
-
   }, [formData.divisi_id, divisiList, jabatanList]);
 
-
-  // --- 2. LOGIC RESET JABATAN SAAT DIVISI BERUBAH ---
+  // --- 4. LOGIC RESET JABATAN SAAT DIVISI BERUBAH ---
   useEffect(() => {
-    // Cek apakah jabatan yang sedang dipilih masih valid di daftar baru?
     const isJabatanValid = filteredJabatanList.some(
       (j) => String(j.id) === String(formData.jabatan_id)
     );
-
-    // Jika tidak valid (misal pindah dari BPH ke IT), reset jabatan jadi kosong
     if (formData.jabatan_id && !isJabatanValid) {
       onChange({ target: { name: "jabatan_id", value: "" } });
     }
@@ -57,7 +70,6 @@ const AnggotaForm = ({
 
   return (
     <form onSubmit={onSubmit}>
-      {/* Grid Gap diperkecil (0.75rem) agar padat */}
       <div className={formStyles.formGrid} style={{ gap: "0.75rem" }}>
         
         {/* BARIS 1: Nama (8) & Gender (4) */}
@@ -122,11 +134,12 @@ const AnggotaForm = ({
             <option value="">Pilih...</option>
             {periodeList.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.nama_kabinet}
+                {p.nama_kabinet} ({p.tahun_mulai})
               </option>
             ))}
           </FormInput>
         </div>
+
         <div className={formStyles.colSpan4}>
           <FormInput
             label="Divisi"
@@ -135,16 +148,19 @@ const AnggotaForm = ({
             value={formData.divisi_id || ""}
             onChange={onChange}
             required
-            disabled={!formData.periode_id}
+            disabled={!formData.periode_id} // Disable jika periode belum dipilih
+            helper={!formData.periode_id ? "Pilih periode dulu" : ""}
           >
             <option value="">Pilih...</option>
-            {divisiList.map((d) => (
+            {/* Gunakan filteredDivisiList, bukan divisiList semua */}
+            {filteredDivisiList.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.nama_divisi} {d.tipe === 'Inti' ? '(Inti)' : ''}
               </option>
             ))}
           </FormInput>
         </div>
+
         <div className={formStyles.colSpan4}>
           <FormInput
             label="Jabatan"
@@ -153,7 +169,7 @@ const AnggotaForm = ({
             value={formData.jabatan_id || ""}
             onChange={onChange}
             required
-            disabled={!formData.divisi_id}
+            disabled={!formData.divisi_id} // Disable jika divisi belum dipilih
             helper={formData.divisi_id && filteredJabatanList.length === 0 ? "Tidak ada jabatan sesuai." : ""}
           >
             <option value="">Pilih...</option>

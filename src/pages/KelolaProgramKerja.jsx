@@ -4,10 +4,11 @@ import { useAdminTable } from "../hooks/useAdminTable";
 
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
-import PageHeader from "../components/ui/PageHeader.jsx"; // <--- IMPORT HEADER
+import PageHeader from "../components/ui/PageHeader.jsx";
 import Modal from "../components/Modal.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
+import { FilterSelect } from "../components/ui/FilterBar.jsx"; // Import FilterSelect
 
 // Styles & Icons
 import tableStyles from "../components/admin/AdminTable.module.css";
@@ -15,14 +16,17 @@ import {
   FiPlus,
   FiEdit,
   FiTrash2,
-  FiSearch, // Pastikan FiSearch diimport
-  FiCalendar,
+  FiSearch,
   FiCheckCircle,
   FiClock,
   FiActivity,
 } from "react-icons/fi";
 
 function KelolaProgramKerja() {
+  // --- STATE FILTER ---
+  // Default "" artinya menampilkan SEMUA data
+  const [selectedPeriodeId, setSelectedPeriodeId] = useState("");
+
   // --- 1. SETUP TABLE HOOK ---
   const {
     data: progjaList,
@@ -40,6 +44,8 @@ function KelolaProgramKerja() {
     searchColumn: "nama_acara",
     select: "*, divisi(nama_divisi), periode_jabatan(nama_kabinet)",
     defaultOrder: { column: "tanggal", ascending: false },
+    // Tambahkan filter dinamis ke sini
+    filters: selectedPeriodeId ? { periode_id: selectedPeriodeId } : {},
   });
 
   // --- 2. STATE FORM ---
@@ -77,7 +83,7 @@ function KelolaProgramKerja() {
         nama_acara: "",
         status: "Rencana",
         tanggal: "",
-        periode_id: "",
+        periode_id: selectedPeriodeId || "", // Auto-fill jika sedang filter periode tertentu
         divisi_id: "",
         penanggung_jawab_id: "",
         deskripsi: "",
@@ -100,7 +106,7 @@ function KelolaProgramKerja() {
       else await supabase.from("program_kerja").insert(formData);
       
       setIsModalOpen(false);
-      refreshData(); // Refresh tabel
+      refreshData(); 
       alert("Berhasil disimpan!");
     } catch (err) {
       alert("Error: " + err.message);
@@ -113,12 +119,11 @@ function KelolaProgramKerja() {
   return (
     <PageContainer breadcrumbText="Kelola Program Kerja">
       
-      {/* HEADER STANDAR */}
       <PageHeader
         title="Kelola Program Kerja"
         subtitle="Database seluruh kegiatan organisasi."
         
-        // Tombol Tambah
+        // Actions
         actions={
           <button
             onClick={() => openModal()}
@@ -129,22 +134,39 @@ function KelolaProgramKerja() {
           </button>
         }
 
-        // Search Bar
+        // Search Bar (Kiri)
         searchBar={
           <div style={{ position: "relative", width: "100%" }}>
-            <FiSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+            <FiSearch style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
             <input
               type="text"
               placeholder="Cari nama acara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", border: "1px solid #cbd5e0", borderRadius: "8px", fontSize: "0.9rem", height: "38px" }}
+              style={{ width: "100%", padding: "0 0.8rem 0 2rem", height: "34px", border: "1px solid #cbd5e0", borderRadius: "6px", fontSize: "0.85rem", outline: "none" }}
             />
+          </div>
+        }
+
+        // Filters (Dropdown Periode)
+        filters={
+          <div style={{ minWidth: '200px' }}>
+            <FilterSelect
+              label="Filter Periode"
+              value={selectedPeriodeId}
+              onChange={(e) => setSelectedPeriodeId(e.target.value)}
+            >
+              <option value="">Semua Periode</option>
+              {periodeList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama_kabinet}
+                </option>
+              ))}
+            </FilterSelect>
           </div>
         }
       />
 
-      {/* ERROR */}
       {error && <div style={{ color: "red", margin: "1rem 0" }}>{error}</div>}
 
       {/* TABLE CONTENT */}
@@ -165,7 +187,7 @@ function KelolaProgramKerja() {
             </thead>
             <tbody>
               {progjaList.length === 0 ? (
-                <tr><td colSpan="6" style={{textAlign:'center', padding:'2rem'}}>Tidak ada data.</td></tr>
+                <tr><td colSpan="6" style={{textAlign:'center', padding:'2rem', color:'#64748b'}}>Tidak ada data program kerja.</td></tr>
               ) : (
                 progjaList.map((item) => (
                   <tr key={item.id}>

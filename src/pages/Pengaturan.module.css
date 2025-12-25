@@ -1,92 +1,104 @@
 /* src/pages/Pengaturan.module.css */
 
-/* Container Tabs */
-.tabsContainer {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 1px;
-  overflow-x: auto; /* Agar bisa di-scroll di HP */
+/* --- TABS NAVIGATION (Pindah ke Body) --- */
+.tabContainer {
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 4px; /* Space untuk scrollbar/shadow */
 }
 
-.tabButton {
-  background: none;
+.tabGroup {
+  display: inline-flex;
+  gap: 0.5rem;
+  background-color: #f1f5f9;
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.tabBtn {
+  background: transparent;
   border: none;
-  padding: 0.8rem 1.2rem;
-  font-size: 0.95rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #64748b;
+  border-radius: 8px;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
-.tabButton:hover {
+.tabBtn:hover {
+  color: #334155;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.tabBtn.active {
+  background-color: white;
   color: #3b82f6;
-  background-color: #f8fafc;
-  border-radius: 8px 8px 0 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.activeTab {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
-}
-
-/* Card Form Wrapper */
+/* --- CARD WRAPPER --- */
 .card {
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 2rem;
+  border-radius: 12px;
+  padding: 2.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  max-width: 900px;
+  margin: 0 auto 3rem auto;
 }
 
+/* --- SECTION TITLE (Garis bawah putus-putus) --- */
 .sectionTitle {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1e293b;
   margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px dashed #e2e8f0;
-}
-
-/* Tombol Save Floating di Bawah (Opsional) atau Statis */
-.actionFooter {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.saveBtn {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dashed #cbd5e0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-  transition: transform 0.1s;
+  gap: 0.6rem;
 }
 
-.saveBtn:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
+/* --- UPLOAD PREVIEW --- */
+.uploadPreviewContainer {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.2rem;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e0;
+  border-radius: 10px;
+  margin-bottom: 1rem;
 }
 
-.saveBtn:disabled {
-  background-color: #94a3b8;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+.logoPreview {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.uploadInfo label {
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.uploadInfo p {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin: 0 0 0.5rem 0;
 }
