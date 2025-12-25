@@ -1,106 +1,185 @@
-/* src/components/cards/AnggotaCard.module.css */
-/* Warna Gender */
-.card-ikhwan {
-  background-color: #ebf8ff;
-  border-color: #bee3f8;
-}
-.card-ikhwan:hover {
-  background-color: #bee3f8;
-  border-color: #90cdf4;
+/* CONTAINER KARTU UTAMA */
+.card {
+  position: relative; /* Penting untuk posisi badge & overlay */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  /* Padding dikurangi sedikit agar compact */
+  padding: 1.5rem 1rem; 
+  height: 100%; /* Agar tinggi kartu seragam dalam grid */
+  background-color: white;
+  border: 1px solid #e2e8f0;
 }
 
-.card-akhwat {
-  background-color: #fff5f5;
-  border-color: #fed7d7;
-}
-.card-akhwat:hover {
-  background-color: #fed7d7;
-  border-color: #feb2b2;
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
 }
 
-/* Elemen Dalam Kartu */
-.anggota-card-image {
-  width: 100px;
-  height: 100px;
+/* TEMA WARNA GENDER (Sesuai file asli Anda) */
+.cardIkhwan {
+  background-color: #f0f9ff; /* Biru sangat muda */
+  border-color: #bae6fd;
+}
+
+.cardAkhwat {
+  background-color: #fff1f2; /* Merah muda sangat muda */
+  border-color: #fecdd3;
+}
+
+/* BADGE PERIODE (Melayang di Pojok Kanan Atas) */
+.periodeBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* AREA GAMBAR (WRAPPER) */
+.imageWrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 1rem;
+}
+
+.cardImage, .imagePlaceholder {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 0 auto 1rem auto;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
 
-.anggota-card-content {
+.imagePlaceholder {
+  background-color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+/* OVERLAY TOMBOL ADMIN (Edit/Hapus) */
+.adminOverlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.imageWrapper:hover .adminOverlay {
+  opacity: 1;
+}
+
+.actionBtn {
+  background: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #2563eb;
+  transition: transform 0.1s;
+}
+.actionBtn:hover { transform: scale(1.1); }
+
+.deleteBtn { color: #ef4444; }
+
+/* KONTEN TEKS */
+.cardContent {
   width: 100%;
-  flex-grow: 1;
+  text-align: center;
   display: flex;
   flex-direction: column;
+  flex-grow: 1; /* Mengisi sisa ruang ke bawah */
 }
 
-.anggota-card-nama {
-  font-size: 1.1rem;
+.name {
+  font-size: 1rem;
   font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.25rem;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+  
+  /* Truncate jika nama terlalu panjang */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.anggota-card-jabatan {
-  font-size: 0.85rem;
-  color: #718096;
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-}
-
-.anggota-card-info {
+.jabatan {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   font-size: 0.8rem;
-  color: #4a5568;
-  margin-top: 0.5rem;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.subJabatan {
+  font-size: 0.75rem;
+  color: #64748b;
   font-style: italic;
 }
 
-.instagram-link {
-  display: block;
-  margin-top: auto;
-  font-size: 0.8rem;
-  color: #d53f8c;
-  font-weight: bold;
-  text-decoration: none;
+.motto {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-style: italic;
+  margin: 0.5rem 0 auto 0; /* Margin auto bawah mendorong elemen sosmed ke paling bawah */
+  line-height: 1.4;
+  
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Batasi 2 baris */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* Tombol Aksi (Edit/Hapus) */
-.admin-card-actions {
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-.btn-card-action {
-  flex: 1;
-  padding: 0.4rem 0;
-  border-radius: 0.375rem;
-  font-size: 0.8rem;
+.socialLink {
+  margin-top: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
   font-weight: 600;
-  cursor: pointer;
-  border: none;
+  color: #d946ef; /* Warna Instagram Pink/Ungu */
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background-color: rgba(255,255,255,0.6);
   transition: all 0.2s;
 }
 
-.btn-edit {
-  background-color: rgba(255, 255, 255, 0.6);
-  color: #3182ce;
-}
-.btn-edit:hover {
-  background-color: #3182ce;
-  color: white;
-}
-
-.btn-delete {
-  background-color: rgba(255, 255, 255, 0.6);
-  color: #e53e3e;
-}
-.btn-delete:hover {
-  background-color: #e53e3e;
-  color: white;
+.socialLink:hover {
+  background-color: white;
+  color: #c026d3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }

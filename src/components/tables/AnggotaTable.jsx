@@ -1,7 +1,7 @@
 import React from "react";
 import tableStyles from "../admin/AdminTable.module.css";
 import LoadingState from "../ui/LoadingState.jsx";
-import { FiEdit, FiTrash2, FiUser, FiInstagram, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiUser, FiInstagram, FiChevronLeft, FiChevronRight, FiMapPin } from "react-icons/fi";
 
 const AnggotaTable = ({ 
   loading, 
@@ -17,6 +17,8 @@ const AnggotaTable = ({
   showPeriodeBadge 
 }) => {
 
+  const itemsPerPageVal = itemsPerPage || 10;
+
   // 1. Loading State
   if (loading) {
     return <LoadingState message="Memuat data anggota..." />;
@@ -31,7 +33,7 @@ const AnggotaTable = ({
             <tr>
               <th style={{width:'40px', textAlign:'center'}}>No</th>
               <th style={{width:'50px', textAlign:'center'}}>Foto</th>
-              <th>Nama & Kontak</th>
+              <th>Nama & Detail</th>
               <th>Divisi & Jabatan</th>
               <th>Periode</th>
               <th>L/P</th>
@@ -52,9 +54,8 @@ const AnggotaTable = ({
     );
   }
 
-  // Hitung range tampilan
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const startItem = (currentPage - 1) * itemsPerPageVal + 1;
+  const endItem = Math.min(currentPage * itemsPerPageVal, totalItems);
 
   // 3. Render Table
   return (
@@ -66,7 +67,7 @@ const AnggotaTable = ({
             <tr>
               <th style={{width:'40px', textAlign:'center'}}>No</th>
               <th style={{width:'50px', textAlign:'center'}}>Foto</th>
-              <th>Nama & Kontak</th>
+              <th>Nama & Detail</th> {/* Judul Kolom Diubah */}
               <th>Divisi & Jabatan</th>
               <th>Periode</th>
               <th>L/P</th>
@@ -75,7 +76,7 @@ const AnggotaTable = ({
           </thead>
           <tbody>
             {data.map((item, index) => {
-              const rowNumber = (currentPage - 1) * itemsPerPage + index + 1;
+              const rowNumber = (currentPage - 1) * itemsPerPageVal + index + 1;
 
               return (
                 <tr key={item.id}>
@@ -91,14 +92,34 @@ const AnggotaTable = ({
                          )}
                       </div>
                   </td>
+                  
+                  {/* KOLOM NAMA, MOTTO & ALAMAT (DIGABUNG) */}
                   <td>
+                      {/* Nama */}
                       <div style={{fontWeight:600, color:'#1e293b'}}>{item.nama}</div>
+                      
+                      {/* Instagram */}
                       {item.instagram_username && (
-                         <div style={{fontSize:'0.75rem', color:'#64748b', display:'flex', alignItems:'center', gap:'4px', marginTop:'2px'}}>
-                            <FiInstagram size={10} /> {item.instagram_username}
+                         <div style={{fontSize:'0.75rem', color:'#3b82f6', display:'flex', alignItems:'center', gap:'4px', marginTop:'2px'}}>
+                            <FiInstagram size={10} /> @{item.instagram_username.replace('@','')}
                          </div>
                       )}
+
+                      {/* Motto (Dikembalikan) */}
+                      {item.motto && (
+                        <div style={{fontSize:'0.75rem', color:'#64748b', fontStyle:'italic', marginTop:'2px'}}>
+                           "{item.motto}"
+                        </div>
+                      )}
+
+                      {/* Alamat (Dikembalikan) */}
+                      {item.alamat && (
+                        <div style={{fontSize:'0.75rem', color:'#475569', display:'flex', alignItems:'center', gap:'4px', marginTop:'2px'}}>
+                           <FiMapPin size={10} /> {item.alamat}
+                        </div>
+                      )}
                   </td>
+
                   <td>
                       <div style={{fontSize:'0.85rem', color:'#1e293b', fontWeight:500}}>{item.divisi?.nama_divisi || "-"}</div>
                       <div style={{fontSize:'0.75rem', color:'#64748b'}}>
@@ -136,18 +157,14 @@ const AnggotaTable = ({
         </table>
       </div>
 
-      {/* PERBAIKAN DI SINI:
-          Kita HAPUS kondisi {totalPages > 1 && ...} yang membungkus seluruh container.
-          Container selalu muncul, hanya tombol Prev/Next yang disembunyikan jika halaman cuma 1.
-      */}
+      {/* PAGINATION (LOGIKA DIPERBAIKI) */}
       <div className={tableStyles.paginationContainer} style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'1rem', padding:'0 0.5rem', flexWrap:'wrap', gap:'1rem'}}>
         
         <div style={{display:'flex', alignItems:'center', gap:'1rem'}}>
-            {/* DROPDOWN ITEMS PER PAGE (SELALU MUNCUL) */}
             <div style={{display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'0.85rem', color:'#64748b'}}>
               <span>Tampilkan:</span>
               <select 
-                  value={itemsPerPage} 
+                  value={itemsPerPageVal} 
                   onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
                   style={{
                       padding:'0.3rem', borderRadius:'4px', border:'1px solid #cbd5e0', 
@@ -166,7 +183,6 @@ const AnggotaTable = ({
             </span>
         </div>
         
-        {/* TOMBOL PREV/NEXT (HANYA MUNCUL JIKA HALAMAN > 1) */}
         {totalPages > 1 && (
           <div className={tableStyles.paginationButtons} style={{display:'flex', gap:'0.5rem'}}>
             <button 
