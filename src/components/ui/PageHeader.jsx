@@ -1,10 +1,20 @@
 import React, { useState } from "react";
 import styles from "./PageHeader.module.css";
-import { FiFilter, FiX, FiGrid } from "react-icons/fi";
+import { FiFilter, FiX, FiGrid, FiMoreHorizontal } from "react-icons/fi";
 
-const PageHeader = ({ title, subtitle, actions, searchBar, filters, options }) => {
+const PageHeader = ({
+  title,
+  subtitle,
+  actions,
+  searchBar,
+  filters,
+  options,
+}) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+
+  // STATE BARU: Untuk toggle menu aksi di mobile
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
 
   const toggleFilter = () => {
     setIsFilterOpen(!isFilterOpen);
@@ -16,68 +26,85 @@ const PageHeader = ({ title, subtitle, actions, searchBar, filters, options }) =
     if (!isOptionsOpen) setIsFilterOpen(false);
   };
 
+  const toggleActions = () => {
+    setIsActionsOpen(!isActionsOpen);
+  };
+
   return (
-    // Container Utama (Sticky)
     <div className={styles.headerContainer}>
-      
-      {/* 1. Baris Judul */}
+      {/* 1. TOP ROW: Judul & Tombol Menu Mobile */}
       <div className={styles.topRow}>
         <div className={styles.titleGroup}>
-          <h2 className={styles.title}>{title}</h2>
-          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+          <div className={styles.title}>{title}</div>
+          {subtitle && <div className={styles.subtitle}>{subtitle}</div>}
         </div>
-        
-        {actions && <div className={styles.actions}>{actions}</div>}
-      </div>
 
-      {/* 2. Baris Kontrol (Search & Filter) */}
-      <div className={styles.controlRow}>
-        
-        {/* Search Bar */}
-        {searchBar && (
-          <div className={styles.searchWrapper}>
-            {searchBar}
+        {/* Tombol Toggle Aksi (Hanya muncul di Mobile lewat CSS) */}
+        {actions && (
+          <button
+            className={`${styles.mobileMenuBtn} ${
+              isActionsOpen ? styles.active : ""
+            }`}
+            onClick={toggleActions}
+            title="Menu Aksi"
+          >
+            {isActionsOpen ? <FiX size={20} /> : <FiMoreHorizontal size={20} />}
+          </button>
+        )}
+
+        {/* Desktop Actions (Langsung tampil di kanan judul) */}
+        {/* Mobile Actions (Disembunyikan/Ditampilkan lewat CSS class actionsOpen) */}
+        {actions && (
+          <div
+            className={`${styles.actions} ${
+              isActionsOpen ? styles.actionsOpen : ""
+            }`}
+          >
+            {actions}
           </div>
         )}
-
-        {/* Tombol Filter */}
-        {filters && (
-          <button
-            onClick={toggleFilter}
-            className={`${styles.filterToggleBtn} ${isFilterOpen ? styles.active : ""}`}
-            title="Filter Data"
-          >
-            {isFilterOpen ? <FiX /> : <FiFilter />}
-            <span style={{ marginLeft: "4px" }}>Filter</span>
-          </button>
-        )}
-
-        {/* Tombol Opsi */}
-        {options && (
-          <button
-            onClick={toggleOptions}
-            className={`${styles.optionToggleBtn} ${isOptionsOpen ? styles.active : ""}`}
-            title="Menu Opsi"
-          >
-            {isOptionsOpen ? <FiX /> : <FiGrid />}
-            <span style={{ marginLeft: "4px" }}>Opsi</span>
-          </button>
-        )}
       </div>
 
-      {/* 3. Area Dropdown */}
+      {/* 2. CONTROL ROW */}
+      {(searchBar || filters || options) && (
+        <div className={styles.controlRow}>
+          {searchBar && <div className={styles.searchWrapper}>{searchBar}</div>}
+
+          {filters && (
+            <button
+              onClick={toggleFilter}
+              className={`${styles.filterToggleBtn} ${
+                isFilterOpen ? styles.active : ""
+              }`}
+              title="Filter"
+            >
+              {isFilterOpen ? <FiX size={18} /> : <FiFilter size={18} />}
+              <span>Filter</span>
+            </button>
+          )}
+
+          {options && (
+            <button
+              onClick={toggleOptions}
+              className={`${styles.optionToggleBtn} ${
+                isOptionsOpen ? styles.active : ""
+              }`}
+              title="Opsi"
+            >
+              {isOptionsOpen ? <FiX size={18} /> : <FiGrid size={18} />}
+              <span>Opsi</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* 3. PANELS */}
       {isFilterOpen && filters && (
-        <div className={styles.filterArea}>
-          {filters}
-        </div>
+        <div className={styles.filterArea}>{filters}</div>
       )}
-
       {isOptionsOpen && options && (
-        <div className={styles.optionsArea}>
-          {options}
-        </div>
+        <div className={styles.optionsArea}>{options}</div>
       )}
-
     </div>
   );
 };

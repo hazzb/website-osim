@@ -3,19 +3,16 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import styles from "./ProgramKerja.module.css";
 import { ProgjaSkeletonGrid } from "../components/ui/Skeletons.jsx";
-import {
-  FilterSelect,
-  FilterPill,
-} from "../components/ui/FilterBar.jsx";
+import { FilterSelect } from "../components/ui/FilterBar.jsx";
 
 import {
   FiPlus,
-  FiEye,
-  FiEyeOff,
   FiCalendar,
   FiTarget,
   FiCheckCircle,
   FiSearch,
+  FiEye,
+  FiEyeOff,
 } from "react-icons/fi";
 
 // COMPONENTS
@@ -25,352 +22,465 @@ import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import Modal from "../components/Modal.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
-// --- KOMPONEN TOGGLE ---
-function AdminToggle({ label, isEnabled, onToggle, isSaving }) {
-  return (
-    <div
-      className={`${styles.toggleWrapper} ${isEnabled ? styles.active : ""}`}
-      onClick={() => !isSaving && onToggle(!isEnabled)}
-      title={isEnabled ? `Sembunyikan ${label}` : `Tampilkan ${label}`}
-    >
-      <div className={styles.toggleSwitch}>
-        <div className={styles.toggleKnob}></div>
-      </div>
-      <span className={styles.toggleLabel}>{label}</span>
+// --- KOMPONEN TOGGLE (Untuk Menu Opsi) ---
+const OptionToggle = ({ label, icon: Icon, isEnabled, onToggle, isSaving }) => (
+  <div
+    className={styles.toggleItem}
+    onClick={() => !isSaving && onToggle(!isEnabled)}
+  >
+    <div className={styles.toggleLabel}>
+      {Icon && <Icon size={16} color="#64748b" />}
+      {label}
     </div>
-  );
-}
-
-// --- HELPER INSTAGRAM ---
-function processInstagramEmbeds() {
-  if (window.instgrm?.Embeds?.process) {
-    window.instgrm.Embeds.process();
-  } else if (!document.getElementById("instagram-embed-script")) {
-    const script = document.createElement("script");
-    script.async = true;
-    script.defer = true;
-    script.id = "instagram-embed-script";
-    script.src = "https://www.instagram.com/embed.js";
-    document.head.appendChild(script);
-    script.onload = () => {
-      if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
-    };
-  }
-}
+    <div className={`${styles.switchTrack} ${isEnabled ? styles.active : ""}`}>
+      <div className={styles.switchKnob} />
+    </div>
+  </div>
+);
 
 function ProgramKerja() {
   const { session } = useAuth();
   const isAdmin = !!session;
 
-  // --- STATES DATA ---
-  const [progjaList, setProgjaList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Dropdown Data
-  const [divisiOptions, setDivisiOptions] = useState([]);
-  const [periodeOptions, setPeriodeOptions] = useState([]); // State untuk list periode
+  // --- STATE ---
+  const [activeTab, setActiveTab] = useState(""); // Filter Periode
+  const [periodeList, setPeriodeList] = useState([]);
 
-  // --- FILTER STATES ---
-  const [selectedStatus, setSelectedStatus] = useState("semua");
+  const [progjaList, setProgjaList] = useState([]);
+  const [divisiList, setDivisiList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter State
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
-  const [selectedPeriode, setSelectedPeriode] = useState("semua"); // Default "semua"
+  const [selectedStatus, setSelectedStatus] = useState("semua");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Admin Settings
-  const [pengaturan, setPengaturan] = useState({
-    tampilkan_progja_rencana: true,
-    tampilkan_progja_akan_datang: true,
-    tampilkan_progja_selesai: true,
+  // Toggle Visibility State (Default true)
+  const [visibleSections, setVisibleSections] = useState({
+    akanDatang: true,
+    rencana: true,
+    selesai: true,
   });
-  const [isSavingSetting, setIsSavingSetting] = useState(false);
-  const [viewPublicMode, setViewPublicMode] = useState(false);
 
-  // Modal & Form States
+  // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
 
-  // Form Dropdowns
-  const [formPeriodeList, setFormPeriodeList] = useState([]);
+  // Data Master untuk Form
   const [formDivisiList, setFormDivisiList] = useState([]);
-  const [formAnggotaList, setFormAnggotaList] = useState([]);
+  const [formPeriodeList, setFormPeriodeList] = useState([]);
 
   // --- FETCH DATA ---
   useEffect(() => {
-    fetchData();
-  }, []);
+    const fetchInit = async () => {
+      setLoading(true);
+      try {
+        // 1. Periode
+        const { data: periodes } = await supabase
+          .from("periode_jabatan")
+          .select("*")
+          .order("tahun_mulai", { ascending: false });
+        setPeriodeList(periodes || []);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // 1. Load Settings
-      const { data: settings } = await supabase.from("pengaturan").select("*").eq("id", 1).single();
-      if (settings) setPengaturan(settings);
+        // Set default active tab
+        if (periodes?.length > 0 && !activeTab) {
+          const active = periodes.find((p) => p.is_active);
+          setActiveTab(active ? active.id : periodes[0].id);
+        }
 
-      // 2. Load Periode List (Untuk Filter)
-      const { data: periodes } = await supabase.from("periode_jabatan").select("id, nama_kabinet, tahun_mulai").order("tahun_mulai", { ascending: false });
-      setPeriodeOptions(periodes || []);
+        // 2. Divisi (Untuk Filter)
+        const { data: divisis } = await supabase
+          .from("divisi")
+          .select("*")
+          .order("nama_divisi");
+        setDivisiList(divisis || []);
+        setFormDivisiList(divisis || []);
+        setFormPeriodeList(periodes || []);
 
-      // 3. Load All Progja
-      const { data: progja, error } = await supabase.from("program_kerja_detail_view").select("*").order("tanggal", { ascending: false });
-      if (error) throw error;
+        // 3. Settings (Visibility)
+        const { data: settings } = await supabase
+          .from("pengaturan_website")
+          .select("key, value");
+        if (settings) {
+          const newVis = { ...visibleSections };
+          settings.forEach((s) => {
+            if (s.key === "tampilkan_progja_akan_datang")
+              newVis.akanDatang = s.value === "true";
+            if (s.key === "tampilkan_progja_rencana")
+              newVis.rencana = s.value === "true";
+            if (s.key === "tampilkan_progja_selesai")
+              newVis.selesai = s.value === "true";
+          });
+          setVisibleSections(newVis);
+        }
+      } catch (err) {
+        console.error("Init Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInit();
+  }, []); // Run once on mount
 
-      setProgjaList(progja || []);
-      const uniqueDivisi = [...new Set(progja.map((p) => p.nama_divisi).filter(Boolean))];
-      setDivisiOptions(uniqueDivisi.sort());
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFormDropdowns = async () => {
-    if (formPeriodeList.length > 0) return;
-    const { data: p } = await supabase.from("periode_jabatan").select("id, nama_kabinet").order("tahun_mulai", { ascending: false });
-    setFormPeriodeList(p || []);
-    const { data: d } = await supabase.from("divisi").select("id, nama_divisi").order("nama_divisi");
-    setFormDivisiList(d || []);
-    const { data: a } = await supabase.from("anggota").select("id, nama").order("nama");
-    setFormAnggotaList(a || []);
-  };
-
-  // --- EFFECTS ---
-  const progjaListRef = useRef(progjaList);
+  // Fetch Progja saat Periode Berubah
   useEffect(() => {
-    progjaListRef.current = progjaList;
-    const timer = setTimeout(processInstagramEmbeds, 500);
-    return () => clearTimeout(timer);
-  }, [progjaList, selectedStatus, selectedDivisi, selectedPeriode]);
+    if (!activeTab) return;
+    const fetchProgja = async () => {
+      setLoading(true);
+      try {
+        let query = supabase
+          .from("program_kerja")
+          .select("*, divisi(nama_divisi, logo_url)")
+          .order("tanggal", { ascending: true });
+
+        if (activeTab !== "semua") {
+          query = query.eq("periode_id", activeTab);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        setProgjaList(data || []);
+      } catch (err) {
+        console.error("Fetch Progja Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProgja();
+  }, [activeTab]);
 
   // --- HANDLERS ---
-  const handleToggleSetting = async (key, newValue) => {
-    setIsSavingSetting(true);
-    setPengaturan((prev) => ({ ...prev, [key]: newValue }));
-    try {
-      await supabase.from("pengaturan").update({ [key]: newValue }).eq("id", 1);
-    } catch (err) {
-      setPengaturan((prev) => ({ ...prev, [key]: !newValue }));
-    } finally {
-      setIsSavingSetting(false);
+  const toggleSection = async (key, dbKey, value) => {
+    setVisibleSections((prev) => ({ ...prev, [key]: value }));
+    if (isAdmin) {
+      // Simpan ke DB jika admin
+      await supabase
+        .from("pengaturan_website")
+        .upsert({ key: dbKey, value: String(value) }, { onConflict: "key" });
     }
   };
 
-  const openModal = async (item = null) => {
-    setModalLoading(true);
-    await fetchFormDropdowns();
-    setModalLoading(false);
-    if (item) {
-      setEditingId(item.id);
-      setFormData({
-        nama_acara: item.nama_acara,
-        tanggal: item.tanggal,
-        status: item.status,
-        deskripsi: item.deskripsi || "",
-        link_dokumentasi: item.link_dokumentasi || "",
-        divisi_id: item.divisi_id,
-        penanggung_jawab_id: item.penanggung_jawab_id,
-        periode_id: item.periode_id,
-        embed_html: item.embed_html || "",
-      });
-    } else {
-      setEditingId(null);
-      setFormData({
-        status: "Rencana",
-        nama_acara: "",
-        tanggal: "",
-        deskripsi: "",
-        link_dokumentasi: "",
-        embed_html: "",
-      });
-    }
+  // CRUD Handlers (Simpan, Edit, Hapus) - Sama seperti sebelumnya
+  const openModal = (item = null) => {
+    setEditingId(item ? item.id : null);
+    setFormData(
+      item
+        ? { ...item }
+        : {
+            nama_program: "",
+            deskripsi: "",
+            status: "Rencana",
+            tanggal: new Date().toISOString().split("T")[0],
+            divisi_id: "",
+            periode_id: activeTab !== "semua" ? activeTab : "",
+          }
+    );
     setIsModalOpen(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Yakin hapus program kerja ini?")) return;
-    try {
-      const { error } = await supabase.from("program_kerja").delete().eq("id", id);
-      if (error) throw error;
-      setProgjaList((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleFormChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
     try {
-      if (editingId) await supabase.from("program_kerja").update(formData).eq("id", editingId);
-      else await supabase.from("program_kerja").insert(formData);
-      alert("Berhasil disimpan!");
-      setIsModalOpen(false);
-      fetchData();
+      const payload = { ...formData };
+      if (editingId) {
+        await supabase
+          .from("program_kerja")
+          .update(payload)
+          .eq("id", editingId);
+      } else {
+        await supabase.from("program_kerja").insert(payload);
+      }
+      // Refresh Data (Simple reload for now, or re-fetch)
+      window.location.reload();
     } catch (err) {
-      alert("Gagal: " + err.message);
+      alert("Error: " + err.message);
     } finally {
       setModalLoading(false);
     }
   };
 
-  // --- FILTER LOGIC ---
-  const visibleStatusOptions = useMemo(() => {
-    const options = ["Semua"];
-    if (isAdmin || pengaturan.tampilkan_progja_akan_datang) options.push("Akan Datang");
-    if (isAdmin || pengaturan.tampilkan_progja_rencana) options.push("Rencana");
-    if (isAdmin || pengaturan.tampilkan_progja_selesai) options.push("Selesai");
-    return options;
-  }, [isAdmin, pengaturan]);
-
-  useEffect(() => {
-    if (!visibleStatusOptions.includes(selectedStatus === "Semua" ? "Semua" : selectedStatus))
-      setSelectedStatus("semua");
-  }, [visibleStatusOptions, selectedStatus]);
-
-  const filteredList = progjaList.filter((item) => {
-    // 1. Filter Divisi
-    if (selectedDivisi !== "semua" && item.nama_divisi !== selectedDivisi) return false;
-    
-    // 2. Filter Status
-    if (selectedStatus !== "semua" && item.status !== selectedStatus) return false;
-    
-    // 3. Filter Periode (BARU)
-    if (selectedPeriode !== "semua" && String(item.periode_id) !== String(selectedPeriode)) return false;
-
-    // 4. Filter Search
-    if (searchTerm !== "" && !item.nama_acara.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-
-    // 5. Filter Visibility (Public/Admin)
-    if (!isAdmin || viewPublicMode) {
-      if (item.tampilkan_di_publik === false) return false;
-      if (item.status === "Rencana" && !pengaturan.tampilkan_progja_rencana) return false;
-      if (item.status === "Akan Datang" && !pengaturan.tampilkan_progja_akan_datang) return false;
-      if (item.status === "Selesai" && !pengaturan.tampilkan_progja_selesai) return false;
+  const handleDelete = async (id) => {
+    if (!confirm("Hapus program ini?")) return;
+    try {
+      await supabase.from("program_kerja").delete().eq("id", id);
+      setProgjaList((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      alert(err.message);
     }
-    return true;
+  };
+
+  // --- FILTERING ---
+  const filteredList = progjaList.filter((item) => {
+    const matchDivisi =
+      selectedDivisi === "semua" ||
+      String(item.divisi_id) === String(selectedDivisi);
+    const matchStatus =
+      selectedStatus === "semua" || item.status === selectedStatus;
+    const matchSearch =
+      searchTerm === "" ||
+      item.nama_program.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchDivisi && matchStatus && matchSearch;
   });
 
-  const getListBySection = (status) => filteredList.filter((item) => item.status === status);
+  // Grouping
+  const getListBySection = (sectionName) => {
+    if (sectionName === "Akan Datang") {
+      // Logic khusus: Status 'Terjadwal' ATAU (Rencana tapi ada tanggal dekat)
+      return filteredList.filter((p) => p.status === "Terjadwal");
+    }
+    return filteredList.filter((p) => p.status === sectionName);
+  };
 
-  // --- RENDER SECTION ---
-  const renderSection = (title, list, statusKey, cssClass, Icon) => {
-    const isGlobalVisible = pengaturan[statusKey] !== false;
-    if (list.length === 0) return null;
-    if ((!isAdmin || viewPublicMode) && !isGlobalVisible) return null;
-
-    const isAdminViewStyle = isAdmin && !viewPublicMode && !isGlobalVisible
-        ? { opacity: 0.75, border: "2px dashed #cbd5e0", background: "#f8fafc", padding: "1rem", borderRadius: "12px" }
-        : {};
+  // Render Section Helper
+  const renderSection = (title, list, visibilityKey, titleClass, icon) => {
+    if (!visibleSections[visibilityKey] && !isAdmin) return null; // User biasa gak liat jika hidden
+    if (list.length === 0 && !visibleSections[visibilityKey]) return null; // Hide empty if hidden setting is on
 
     return (
-      <section className={styles.timelineSection} style={isAdminViewStyle}>
+      <section className={styles.timelineSection}>
         <div className={styles.sectionHeader}>
-          <h2 className={`${styles.sectionTitle} ${styles[cssClass]}`}>
-            {Icon && <span style={{display:'flex', alignItems:'center'}}>{Icon}</span>}
-            {title}
-          </h2>
+          <h3 className={`${styles.sectionTitle} ${styles[titleClass]}`}>
+            {icon} {title}
+          </h3>
           <span className={styles.sectionCount}>{list.length}</span>
         </div>
 
-        <div className={styles.progjaGrid}>
-          {list.map((item) => (
-            <ProgramKerjaCard
-              key={item.id}
-              data={item}
-              isAdmin={isAdmin && !viewPublicMode}
-              onEdit={() => openModal(item)}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        {list.length === 0 ? (
+          <p
+            style={{
+              color: "#94a3b8",
+              fontStyle: "italic",
+              fontSize: "0.9rem",
+            }}
+          >
+            Tidak ada program.
+          </p>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {list.map((progja) => (
+              <ProgramKerjaCard
+                key={progja.id}
+                data={progja}
+                isAdmin={isAdmin}
+                onEdit={() => openModal(progja)}
+                onDelete={() => handleDelete(progja.id)}
+              />
+            ))}
+          </div>
+        )}
       </section>
     );
   };
 
   return (
     <PageContainer breadcrumbText="Program Kerja">
-      
       <PageHeader
-        title="Program Kerja"
-        subtitle="Agenda Kegiatan & Event"
-        
-        actions={null} 
-
-        // SEARCH BAR
-        searchBar={
-          <div style={{ position: "relative", width: "100%" }}>
-            <FiSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
-            <input
-              type="text"
-              placeholder="Cari acara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", border: "1px solid #cbd5e0", borderRadius: "8px", fontSize: "0.9rem", height: "34px" }}
-            />
+        title={
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}
+          >
+            <span>Program Kerja</span>
+            {activeTab === "semua" ? (
+              <span
+                style={{
+                  fontSize: "0.6em",
+                  color: "#64748b",
+                  fontWeight: "400",
+                  backgroundColor: "#f1f5f9",
+                  padding: "4px 10px",
+                  borderRadius: "20px",
+                }}
+              >
+                Semua Periode
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: "0.6em",
+                  color: "#2563eb",
+                  fontWeight: "600",
+                  backgroundColor: "#eff6ff",
+                  padding: "4px 12px",
+                  borderRadius: "20px",
+                  border: "1px solid #bfdbfe",
+                }}
+              >
+                {
+                  periodeList.find((p) => String(p.id) === String(activeTab))
+                    ?.nama_kabinet
+                }
+              </span>
+            )}
           </div>
         }
-
-        // MENU OPSI
-        options={isAdmin && (
-          <>
-             <button onClick={() => openModal()} className={`${styles.modernButton} ${styles.btnGreen}`} style={{width:'100%'}}>
-                <FiPlus /> Tambah Program Kerja
-             </button>
-             
-             <div style={{width:'100%', height:'1px', background:'#e2e8f0', margin:'0.5rem 0'}}></div>
-             
-             <div style={{display:'flex', gap:'1rem', flexWrap:'wrap', width:'100%'}}>
-                <span style={{fontSize:'0.85rem', fontWeight:600, color:'#64748b'}}>Tampilan:</span>
-                <AdminToggle label="Akan Datang" isEnabled={pengaturan.tampilkan_progja_akan_datang !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_akan_datang", v)} isSaving={isSavingSetting} />
-                <AdminToggle label="Rencana" isEnabled={pengaturan.tampilkan_progja_rencana !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_rencana", v)} isSaving={isSavingSetting} />
-                <AdminToggle label="Selesai" isEnabled={pengaturan.tampilkan_progja_selesai !== false} onToggle={(v) => handleToggleSetting("tampilkan_progja_selesai", v)} isSaving={isSavingSetting} />
-             </div>
-          </>
-        )}
-
-        // FILTER (Status, Periode, Divisi)
+        subtitle="Timeline kegiatan dan agenda organisasi."
+        // --- 1. ACTIONS (HANYA TOMBOL TAMBAH) ---
+        actions={
+          isAdmin && (
+            <button
+              onClick={() => openModal()}
+              className="button button-primary"
+              title="Tambah Program"
+            >
+              <FiPlus /> Program Baru
+            </button>
+          )
+        }
+        // --- 2. SEARCH BAR + FILTER PERIODE ---
+        searchBar={
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            {/* Filter Periode */}
+            <div style={{ flex: "0 0 140px" }}>
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value)}
+                style={{
+                  width: "100%",
+                  height: "40px",
+                  padding: "0 0.5rem",
+                  border: "1px solid #cbd5e0",
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  backgroundColor: "white",
+                  color: "#475569",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="semua">Semua Periode</option>
+                {periodeList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama_kabinet} ({p.tahun_mulai})
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Input Cari */}
+            <div style={{ flex: 1, position: "relative" }}>
+              <FiSearch
+                style={{
+                  position: "absolute",
+                  left: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#94a3b8",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Cari program..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%",
+                  height: "40px",
+                  padding: "0 0.8rem 0 2.5rem",
+                  border: "1px solid #cbd5e0",
+                  borderRadius: "8px",
+                  fontSize: "0.9rem",
+                  outline: "none",
+                }}
+              />
+            </div>
+          </div>
+        }
+        // --- 3. FILTERS (Status & Divisi) ---
         filters={
           <>
-            <div style={{ width: '100%' }}>
-               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <span style={{fontSize:'0.85rem', fontWeight:600, color:'#64748b'}}>Status:</span>
-                  {visibleStatusOptions.map((status) => (
-                    <FilterPill key={status} label={status} active={selectedStatus === (status === "Semua" ? "semua" : status)} onClick={() => setSelectedStatus(status === "Semua" ? "semua" : status)} />
-                  ))}
-               </div>
-            </div>
-
-            {/* Filter Periode (Baru Ditambahkan) */}
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <FilterSelect label="Periode" value={selectedPeriode} onChange={(e) => setSelectedPeriode(e.target.value)}>
-                <option value="semua">Semua Periode</option>
-                {periodeOptions.map((p) => (
-                  <option key={p.id} value={p.id}>{p.nama_kabinet} ({p.tahun_mulai})</option>
+            <div style={{ flex: 1, minWidth: "150px" }}>
+              <FilterSelect
+                label="Filter Divisi"
+                value={selectedDivisi}
+                onChange={(e) => setSelectedDivisi(e.target.value)}
+              >
+                <option value="semua">Semua Divisi</option>
+                {divisiList.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nama_divisi}
+                  </option>
                 ))}
               </FilterSelect>
             </div>
-
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <FilterSelect label="Divisi" value={selectedDivisi} onChange={(e) => setSelectedDivisi(e.target.value)}>
-                <option value="semua">Semua Divisi</option>
-                {divisiOptions.map((div, idx) => <option key={idx} value={div}>{div}</option>)}
+            <div style={{ flex: 1, minWidth: "150px" }}>
+              <FilterSelect
+                label="Filter Status"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="semua">Semua Status</option>
+                <option value="Terjadwal">Akan Datang</option>
+                <option value="Rencana">Rencana</option>
+                <option value="Selesai">Selesai</option>
               </FilterSelect>
             </div>
-
-            {isAdmin && (
-              <div className={styles.previewToggleWrapper} style={{ marginLeft: 'auto' }}>
-                <button className={`${styles.previewBtn} ${viewPublicMode ? styles.active : ""}`} onClick={() => setViewPublicMode(!viewPublicMode)}>
-                  {viewPublicMode ? <FiEyeOff /> : <FiEye />} View as Guest
-                </button>
-              </div>
-            )}
           </>
+        }
+        // --- 4. OPTIONS (Toggle Visibility) ---
+        options={
+          isAdmin && (
+            <div style={{ width: "100%", minWidth: "250px" }}>
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: "700",
+                  color: "#94a3b8",
+                  marginBottom: "0.5rem",
+                  textTransform: "uppercase",
+                }}
+              >
+                Tampilan Publik
+              </div>
+              <OptionToggle
+                label="Akan Datang"
+                icon={FiCalendar}
+                isEnabled={visibleSections.akanDatang}
+                onToggle={(val) =>
+                  toggleSection(
+                    "akanDatang",
+                    "tampilkan_progja_akan_datang",
+                    val
+                  )
+                }
+              />
+              <OptionToggle
+                label="Rencana Program"
+                icon={FiTarget}
+                isEnabled={visibleSections.rencana}
+                onToggle={(val) =>
+                  toggleSection("rencana", "tampilkan_progja_rencana", val)
+                }
+              />
+              <OptionToggle
+                label="Selesai / Terlaksana"
+                icon={FiCheckCircle}
+                isEnabled={visibleSections.selesai}
+                onToggle={(val) =>
+                  toggleSection("selesai", "tampilkan_progja_selesai", val)
+                }
+              />
+            </div>
+          )
         }
       />
 
@@ -379,15 +489,39 @@ function ProgramKerja() {
         <ProgjaSkeletonGrid />
       ) : filteredList.length === 0 ? (
         <div className={styles.emptyState}>
-          <span style={{fontSize:'3rem', display:'block', marginBottom:'1rem'}}>📅</span>
-          <h3 style={{fontSize:'1.2rem', fontWeight:700, margin:0}}>Belum ada Program Kerja</h3>
+          <span
+            style={{ fontSize: "3rem", display: "block", marginBottom: "1rem" }}
+          >
+            📅
+          </span>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: 0 }}>
+            Belum ada Program Kerja
+          </h3>
           <p>Tidak ada data yang sesuai dengan filter Anda.</p>
         </div>
       ) : (
         <div className={styles.contentWrapper}>
-          {renderSection("Akan Datang", getListBySection("Akan Datang"), "tampilkan_progja_akan_datang", "titleAkanDatang", <FiCalendar />)}
-          {renderSection("Rencana Program", getListBySection("Rencana"), "tampilkan_progja_rencana", "titleRencana", <FiTarget />)}
-          {renderSection("Terlaksana / Selesai", getListBySection("Selesai"), "tampilkan_progja_selesai", "titleSelesai", <FiCheckCircle />)}
+          {renderSection(
+            "Akan Datang",
+            getListBySection("Akan Datang"),
+            "akanDatang",
+            "titleAkanDatang",
+            <FiCalendar />
+          )}
+          {renderSection(
+            "Rencana Program",
+            getListBySection("Rencana"),
+            "rencana",
+            "titleRencana",
+            <FiTarget />
+          )}
+          {renderSection(
+            "Terlaksana / Selesai",
+            getListBySection("Selesai"),
+            "selesai",
+            "titleSelesai",
+            <FiCheckCircle />
+          )}
         </div>
       )}
 
@@ -400,13 +534,14 @@ function ProgramKerja() {
         >
           <ProgramKerjaForm
             formData={formData}
-            onChange={handleFormChange}
+            onChange={(e) =>
+              setFormData({ ...formData, [e.target.name]: e.target.value })
+            }
             onSubmit={handleSubmit}
             onCancel={() => setIsModalOpen(false)}
             loading={modalLoading}
             periodeList={formPeriodeList}
             divisiList={formDivisiList}
-            anggotaList={formAnggotaList}
           />
         </Modal>
       )}

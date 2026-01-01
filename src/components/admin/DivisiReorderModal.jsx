@@ -1,71 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
+import { FiChevronUp, FiChevronDown, FiSave } from "react-icons/fi";
+import Modal from "../Modal";
 
-// Import CSS Module Lokal (Untuk styling list)
-import styles from "./DivisiReorderModal.module.css";
-
-// Import Style Global untuk tombol (Konsistensi)
-import globalFormStyles from "./AdminForm.module.css";
-
-export default function DivisiReorderModal({
-  isOpen,
-  onClose,
-  divisiList,
-  activePeriodeId,
-  onSuccess,
-}) {
-  const [reorderList, setReorderList] = useState([]);
+const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      const filtered = divisiList.filter(
-        (d) => d.periode_id == activePeriodeId
-      );
-      const sorted = [...filtered].sort(
+    if (isOpen && divisiList) {
+      const sorted = [...divisiList].sort(
         (a, b) => (a.urutan || 99) - (b.urutan || 99)
       );
-      setReorderList(sorted);
+      setItems(sorted);
     }
-  }, [isOpen, divisiList, activePeriodeId]);
+  }, [isOpen, divisiList]);
 
-  const moveDivisi = (index, direction) => {
-    const newList = [...reorderList];
-    if (direction === "up" && index > 0) {
-      [newList[index], newList[index - 1]] = [
-        newList[index - 1],
-        newList[index],
-      ];
-    } else if (direction === "down" && index < newList.length - 1) {
-      [newList[index], newList[index + 1]] = [
-        newList[index + 1],
-        newList[index],
-      ];
-    }
-    setReorderList(newList);
+  const moveUp = (index) => {
+    if (index === 0) return;
+    const newItems = [...items];
+    [newItems[index - 1], newItems[index]] = [
+      newItems[index],
+      newItems[index - 1],
+    ];
+    setItems(newItems);
+  };
+
+  const moveDown = (index) => {
+    if (index === items.length - 1) return;
+    const newItems = [...items];
+    [newItems[index + 1], newItems[index]] = [
+      newItems[index],
+      newItems[index + 1],
+    ];
+    setItems(newItems);
   };
 
   const handleSave = async () => {
-    if (reorderList.length === 0) {
-      onClose();
-      return;
-    }
     setLoading(true);
     try {
-      for (let i = 0; i < reorderList.length; i++) {
-        const div = reorderList[i];
-        const urutanBaru = i + 1;
-        const { error } = await supabase
+      const updates = items.map((item, index) => {
+        return supabase
           .from("divisi")
-          .update({ urutan: urutanBaru })
-          .eq("id", div.id);
-        if (error) throw error;
-      }
-      alert("Urutan berhasil disimpan!");
-      onSuccess();
+          .update({ urutan: index + 1 })
+          .eq("id", item.id);
+      });
+      const results = await Promise.all(updates);
+      const error = results.find((r) => r.error);
+      if (error) throw error.error;
+
+      alert("Urutan berhasil diperbarui!");
+      if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      alert("Gagal menyimpan: " + err.message);
+      alert("Gagal: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -74,65 +62,151 @@ export default function DivisiReorderModal({
   if (!isOpen) return null;
 
   return (
-    <div>
-      <p className={styles.instruction}>
-        Gunakan panah untuk mengatur posisi. No. 1 tampil paling awal.
-      </p>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Atur Urutan Divisi"
+      maxWidth="450px"
+    >
+      {/* Padding Modal Body dikurangi */}
+      <div style={{ padding: "0.5rem" }}>
+        <p
+          style={{
+            fontSize: "0.8rem",
+            color: "#64748b",
+            marginBottom: "0.5rem",
+            marginTop: 0,
+          }}
+        >
+          Gunakan tombol panah untuk mengatur urutan.
+        </p>
 
-      {reorderList.length === 0 ? (
-        <div className={styles.empty}>Tidak ada divisi di periode ini.</div>
-      ) : (
-        <div className={styles.list}>
-          {reorderList.map((div, index) => (
-            <div key={div.id} className={styles.item}>
-              <div className={styles.info}>
-                <div className={styles.number}>{index + 1}</div>
-                <span className={styles.name}>{div.nama_divisi}</span>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.3rem", // Jarak antar item dirapatkan
+            maxHeight: "60vh",
+            overflowY: "auto",
+            paddingRight: "2px",
+          }}
+        >
+          {items.map((item, index) => (
+            <div
+              key={item.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0.4rem 0.8rem", // Padding item dikecilkan
+                backgroundColor: "white",
+                border: "1px solid #e2e8f0",
+                borderRadius: "6px",
+                fontSize: "0.9rem",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}
+              >
+                <span
+                  style={{
+                    fontWeight: "700",
+                    color: "#cbd5e1",
+                    width: "16px",
+                    textAlign: "center",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  {index + 1}
+                </span>
+                <span style={{ fontWeight: "600", color: "#1e293b" }}>
+                  {item.nama_divisi}
+                </span>
               </div>
 
-              <div className={styles.controls}>
+              <div style={{ display: "flex", gap: "2px" }}>
                 <button
-                  type="button"
-                  className={styles.btnArrow}
-                  onClick={() => moveDivisi(index, "up")}
+                  onClick={() => moveUp(index)}
                   disabled={index === 0}
-                  title="Naikkan"
+                  className="button button-secondary"
+                  style={{
+                    padding: "4px",
+                    width: "28px",
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "4px",
+                  }}
+                  title="Naik"
                 >
-                  ▲
+                  <FiChevronUp size={14} />
                 </button>
                 <button
-                  type="button"
-                  className={styles.btnArrow}
-                  onClick={() => moveDivisi(index, "down")}
-                  disabled={index === reorderList.length - 1}
-                  title="Turunkan"
+                  onClick={() => moveDown(index)}
+                  disabled={index === items.length - 1}
+                  className="button button-secondary"
+                  style={{
+                    padding: "4px",
+                    width: "28px",
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "4px",
+                  }}
+                  title="Turun"
                 >
-                  ▼
+                  <FiChevronDown size={14} />
                 </button>
               </div>
             </div>
           ))}
         </div>
-      )}
 
-      {/* FOOTER MENGGUNAKAN GLOBAL STYLE (CAMELCASE) */}
-      <div className={globalFormStyles.formFooter}>
-        <button
-          type="button"
-          onClick={onClose}
-          className="button button-secondary"
+        {/* Footer Actions */}
+        <div
+          style={{
+            marginTop: "1rem",
+            paddingTop: "0.75rem",
+            borderTop: "1px solid #f1f5f9",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "0.5rem",
+          }}
         >
-          Batal
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
-          className="button button-primary"
-          disabled={loading}
-        >
-          {loading ? "Menyimpan..." : "Simpan Urutan"}
-        </button>
+          <button
+            onClick={onClose}
+            className="button button-secondary"
+            disabled={loading}
+            style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem" }}
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleSave}
+            className="button button-primary"
+            disabled={loading}
+            style={{
+              padding: "0.4rem 0.8rem",
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            {loading ? (
+              "Menyimpan..."
+            ) : (
+              <>
+                <FiSave size={14} /> Simpan
+              </>
+            )}
+          </button>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
-}
+};
+
+export default DivisiReorderModal;

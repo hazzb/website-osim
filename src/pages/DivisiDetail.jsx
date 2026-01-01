@@ -1,22 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
-import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx"; // Pastikan komponen ini ada
+import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 
 // Icons
-import { FiArrowLeft, FiUsers, FiBriefcase, FiLayers } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiUsers,
+  FiBriefcase,
+  FiImage,
+  FiAlertCircle,
+  FiLayout, // Icon Compact
+  FiGrid, // Icon Aesthetic
+} from "react-icons/fi";
 
 // Styles
 import styles from "./DivisiDetail.module.css";
 
 function DivisiDetail() {
-  const { id } = useParams(); // Ambil ID dari URL
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
+
+  // STATE VIEW MODE (Default Aesthetic)
+  const [viewMode, setViewMode] = useState("aesthetic");
+
   const [data, setData] = useState({
     divisi: null,
     anggota: [],
@@ -37,32 +52,50 @@ function DivisiDetail() {
 
         if (divError) throw divError;
 
-        // 2. Ambil Anggota di Divisi ini
-        const { data: angData, error: angError } = await supabase
+        // 2. Ambil Anggota Divisi
+        const { data: aggData, error: aggError } = await supabase
           .from("anggota")
-          .select("*")
-          .eq("divisi_id", id)
-          .order("id", { ascending: true }); // Atau order by jabatan level jika ada
+          .select("*, master_jabatan(nama_jabatan)")
+          .eq("divisi_id", id);
 
-        if (angError) throw angError;
+        if (aggError) throw aggError;
 
-        // 3. Ambil Program Kerja di Divisi ini
+        // 3. Ambil Progja Divisi
         const { data: progData, error: progError } = await supabase
-          .from("program_kerja") // Gunakan tabel atau view detail
+          .from("program_kerja")
           .select("*")
           .eq("divisi_id", id)
-          .order("tanggal", { ascending: false });
+          .order("tanggal", { ascending: true });
 
         if (progError) throw progError;
 
+        // Sorting manual Anggota (Ketua -> Wakil -> Anggota)
+        const getRank = (jabatan) => {
+          const j = jabatan?.toLowerCase() || "";
+          if (j.includes("ketua") && !j.includes("wakil")) return 1;
+          if (j.includes("wakil")) return 2;
+          if (j.includes("sekretaris")) return 3;
+          if (j.includes("bendahara")) return 4;
+          if (j.includes("koordinator")) return 5;
+          if (j.includes("staff ahli")) return 6;
+          return 99;
+        };
+
+        const sortedAnggota = (aggData || []).sort((a, b) => {
+          const rankA = getRank(a.master_jabatan?.nama_jabatan);
+          const rankB = getRank(b.master_jabatan?.nama_jabatan);
+          if (rankA !== rankB) return rankA - rankB;
+          return a.nama.localeCompare(b.nama);
+        });
+
         setData({
           divisi: divData,
-          anggota: angData || [],
+          anggota: sortedAnggota,
           progja: progData || [],
         });
       } catch (err) {
-        console.error(err);
-        setError("Gagal memuat data divisi.");
+        console.error("Error fetching detail:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -71,66 +104,184 @@ function DivisiDetail() {
     if (id) fetchData();
   }, [id]);
 
+  // --- RENDERING ---
+
   if (loading)
     return (
       <PageContainer>
-        <LoadingState message="Memuat detail divisi..." />
+        <LoadingState />
       </PageContainer>
     );
 
-  if (error || !data.divisi)
+  if (error || !data.divisi) {
     return (
       <PageContainer>
-        <Link to="/daftar-anggota" className={styles.backButton}>
-          <FiArrowLeft /> Kembali
-        </Link>
-        <div className={styles.emptyState}>
-          <h3>Data Tidak Ditemukan</h3>
-          <p>Divisi yang Anda cari tidak tersedia atau telah dihapus.</p>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "4rem 1rem",
+            color: "#64748b",
+          }}
+        >
+          <FiAlertCircle
+            size={48}
+            style={{ marginBottom: "1rem", color: "#ef4444" }}
+          />
+          <h2>Divisi Tidak Ditemukan</h2>
+          <p>Mungkin divisi ini sudah dihapus atau URL salah.</p>
+          <button
+            onClick={() => navigate("/anggota")}
+            className="button button-primary"
+            style={{ marginTop: "1rem" }}
+          >
+            Kembali ke Daftar
+          </button>
         </div>
       </PageContainer>
     );
+  }
 
   const { divisi, anggota, progja } = data;
 
   return (
-    <PageContainer>
-      {/* Tombol Kembali */}
-      <div className={styles.stickyHeader}>
-        <Link to="/anggota" className={styles.backButton}>
-          <FiArrowLeft /> Kembali ke Daftar
-        </Link>
-      </div>
+    <PageContainer breadcrumbText={divisi.nama_divisi}>
+      {/* 1. HEADER */}
+      <PageHeader
+        title={divisi.nama_divisi}
+        subtitle={`Detail profil, anggota, dan program kerja ${divisi.nama_divisi}.`}
+        // ACTIONS: TOMBOL KEMBALI & TOGGLE VIEW
+        actions={
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            {/* VIEW MODE TOGGLE */}
+            <div
+              style={{
+                display: "flex",
+                backgroundColor: "#f1f5f9",
+                padding: "2px",
+                borderRadius: "6px",
+                height: "34px",
+              }}
+            >
+              <button
+                onClick={() => setViewMode("compact")}
+                title="Tampilan Compact (List)"
+                style={{
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "0 8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor:
+                    viewMode === "compact" ? "white" : "transparent",
+                  color: viewMode === "compact" ? "#2563eb" : "#94a3b8",
+                  boxShadow:
+                    viewMode === "compact"
+                      ? "0 1px 2px rgba(0,0,0,0.1)"
+                      : "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                <FiLayout size={16} />
+              </button>
+              <button
+                onClick={() => setViewMode("aesthetic")}
+                title="Tampilan Aesthetic (Grid)"
+                style={{
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "0 8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor:
+                    viewMode === "aesthetic" ? "white" : "transparent",
+                  color: viewMode === "aesthetic" ? "#2563eb" : "#94a3b8",
+                  boxShadow:
+                    viewMode === "aesthetic"
+                      ? "0 1px 2px rgba(0,0,0,0.1)"
+                      : "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                <FiGrid size={16} />
+              </button>
+            </div>
 
-      {/* HEADER: INFO DIVISI */}
-      <div className={styles.headerCard}>
+            {/* BUTTON KEMBALI */}
+            <button
+              onClick={() => navigate("/anggota")}
+              className="button button-secondary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                height: "34px",
+              }}
+            >
+              <FiArrowLeft /> Kembali
+            </button>
+          </div>
+        }
+      />
+
+      {/* 2. INFO CARD */}
+      <div className={styles.infoCard}>
         <div className={styles.logoWrapper}>
           {divisi.logo_url ? (
             <img
               src={divisi.logo_url}
-              alt={divisi.nama_divisi}
+              alt="Logo"
               className={styles.logoImage}
             />
           ) : (
-            <FiLayers size={40} color="#cbd5e0" />
+            <div className={styles.logoPlaceholder}>
+              <FiImage />
+            </div>
           )}
         </div>
-        <div className={styles.infoWrapper}>
-          <div className={styles.periodeBadge}>
-            {divisi.periode_jabatan?.nama_kabinet || "Periode Tidak Diketahui"}
+
+        <div className={styles.infoContent}>
+          <div className={styles.metaInfo}>
+            <span className={styles.badge}>
+              {divisi.periode_jabatan?.nama_kabinet}
+            </span>
+            {divisi.tipe && (
+              <span
+                className={styles.badge}
+                style={{ background: "#f1f5f9", color: "#475569" }}
+              >
+                {divisi.tipe}
+              </span>
+            )}
           </div>
-          <h1 className={styles.title}>{divisi.nama_divisi}</h1>
+
+          <h3
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              color: "#1e293b",
+              margin: "0.5rem 0",
+            }}
+          >
+            Tentang {divisi.nama_divisi}
+          </h3>
+
           <p className={styles.description}>
-            {divisi.deskripsi || "Tidak ada deskripsi untuk divisi ini."}
+            {divisi.deskripsi || "Belum ada deskripsi untuk divisi ini."}
           </p>
         </div>
       </div>
 
-      {/* BAGIAN 1: ANGGOTA */}
-      <div>
+      {/* 3. STRUKTUR ANGGOTA */}
+      <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
-          <FiUsers /> Struktur Anggota
+          <FiUsers style={{ color: "#3b82f6" }} /> Struktur Anggota (
+          {anggota.length})
         </h2>
+
         {anggota.length === 0 ? (
           <div className={styles.emptyState}>
             Belum ada anggota terdaftar di divisi ini.
@@ -142,20 +293,24 @@ function DivisiDetail() {
                 key={member.id}
                 data={{
                   ...member,
-                  divisi: { nama_divisi: divisi.nama_divisi }, // Mock biar card tidak error
+                  divisi: { nama_divisi: divisi.nama_divisi },
                 }}
-                isAdmin={false} // Mode view only
+                isAdmin={false} // Mode View Only
+                showPeriode={false}
+                layout={viewMode} // Pass State View Mode
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* BAGIAN 2: PROGRAM KERJA */}
-      <div style={{ marginTop: "3rem" }}>
+      {/* 4. PROGRAM KERJA */}
+      <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
-          <FiBriefcase /> Program Kerja
+          <FiBriefcase style={{ color: "#f59e0b" }} /> Program Kerja (
+          {progja.length})
         </h2>
+
         {progja.length === 0 ? (
           <div className={styles.emptyState}>
             Belum ada program kerja yang ditambahkan.
@@ -167,9 +322,9 @@ function DivisiDetail() {
                 key={program.id}
                 data={{
                   ...program,
-                  nama_divisi: divisi.nama_divisi, // Mock untuk card
+                  nama_divisi: divisi.nama_divisi,
                 }}
-                isAdmin={false} // Mode view only
+                isAdmin={false} // Mode View Only
               />
             ))}
           </div>

@@ -52,7 +52,7 @@
     width: 100%;
     margin-top: 0.5rem;
   }
-  
+
   .headerTop {
     flex-direction: column;
   }
@@ -72,7 +72,7 @@
   border: none;
   cursor: pointer;
   transition: opacity 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .modernButton:hover {
@@ -81,11 +81,21 @@
 }
 
 /* Warna Tombol */
-.btnBlue { background-color: #3b82f6; }
-.btnOrange { background-color: #f97316; }
-.btnPurple { background-color: #8b5cf6; }
-.btnCyan { background-color: #06b6d4; }
-.btnTeal { background-color: #0d9488; }
+.btnBlue {
+  background-color: #3b82f6;
+}
+.btnOrange {
+  background-color: #f97316;
+}
+.btnPurple {
+  background-color: #8b5cf6;
+}
+.btnCyan {
+  background-color: #06b6d4;
+}
+.btnTeal {
+  background-color: #0d9488;
+}
 
 /* Filter & Search */
 .searchInput {
@@ -110,7 +120,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 /* HEADER DIVISI (FLEX SPACE BETWEEN) */
