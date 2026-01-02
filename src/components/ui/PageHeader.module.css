@@ -1,9 +1,12 @@
 /* src/components/ui/PageHeader.module.css */
 
-/* --- TAMPILAN DESKTOP --- */
+/* ========================================================== */
+/* TAMPILAN DESKTOP (BASE STYLES)                             */
+/* ========================================================== */
+
 .headerContainer {
   position: sticky;
-  top: 56px; /* Sesuaikan dengan tinggi Navbar Anda */
+  top: 56px; /* Sesuaikan dengan tinggi Navbar */
   z-index: 50; /* Z-Index tinggi agar selalu di atas konten lain */
 
   background-color: rgba(248, 250, 252, 0.95);
@@ -21,7 +24,7 @@
   transition: all 0.3s ease;
 }
 
-/* Baris Judul & Aksi */
+/* --- BARIS 1: JUDUL & AKSI --- */
 .topRow {
   display: flex;
   justify-content: space-between;
@@ -57,6 +60,7 @@
   text-overflow: ellipsis;
 }
 
+/* Actions Desktop */
 .actions {
   display: flex;
   align-items: center;
@@ -68,12 +72,29 @@
   display: none;
 }
 
-/* Baris Kontrol (Search & Tombol Filter) */
+/* --- BARIS 2: KONTROL (SEARCH, FILTER, OPSI) --- */
 .controlRow {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* Pisahkan Persistent (Kiri) & Toggle (Kanan) */
   gap: 0.5rem;
   width: 100%;
+}
+
+/* Area Kontrol yang Selalu Muncul (misal: Filter Periode / Layout) */
+.persistentControls {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* Area Tombol Toggle (Cari & Opsi) */
+.toggleGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .searchWrapper {
@@ -82,7 +103,7 @@
   min-width: 0;
 }
 
-/* Tombol Toggle Filter & Opsi */
+/* TOMBOL TOGGLE */
 .filterToggleBtn,
 .optionToggleBtn {
   display: flex;
@@ -117,11 +138,11 @@
   color: #2563eb;
 }
 
-/* Panel Dropdown (Filter & Opsi) */
+/* PANEL DROPDOWN (FILTER & OPSI) */
 .filterArea,
 .optionsArea {
   margin-top: 0.5rem;
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -147,16 +168,16 @@
 }
 
 /* ========================================================== */
-/* MOBILE RESPONSIVENESS (HP)                                 */
+/* MOBILE RESPONSIVENESS (HP < 768px)                         */
 /* ========================================================== */
 @media (max-width: 768px) {
   .headerContainer {
     padding: 0.75rem 1rem !important;
     gap: 0.75rem !important;
-    /* position: sticky tetap aktif dari desktop */
+    /* position: sticky tetap aktif mewarisi desktop */
   }
 
-  /* 1. Baris Judul */
+  /* 1. Baris Judul & Tombol Menu */
   .topRow {
     flex-direction: row !important;
     align-items: center !important;
@@ -176,7 +197,7 @@
     display: none !important;
   }
 
-  /* 2. Tombol Menu Mobile */
+  /* 2. Tombol Menu Mobile (Titik Tiga) */
   .mobileMenuBtn {
     display: flex !important;
     align-items: center;
@@ -201,6 +222,7 @@
   .actions {
     display: none !important;
 
+    /* Posisi Mengambang (Floating) */
     position: absolute;
     top: 50px;
     left: 1rem;
@@ -213,6 +235,7 @@
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
 
     padding: 0.75rem;
+    /* Grid 4 Kolom */
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 0.5rem !important;
   }
@@ -222,7 +245,7 @@
     animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* Styling Tombol di Mobile Actions */
+  /* Styling Tombol di dalam Panel Mobile (Icon Atas, Teks Bawah) */
   .actions > * {
     width: 100% !important;
     height: 48px !important;
@@ -257,16 +280,10 @@
 
   /* 4. Baris Kontrol */
   .controlRow {
-    width: 100% !important;
-    gap: 0.5rem !important;
+    gap: 0.4rem !important;
   }
 
-  .searchWrapper input {
-    height: 40px !important;
-    font-size: 0.9rem !important;
-    background: white;
-  }
-
+  /* Di Mobile, Tombol Toggle jadi Icon Only (Kotak) */
   .filterToggleBtn,
   .optionToggleBtn {
     width: 40px !important;
@@ -277,6 +294,11 @@
   .filterToggleBtn span,
   .optionToggleBtn span {
     display: none !important;
+  }
+
+  /* Pastikan elemen persistent (seperti dropdown periode) fontnya pas */
+  .persistentControls select {
+    font-size: 0.8rem !important;
   }
 
   /* 5. PERBAIKAN FILTER AREA DI MOBILE (Stack Vertikal agar tidak Overlap) */
@@ -301,5 +323,6 @@
   .filterArea select,
   .filterArea input {
     width: 100% !important;
+    height: 40px !important;
   }
 }

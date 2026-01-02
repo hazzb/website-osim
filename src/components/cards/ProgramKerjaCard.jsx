@@ -1,131 +1,178 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import styles from "./ProgramKerjaCard.module.css";
-
-// ICONS
 import {
   FiCalendar,
-  FiBriefcase,
   FiUser,
-  FiArrowRight,
+  FiExternalLink,
   FiEdit,
   FiTrash2,
+  FiInfo,
 } from "react-icons/fi";
-import HoverCard from "../ui/HoverCard";
+import DOMPurify from "dompurify";
+import styles from "./ProgramKerjaCard.module.css"; // Import Module CSS
+
+const sanitizeConfig = {
+  ADD_TAGS: ["iframe", "blockquote", "script"],
+  ADD_ATTR: [
+    "allow",
+    "allowfullscreen",
+    "frameborder",
+    "scrolling",
+    "src",
+    "width",
+    "height",
+    "class",
+    "data-instgrm-permalink",
+    "data-instgrm-version",
+  ],
+};
 
 const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
-  // Helper: Menentukan warna badge
-  const getStatusClass = (status) => {
-    if (status === "Selesai") return styles["status-selesai"];
-    if (status === "Akan Datang") return styles["status-akan-datang"];
-    return styles["status-rencana"]; // Default: Rencana
+  useEffect(() => {
+    if (data.embed_html && data.embed_html.includes("instagram")) {
+      if (!window.instgrm) {
+        const script = document.createElement("script");
+        script.src = "//www.instagram.com/embed.js";
+        script.async = true;
+        document.body.appendChild(script);
+      } else {
+        window.instgrm.Embeds.process();
+      }
+    }
+  }, [data.embed_html]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const options = { day: "numeric", month: "long", year: "numeric" };
+    return new Date(dateString).toLocaleDateString("id-ID", options);
   };
 
-  // Helper: Format Tanggal Indonesia
-  const formatDate = (dateString) => {
-    if (!dateString) return "Jadwal belum ditentukan";
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "Selesai":
+        return styles.statusSelesai;
+      case "Akan Datang":
+        return styles.statusAkanDatang;
+      case "Batal":
+        return styles.statusBatal;
+      default:
+        return styles.statusDefault;
+    }
   };
+
+  const createMarkup = (htmlContent) => {
+    const cleanHTML = DOMPurify.sanitize(htmlContent, sanitizeConfig);
+    const responsiveHTML = cleanHTML
+      .replace(/<iframe\s+width="\d+"/g, '<iframe width="100%"')
+      .replace(/<iframe([^>]+)height="\d+"/g, '<iframe$1height="100%"');
+    return { __html: responsiveHTML };
+  };
+
+  const isInstagram = data.embed_html && data.embed_html.includes("instagram");
 
   return (
-    <HoverCard className={styles.cardOverride}>
-      {/* 1. MEDIA SECTION (Jika ada Embed Instagram) */}
+    <div className={styles.card}>
+      {/* 1. EMBED HTML */}
       {data.embed_html && (
-        <div className={styles.mediaContainer}>
+        <div
+          className={styles.embedWrapper}
+          style={{
+            aspectRatio: isInstagram ? "auto" : "16/9",
+            minHeight: isInstagram ? "300px" : "auto",
+          }}
+        >
           <div
-            className={styles.embedWrapper}
-            dangerouslySetInnerHTML={{ __html: data.embed_html }}
-          />
-          {/* Overlay agar kartu bisa diklik link detail-nya, bukan play video instagram */}
-          <Link
-            to={`/program-kerja/${data.id}`}
-            className={styles.mediaOverlay}
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+            }}
+            dangerouslySetInnerHTML={createMarkup(data.embed_html)}
           />
         </div>
       )}
 
-      <div className={styles.cardBody}>
-        {/* 2. HEADER (Badges) */}
-        <div className={styles.cardHeader}>
+      {/* WRAPPER KONTEN */}
+      <div
+        className={`${styles.content} ${
+          data.embed_html ? styles.contentCompact : ""
+        }`}
+      >
+        {/* HEADER: Tanggal & Status */}
+        <div className={styles.header}>
+          <div className={styles.date}>
+            <FiCalendar /> {formatDate(data.tanggal)}
+          </div>
           <span
             className={`${styles.statusBadge} ${getStatusClass(data.status)}`}
           >
             {data.status}
           </span>
-
-          {/* Badge Hidden (Admin Only) */}
-          {isAdmin && data.tampilkan_di_publik === false && (
-            <span className={styles.hiddenBadge}>Hidden</span>
-          )}
         </div>
 
-        {/* 3. TITLE */}
-        <h3 className={styles.cardTitle}>
-          <Link to={`/program-kerja/${data.id}`}>{data.nama_acara}</Link>
-        </h3>
+        {/* JUDUL */}
+        <Link to={`/program-kerja/${data.id}`} className={styles.titleLink}>
+          <h3 className={styles.title}>{data.nama_acara}</h3>
+        </Link>
 
-        {/* 4. META INFO */}
-        <div className={styles.metaList}>
-          {/* Tanggal */}
-          <div className={styles.metaItem}>
-            <FiCalendar className={styles.metaIcon} />
-            <span>{formatDate(data.tanggal)}</span>
+        {/* META: PJ & Divisi */}
+        <div className={styles.metaInfo}>
+          <div className={styles.metaRow}>
+            <FiUser size={14} /> <strong>PJ:</strong> {data.pj?.nama || "-"}
           </div>
-
-          {/* Divisi */}
-          <div className={styles.metaItem}>
-            <FiBriefcase className={styles.metaIcon} />
-            <span>{data.nama_divisi || data.divisi?.nama_divisi || "-"}</span>
-          </div>
-
-          {/* PJ */}
-          <div className={styles.metaItem}>
-            <FiUser className={styles.metaIcon} />
-            <span className={styles.textPj}>
-              PJ: {data.nama_penanggung_jawab || data.anggota?.nama || "-"}
-            </span>
-          </div>
-        </div>
-
-        {/* 5. DESCRIPTION */}
-        <p className={styles.cardDesc}>
-          {data.deskripsi || "Tidak ada deskripsi singkat."}
-        </p>
-
-        {/* 6. FOOTER (Action Buttons) */}
-        <div className={styles.cardFooter}>
-          {/* Link Detail */}
-          <Link to={`/program-kerja/${data.id}`} className={styles.btnDetail}>
-            Detail <FiArrowRight />
-          </Link>
-
-          {/* Admin Actions */}
-          {isAdmin && (
-            <div className={styles.adminActions}>
-              <button
-                onClick={() => onEdit && onEdit(data)}
-                className={styles.btnIcon}
-                title="Edit"
-              >
-                <FiEdit />
-              </button>
-              <button
-                onClick={() => onDelete && onDelete(data.id)}
-                className={`${styles.btnIcon} ${styles.btnDelete}`}
-                title="Hapus"
-              >
-                <FiTrash2 />
-              </button>
+          {data.divisi && (
+            <div className={styles.metaRow}>
+              <span className={styles.divisiDot}>#</span>
+              {data.divisi.nama_divisi}
             </div>
           )}
         </div>
+
+        {/* DESKRIPSI */}
+        {data.deskripsi && (
+          <p className={styles.description}>{data.deskripsi}</p>
+        )}
+
+        {/* FOOTER ACTIONS */}
+        <div className={styles.footer}>
+          <Link to={`/program-kerja/${data.id}`} className={styles.detailBtn}>
+            <FiInfo size={16} /> Detail
+          </Link>
+
+          {data.link_dokumentasi && (
+            <a
+              href={data.link_dokumentasi}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.docLink}
+            >
+              <FiExternalLink size={16} />
+            </a>
+          )}
+        </div>
       </div>
-    </HoverCard>
+
+      {/* ADMIN ACTIONS */}
+      {isAdmin && (
+        <div className={styles.adminActions}>
+          <button
+            onClick={onEdit}
+            className={`${styles.adminBtn} ${styles.editBtn}`}
+            title="Edit Program"
+          >
+            <FiEdit />
+          </button>
+          <button
+            onClick={onDelete}
+            className={`${styles.adminBtn} ${styles.deleteBtn}`}
+            title="Hapus Program"
+          >
+            <FiTrash2 />
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 

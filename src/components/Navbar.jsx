@@ -14,6 +14,7 @@ import {
   FiLogIn,
   FiLogOut,
   FiLayout,
+  FiHome,
 } from "react-icons/fi";
 
 const Navbar = () => {
@@ -26,7 +27,7 @@ const Navbar = () => {
   const [logoUrl, setLogoUrl] = useState(null);
   const [orgName, setOrgName] = useState("OSIS APP");
 
-  // Fetch Settings (Logo & Nama)
+  // Fetch Settings
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -40,54 +41,61 @@ const Navbar = () => {
           if (data.logo_osis_url) setLogoUrl(data.logo_osis_url);
           if (data.nama_organisasi) setOrgName(data.nama_organisasi);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Error navbar settings:", error);
       }
     };
     fetchSettings();
   }, []);
 
-  // Tutup menu mobile saat pindah halaman
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+    setIsOpen(false);
+  };
+
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
-
   return (
     <nav className={styles.navbar}>
       <div className={styles.container}>
-        {/* === KIRI: LOGO & MENU DESKTOP === */}
+        {/* LEFT SECTION */}
         <div className={styles.leftSection}>
-          {/* Logo */}
           <Link to="/" className={styles.logoLink}>
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className={styles.logoImg} />
+              <img src={logoUrl} alt="Logo" className={styles.logoImage} />
             ) : (
               <div
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: 34,
+                  height: 34,
                   background: "#e2e8f0",
                   borderRadius: "50%",
                 }}
-              ></div>
+              />
             )}
             <span className={styles.logoText}>{orgName}</span>
           </Link>
 
-          {/* Menu Desktop (Hilang di Mobile) */}
-          <div className={styles.navLinks}>
+          {/* Desktop Menu */}
+          <div className={styles.desktopMenu}>
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.active : ""}`
+              }
+            >
+              <FiHome size={18} /> Beranda
+            </NavLink>
             <NavLink
               to="/visi-misi"
               className={({ isActive }) =>
                 `${styles.navLink} ${isActive ? styles.active : ""}`
               }
             >
-              Profile
+              <FiTarget size={18} /> Profile
             </NavLink>
             <NavLink
               to="/anggota"
@@ -95,7 +103,7 @@ const Navbar = () => {
                 `${styles.navLink} ${isActive ? styles.active : ""}`
               }
             >
-              Anggota
+              <FiUsers size={18} /> Anggota
             </NavLink>
             <NavLink
               to="/program-kerja"
@@ -103,62 +111,73 @@ const Navbar = () => {
                 `${styles.navLink} ${isActive ? styles.active : ""}`
               }
             >
-              Progja
+              <FiCalendar size={18} /> Program
             </NavLink>
           </div>
         </div>
 
-        {/* === KANAN: AUTH & MOBILE TOGGLE === */}
+        {/* RIGHT SECTION */}
         <div className={styles.rightSection}>
           {isAdmin ? (
             <>
-              {/* Tombol Dashboard (Hidden di Mobile) */}
-              <Link to="/dashboard" className={styles.btnDashboard}>
-                <FiLayout /> <span>Dashboard</span>
+              <Link to="/dashboard" className={styles.authBtn}>
+                <FiLayout /> Dashboard
               </Link>
-
-              {/* Tombol Logout (Hidden di Mobile) */}
               <button
                 onClick={handleLogout}
-                className={styles.btnLogout}
-                title="Keluar"
+                className={styles.authBtn}
+                style={{ color: "#ef4444", borderColor: "#fee2e2" }}
               >
                 <FiLogOut />
               </button>
             </>
           ) : (
-            <Link
-              to="/login"
-              className={styles.btnDashboard}
-              style={{
-                backgroundColor: "transparent",
-                color: "#475569",
-                border: "1px solid #cbd5e0",
-              }}
-            >
+            <Link to="/login" className={styles.authBtn}>
               <FiLogIn /> Login
             </Link>
           )}
 
-          {/* Tombol Burger Menu (Hanya muncul di Mobile) */}
           <button
-            className={styles.mobileToggle}
+            className={styles.hamburger}
             onClick={() => setIsOpen(!isOpen)}
           >
-            {isOpen ? <FiX /> : <FiMenu />}
+            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
         </div>
       </div>
 
-      {/* === MOBILE MENU DROPDOWN === */}
+      {/* MOBILE MENU */}
       <div className={`${styles.mobileMenu} ${isOpen ? styles.show : ""}`}>
-        <NavLink to="/visi-misi" className={styles.mobileLink}>
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+          }
+        >
+          <FiHome /> Beranda
+        </NavLink>
+        <NavLink
+          to="/visi-misi"
+          className={({ isActive }) =>
+            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+          }
+        >
           <FiTarget /> Profile
         </NavLink>
-        <NavLink to="/anggota" className={styles.mobileLink}>
+        <NavLink
+          to="/anggota"
+          className={({ isActive }) =>
+            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+          }
+        >
           <FiUsers /> Daftar Anggota
         </NavLink>
-        <NavLink to="/program-kerja" className={styles.mobileLink}>
+        <NavLink
+          to="/program-kerja"
+          className={({ isActive }) =>
+            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+          }
+        >
           <FiCalendar /> Program Kerja
         </NavLink>
 
@@ -166,13 +185,12 @@ const Navbar = () => {
           style={{ borderTop: "1px solid #f1f5f9", margin: "0.5rem 0" }}
         ></div>
 
-        {/* Menu Auth Mobile */}
         {isAdmin ? (
           <>
             <Link
               to="/dashboard"
               className={styles.mobileLink}
-              style={{ color: "#2563eb", fontWeight: 600 }}
+              style={{ color: "#2563eb" }}
             >
               <FiLayout /> Dashboard Admin
             </Link>
@@ -185,7 +203,7 @@ const Navbar = () => {
                 background: "none",
                 border: "none",
                 textAlign: "left",
-                paddingLeft: 0,
+                paddingLeft: "1rem",
                 cursor: "pointer",
               }}
             >

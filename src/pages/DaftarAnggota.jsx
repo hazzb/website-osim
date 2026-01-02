@@ -47,6 +47,7 @@ function DaftarAnggota() {
   const [periodeList, setPeriodeList] = useState([]);
   const [activeTab, setActiveTab] = useState("");
 
+  // View Mode: 'aesthetic' (Grid) or 'compact' (List)
   const [viewMode, setViewMode] = useState("aesthetic");
 
   const [allDivisi, setAllDivisi] = useState([]);
@@ -54,6 +55,7 @@ function DaftarAnggota() {
   const [divisiPerPeriode, setDivisiPerPeriode] = useState([]);
   const [anggotaList, setAnggotaList] = useState([]);
 
+  // Filters
   const [selectedDivisi, setSelectedDivisi] = useState("semua");
   const [selectedGender, setSelectedGender] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,11 +71,12 @@ function DaftarAnggota() {
   const [formFile, setFormFile] = useState(null);
   const [formPreview, setFormPreview] = useState(null);
 
-  // Helper Periode
+  // Helper Periode Data
   const activePeriodeData = periodeList.find(
     (p) => String(p.id) === String(activeTab)
   );
 
+  // --- FETCH DATA ---
   const fetchInitialData = useCallback(async () => {
     setLoading(true);
     try {
@@ -156,6 +159,8 @@ function DaftarAnggota() {
   }, [activeTab, fetchAnggota]);
 
   // --- HANDLERS ---
+
+  // Sort Logic: Ketua -> Wakil -> ... -> Anggota
   const getJobRank = (jabatan) => {
     const j = jabatan?.toLowerCase() || "";
     if (j.includes("ketua") && !j.includes("wakil")) return 1;
@@ -177,7 +182,6 @@ function DaftarAnggota() {
   };
 
   const getModalTitle = () => {
-    // Note: reorder_divisi tidak masuk sini karena modalnya terpisah
     if (activeModal === "jabatan") return "Kelola Jabatan";
     const action = editingId ? "Edit" : "Tambah";
     return `${action} ${
@@ -197,26 +201,25 @@ function DaftarAnggota() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // --- PERBAIKAN LOGIKA MODAL DI SINI ---
+  // --- MODAL MANAGEMENT ---
   const openModal = (type, item = null) => {
     setActiveModal(type);
     setFormFile(null);
     setFormPreview(null);
 
-    // 1. Jika Reorder Divisi -> JANGAN buka generic modal (isModalOpen = false)
-    // Karena dia punya modal sendiri di bawah return JSX
+    // 1. Reorder Divisi (Modal Khusus)
     if (type === "reorder_divisi") {
-      setIsModalOpen(false);
+      setIsModalOpen(false); // Pastikan modal generic tertutup
       return;
     }
 
-    // 2. Jika Jabatan -> Buka generic modal
+    // 2. Jabatan (Modal Generic)
     if (type === "jabatan") {
       setIsModalOpen(true);
       return;
     }
 
-    // 3. Jika Anggota/Divisi -> Setup form & buka generic modal
+    // 3. Anggota/Divisi (Modal Generic)
     if (item) {
       setEditingId(item.id);
       setFormData({
@@ -254,11 +257,12 @@ function DaftarAnggota() {
   };
 
   const closeModal = () => {
-    setIsModalOpen(false); // Tutup generic modal
-    setActiveModal(null); // Tutup specific modal
+    setIsModalOpen(false);
+    setActiveModal(null);
     setFormData({});
   };
 
+  // --- CRUD ACTIONS ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
@@ -337,6 +341,7 @@ function DaftarAnggota() {
     }
   };
 
+  // --- FILTERING ---
   const filteredAnggota = anggotaList.filter((anggota) => {
     const matchDivisi =
       selectedDivisi === "semua" ||
@@ -362,6 +367,7 @@ function DaftarAnggota() {
 
   return (
     <PageContainer breadcrumbText="Daftar Anggota">
+      {/* --- PAGE HEADER --- */}
       <PageHeader
         title={
           <div
@@ -406,6 +412,7 @@ function DaftarAnggota() {
           </div>
         }
         subtitle="Manajemen personil, struktur divisi, dan jabatan."
+        // ACTIONS (TOMBOL ADMIN) - DIRECT CHILDREN
         actions={
           isAdmin && (
             <>
@@ -455,6 +462,7 @@ function DaftarAnggota() {
             </>
           )
         }
+        // SEARCH BAR (PERSISTENT ITEMS: Kabinet & Layout)
         searchBar={
           <div
             style={{
@@ -464,7 +472,8 @@ function DaftarAnggota() {
               alignItems: "center",
             }}
           >
-            <div style={{ flex: "0 0 auto", width: "140px" }}>
+            {/* Filter Kabinet */}
+            <div style={{ flex: 1, minWidth: "130px" }}>
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value)}
@@ -482,7 +491,7 @@ function DaftarAnggota() {
                   textOverflow: "ellipsis",
                 }}
               >
-                <option value="semua">Semua</option>
+                <option value="semua">Semua Periode</option>
                 {periodeList.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nama_kabinet}
@@ -491,33 +500,7 @@ function DaftarAnggota() {
               </select>
             </div>
 
-            <div style={{ flex: 1, position: "relative" }}>
-              <FiSearch
-                style={{
-                  position: "absolute",
-                  left: "12px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#94a3b8",
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Cari nama..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "40px",
-                  padding: "0 0.8rem 0 2.5rem",
-                  border: "1px solid #cbd5e0",
-                  borderRadius: "8px",
-                  fontSize: "0.9rem",
-                  outline: "none",
-                }}
-              />
-            </div>
-
+            {/* Layout Toggle */}
             <div
               style={{
                 display: "flex",
@@ -530,7 +513,7 @@ function DaftarAnggota() {
             >
               <button
                 onClick={() => setViewMode("compact")}
-                title="Compact"
+                title="List View"
                 style={{
                   border: "none",
                   borderRadius: "6px",
@@ -553,7 +536,7 @@ function DaftarAnggota() {
               </button>
               <button
                 onClick={() => setViewMode("aesthetic")}
-                title="Aesthetic"
+                title="Grid View"
                 style={{
                   border: "none",
                   borderRadius: "6px",
@@ -577,8 +560,47 @@ function DaftarAnggota() {
             </div>
           </div>
         }
+        // FILTERS (EXPANDABLE ITEMS: Search, Divisi, Gender)
         filters={
           <>
+            {/* Input Search */}
+            <div
+              style={{
+                width: "100%",
+                marginBottom: "0.5rem",
+                paddingBottom: "0.5rem",
+                borderBottom: "1px dashed #e2e8f0",
+                position: "relative",
+              }}
+            >
+              <FiSearch
+                style={{
+                  position: "absolute",
+                  left: "12px",
+                  top: "40%",
+                  transform: "translateY(-50%)",
+                  color: "#94a3b8",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Ketik nama anggota..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%",
+                  height: "40px",
+                  padding: "0 0.8rem 0 2.5rem",
+                  border: "1px solid #cbd5e0",
+                  borderRadius: "8px",
+                  fontSize: "0.9rem",
+                  outline: "none",
+                }}
+                autoFocus
+              />
+            </div>
+
+            {/* Filter Divisi */}
             <div style={{ flex: 1, minWidth: "150px" }}>
               <FilterSelect
                 label="Filter Divisi"
@@ -593,6 +615,8 @@ function DaftarAnggota() {
                 ))}
               </FilterSelect>
             </div>
+
+            {/* Filter Gender */}
             <div style={{ flex: 1, minWidth: "120px" }}>
               <FilterSelect
                 label="Filter Gender"
@@ -608,6 +632,7 @@ function DaftarAnggota() {
         }
       />
 
+      {/* --- CONTENT AREA --- */}
       {loading ? (
         <AnggotaSkeletonGrid />
       ) : anggotaList.length === 0 ? (
@@ -617,6 +642,7 @@ function DaftarAnggota() {
         </div>
       ) : (
         <div className={styles.contentWrapper}>
+          {/* Loop per Divisi */}
           {sortedDivisiList.map((divisi) => {
             const rawMembers = memberMap[divisi.id] || [];
             const members = sortMembers([...rawMembers]);
@@ -675,7 +701,7 @@ function DaftarAnggota() {
                       onEdit={(item) => openModal("anggota", item)}
                       onDelete={(id) => handleDelete("anggota", id)}
                       showPeriode={activeTab === "semua"}
-                      layout={viewMode}
+                      layout={viewMode} // Pass Layout State
                     />
                   ))}
                 </div>
@@ -683,6 +709,7 @@ function DaftarAnggota() {
             );
           })}
 
+          {/* Anggota Tanpa Divisi */}
           {memberMap["others"]?.length > 0 && (
             <section className={styles.divisiSection}>
               <div className={styles.divisiHeader}>
@@ -706,7 +733,9 @@ function DaftarAnggota() {
         </div>
       )}
 
-      {/* MODAL GENERIC (Untuk Form) */}
+      {/* --- MODALS --- */}
+
+      {/* 1. Generic Modal (Form Anggota/Divisi/Jabatan) */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
         {activeModal === "anggota" && (
           <AnggotaForm
@@ -743,8 +772,7 @@ function DaftarAnggota() {
         )}
       </Modal>
 
-      {/* MODAL KHUSUS (Reorder Divisi) */}
-      {/* Dirender terpisah agar tidak kena style generic Modal */}
+      {/* 2. Modal Reorder Divisi (Render Terpisah) */}
       {activeModal === "reorder_divisi" && (
         <DivisiReorderModal
           isOpen={true}
@@ -755,6 +783,7 @@ function DaftarAnggota() {
         />
       )}
 
+      {/* 3. Modal Wizard Kabinet */}
       {isWizardOpen && (
         <KabinetWizard
           isOpen={isWizardOpen}

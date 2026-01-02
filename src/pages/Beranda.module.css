@@ -1,530 +1,469 @@
 /* src/pages/Beranda.module.css */
 
 /* =========================================
-   1. HERO CAROUSEL SECTION
+   1. HERO CAROUSEL
    ========================================= */
 .carouselContainer {
   width: 100%;
-  height: 500px; /* Tinggi WAJIB agar muncul */
+  height: 500px;
   position: relative;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  margin-bottom: 3rem;
-  background-color: #e2e8f0; /* Fallback color */
-  transition: all 0.3s ease;
+  background-color: #e2e8f0;
+  margin-bottom: 4rem;
+  border: none; /* Border dihapus agar lebih clean */
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
 }
-
-/* --- ADMIN CONTROLS (POJOK KANAN ATAS BANNER) --- */
-.bannerAdminControls {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 30; /* Paling atas */
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Tombol Kecil (Mata/Toggle) */
-.adminBtnSmall {
-  background: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  color: #64748b;
-  transition: all 0.2s;
-}
-.adminBtnSmall:hover {
-  transform: scale(1.1);
-  color: #1e293b;
-}
-
-/* Tombol Besar (Kelola Banner) */
-.adminAddBtn {
-  background: white;
-  padding: 0 16px;
-  height: 36px;
-  border-radius: 99px;
-  font-weight: 600;
-  color: #1e293b;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  transition: transform 0.2s;
-}
-.adminAddBtn:hover {
-  transform: translateY(-2px);
-  color: #3b82f6;
-}
-
-/* --- SLIDES & ANIMATION --- */
-.slide {
+.slideItem {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
   opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.6s ease-in-out;
   z-index: 1;
 }
-
-.active {
+.slideItem.active {
   opacity: 1;
-  z-index: 2;
+  z-index: 10;
 }
-
-/* Overlay Gradient */
+.slideImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .overlay {
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.8) 100%
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.5) 60%,
+    transparent 100%
   );
-  display: flex;
-  align-items: flex-end;
-  padding: 4rem;
-}
-
-.slideContent {
+  padding: 4rem 3rem;
   color: white;
-  max-width: 650px;
-  animation: slideUp 0.8s ease-out;
+  z-index: 20;
+  pointer-events: none;
 }
-
 .slideTitle {
-  font-size: 2.8rem;
+  font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 0.5rem 0;
-  line-height: 1.1;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
 }
-
 .slideDesc {
-  font-size: 1.15rem;
-  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
   opacity: 0.95;
+  margin: 0;
+  max-width: 800px;
   line-height: 1.6;
-  max-width: 500px;
 }
 
-/* Tombol CTA (Selengkapnya) */
-.ctaButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.8rem 1.8rem;
-  border-radius: 99px;
-  text-decoration: none;
-  font-weight: 700;
-  transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-}
-.ctaButton:hover {
-  background-color: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
-}
-
-/* --- NAVIGATION UI --- */
+/* Navigasi */
 .navBtnLeft,
 .navBtnRight {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 25;
+  background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   color: white;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  font-size: 1.5rem;
-  transition: all 0.2s;
-  opacity: 0;
-}
-
-.carouselContainer:hover .navBtnLeft,
-.carouselContainer:hover .navBtnRight {
-  opacity: 1;
-}
-
-.navBtnLeft {
-  left: 20px;
-}
-.navBtnRight {
-  right: 20px;
+  transition: 0.2s;
+  pointer-events: auto;
 }
 .navBtnLeft:hover,
 .navBtnRight:hover {
   background: white;
-  color: #1e293b;
+  color: #0f172a;
+  transform: translateY(-50%) scale(1.1);
+}
+.navBtnLeft {
+  left: 2rem;
+}
+.navBtnRight {
+  right: 2rem;
 }
 
-.dotsContainer {
+.bannerAdminControls {
   position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 2rem;
+  right: 2rem;
+  z-index: 30;
+  pointer-events: auto;
   display: flex;
-  gap: 8px;
-  z-index: 10;
+  gap: 0.8rem;
 }
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.activeDot {
-  width: 30px;
-  border-radius: 99px;
+.adminBtnSmall {
+  width: 44px;
+  height: 44px;
   background: white;
-}
-
-.emptyHero {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justifycontent: center;
-  color: #64748b;
-  text-align: center;
-}
-
-/* =========================================
-   2. SAMBUTAN KETUA SECTION
-   ========================================= */
-.sambutanSection {
-  margin: 4rem 0;
-  padding: 2.5rem;
-  background: white;
-  border-radius: 24px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03);
-}
-
-.splitLayout {
-  display: grid;
-  grid-template-columns: 1fr 2fr; /* Kiri 1 bagian, Kanan 2 bagian */
-  gap: 3rem;
-  align-items: center;
-}
-
-.splitImageWrapper {
-  position: relative;
-}
-
-.sambutanImage {
-  width: 100%;
-  aspect-ratio: 3/4; /* Portrait 3:4 */
-  object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.placeholderImage {
-  width: 100%;
-  aspect-ratio: 3/4;
-  background: #f1f5f9;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #cbd5e0;
-}
-
-.splitContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.sectionTitle {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.sambutanText {
-  color: #475569;
-  line-height: 1.8;
-  font-size: 1.05rem;
-}
-.sambutanText p {
-  margin-bottom: 1rem;
-}
-
-/* Tombol Edit di Sambutan */
-.editSambutanBtn {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 8px 16px;
-  border: 1px solid #cbd5e0;
-  background: white;
-  border-radius: 8px;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-.editSambutanBtn:hover {
-  border-color: #3b82f6;
-  color: #3b82f6;
-  background: #eff6ff;
-}
-
-.hiddenBadge {
-  display: inline-block;
-  background: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* =========================================
-   3. QUICK LINKS / STATS SECTION
-   ========================================= */
-.quickLinksSection {
-  margin: 3rem 0;
-}
-
-.quickLinksGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.statCard {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.statCard:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.08);
-  border-color: #3b82f6;
-}
-
-/* Icon Wrapper Bulat */
-.iconWrapper {
-  width: 56px;
-  height: 56px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  font-size: 1.5rem;
-  transition: transform 0.3s;
+  border: none;
+  cursor: pointer;
+  color: #475569;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: 0.2s;
+}
+.adminBtnSmall:hover {
+  color: #2563eb;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
-.statCard:hover .iconWrapper {
-  transform: scale(1.1) rotate(5deg);
+/* =========================================
+   2. SAMBUTAN KETUA (LEBIH BERWARNA)
+   ========================================= */
+.sambutanSection {
+  /* Ganti putih polos dengan gradient halus */
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border-radius: 20px;
+  border: 1px solid #e0f2fe;
+  padding: 3.5rem;
+  margin-bottom: 4rem;
+  position: relative;
+  box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.1);
 }
-
-.iconBlue {
-  background: #eff6ff;
+.editSambutanBtn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 0 1.2rem;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #64748b;
+  transition: 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.editSambutanBtn:hover {
+  border-color: #3b82f6;
   color: #3b82f6;
 }
-.iconOrange {
-  background: #fff7ed;
-  color: #f97316;
-}
-.iconPurple {
-  background: #f5f3ff;
-  color: #8b5cf6;
-}
-
-.statContent {
-  flex: 1;
+.sambutanControls {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 10;
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
 }
 
-.statContent h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.15rem;
-  font-weight: 700;
+.splitLayout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+.sambutanImage {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 6px solid white;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  transform: rotate(-2deg);
+  transition: 0.3s;
+}
+.sambutanSection:hover .sambutanImage {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.sambutanContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.sambutanContent h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.1;
+  background: -webkit-linear-gradient(45deg, #0f172a, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sambutanText {
+  color: #475569;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Tombol Action Profile (Gradient) */
+.btnPrimary {
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+.btnPrimary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+}
+
+/* =========================================
+   3. STATISTIK & SHORTCUT (COLORFUL CARDS)
+   ========================================= */
+.statsSection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+/* Base Card Style */
+.statCard {
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: left;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+  border: none;
+}
+.statCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* --- WARNA KARTU --- */
+.cardBlue {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+.cardViolet {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+.cardGreen {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Icon Bulat Putih Transparan */
+.statIconWrapper {
+  width: 56px;
+  height: 56px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: auto;
+  color: white;
+  font-size: 1.8rem;
+  backdrop-filter: blur(4px);
+}
+
+.statNumber {
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  margin: 1rem 0 0 0;
+  line-height: 1;
+}
+.statLabel {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.statActionText {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 99px;
+  width: fit-content;
+  backdrop-filter: blur(4px);
+  transition: 0.2s;
+}
+.statCard:hover .statActionText {
+  background: white;
   color: #1e293b;
 }
 
-.statContent p {
+/* =========================================
+   4. PROGRAM KERJA (MASONRY)
+   ========================================= */
+.sectionWrapper {
+  margin-bottom: 5rem;
+}
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.5rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 1rem;
+}
+.sectionTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e293b;
   margin: 0;
-  font-size: 0.9rem;
-  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-
-/* Badge Counter */
-.statBadge {
-  display: inline-block;
-  margin-top: 0.5rem;
-  background: #dcfce7;
-  color: #166534;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 99px;
-  border: 1px solid #86efac;
-}
-
-.arrowIcon {
-  color: #cbd5e0;
-  transition: transform 0.2s, color 0.2s;
-  font-size: 1.2rem;
-}
-.statCard:hover .arrowIcon {
-  transform: translateX(4px);
+.iconTitle {
   color: #3b82f6;
+  background: #eff6ff;
+  padding: 8px;
+  border-radius: 10px;
 }
 
-/* =========================================
-   4. AGENDA SECTION (SMART CONTENT)
-   ========================================= */
-.agendaSection {
-  margin: 5rem 0;
-}
-
-.progjaGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 1.5rem;
-}
-
-.emptyState {
-  text-align: center;
-  padding: 3rem;
+.linkAll {
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  transition: 0.2s;
+  padding: 8px 16px;
+  border-radius: 8px;
   background: #f8fafc;
+}
+.linkAll:hover {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+/* MASONRY CONFIGURATION */
+.progjaGrid {
+  display: block;
+  column-count: 3;
+  column-gap: 2rem;
+  width: 100%;
+}
+.masonryItem {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 2rem;
+  display: inline-block;
+  width: 100%;
+}
+.emptyState {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
   border-radius: 16px;
+  padding: 5rem;
+  text-align: center;
   color: #94a3b8;
-  border: 2px dashed #e2e8f0;
+  font-style: italic;
+  font-size: 1.1rem;
 }
 
-/* Animation Keyframes */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .progjaGrid {
+    column-count: 2;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .statsSection {
+    gap: 1rem;
   }
 }
-
-/* =========================================
-   RESPONSIVE DESIGN (MOBILE)
-   ========================================= */
 @media (max-width: 768px) {
   .carouselContainer {
-    height: 280px;
-  }
-  .overlay {
-    padding: 1.5rem;
+    height: 300px;
   }
   .slideTitle {
     font-size: 1.5rem;
   }
-  .slideDesc {
-    font-size: 0.9rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  .slideDesc,
   .navBtnLeft,
   .navBtnRight {
     display: none;
   }
-  .bannerAdminControls {
-    top: 10px;
-    right: 10px;
+  .overlay {
+    padding: 1.5rem;
+    justify-content: flex-end;
   }
 
   .splitLayout {
-    grid-template-columns: 1fr; /* Stack Vertikal */
-    gap: 2rem;
-  }
-  .sambutanSection {
-    padding: 1.5rem;
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 2.5rem;
   }
   .sambutanImage {
-    max-width: 200px;
+    width: 220px;
     margin: 0 auto;
-    display: block;
+    transform: rotate(0);
   }
-  .splitContent {
+  .sambutanSection {
+    padding: 2.5rem 1.5rem;
+  }
+  .sambutanContent {
+    align-items: center;
+  }
+  .sambutanControls {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .statsSection {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .statCard {
+    min-height: auto;
+    align-items: center;
     text-align: center;
   }
-  .editSambutanBtn {
-    align-self: center;
-  }
 
-  .sectionTitle {
-    font-size: 1.5rem;
+  .progjaGrid {
+    column-count: 1;
   }
-}
-.editIconBtn {
-  background: white;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%; /* Bulat */
-  border: 1px solid #e2e8f0;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.editIconBtn:hover {
-  background: #f8fafc;
-  color: #3b82f6;
-  border-color: #3b82f6;
-  transform: scale(1.1);
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .linkAll {
+    padding-left: 0;
+    background: none;
+  }
 }

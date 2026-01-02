@@ -9,7 +9,7 @@ import Modal from "../components/Modal.jsx";
 import { HeroSkeleton } from "../components/ui/Skeletons.jsx";
 import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 
-// IMPORT FORMS BARU
+// Import Form
 import BannerForm from "../components/forms/BannerForm.jsx";
 import SambutanForm from "../components/forms/SambutanForm.jsx";
 
@@ -22,11 +22,14 @@ import {
   FiCamera,
   FiTrash2,
   FiEdit,
-  FiUser,
+  FiTarget,
+  FiCheckCircle,
+  FiUsers,
   FiEye,
   FiEyeOff,
+  FiList,
+  FiBookOpen,
 } from "react-icons/fi";
-import { FaCalendarCheck, FaUsers, FaBullseye } from "react-icons/fa";
 
 function Beranda() {
   const { session } = useAuth();
@@ -34,455 +37,478 @@ function Beranda() {
 
   // --- STATE ---
   const [slides, setSlides] = useState([]);
-  const [sambutan, setSambutan] = useState(null);
+  const [settings, setSettings] = useState(null);
   const [latestProgja, setLatestProgja] = useState([]);
-  const [progjaSelesaiCount, setProgjaSelesaiCount] = useState(0);
-  const [showBanner, setShowBanner] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Modal State (Cukup Simpan Tipe nya saja)
+  const [stats, setStats] = useState({
+    totalAnggota: 0,
+    totalProgja: 0,
+    progjaSelesai: 0,
+  });
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState(null);
 
   // --- FETCH DATA ---
-  const fetchAllData = async () => {
-    try {
-      // Slides
-      const { data: slidesData } = await supabase
-        .from("beranda_slides")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setSlides(slidesData || []);
+  const fetchAllData = useCallback(async () => {
+    if (!settings) setLoading(true);
 
-      // Pengaturan
-      const { data: settings } = await supabase
+    try {
+      // 1. Pengaturan
+      const { data: settingsData } = await supabase
         .from("pengaturan")
         .select("*")
         .eq("id", 1)
         .single();
-      setSambutan(settings);
-      if (settings) setShowBanner(settings.tampilkan_banner);
+      setSettings(settingsData);
 
-      // Progja
-      const { data: progjaData } = await supabase
-        .from("program_kerja_detail_view")
+      // 2. Slides
+      let slideQuery = supabase
+        .from("beranda_slides")
         .select("*")
-        .in("status", ["Akan Datang", "Rencana"])
-        .order("tanggal", { ascending: true })
-        .limit(3);
-      setLatestProgja(progjaData || []);
+        .order("urutan", { ascending: true })
+        .order("created_at", { ascending: false });
+      if (!isAdmin) slideQuery = slideQuery.eq("is_active", true);
+      const { data: banners } = await slideQuery;
+      setSlides(banners || []);
 
-      // Count
-      const { data: activePeriod } = await supabase
-        .from("periode_jabatan")
-        .select("id")
-        .eq("is_active", true)
-        .single();
-      if (activePeriod) {
-        const { count } = await supabase
-          .from("program_kerja")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "Selesai")
-          .eq("periode_id", activePeriod.id);
-        setProgjaSelesaiCount(count || 0);
-      }
-    } catch (err) {
-      console.error(err);
+      // 3. Progja Rencana
+      const today = new Date().toISOString().split("T")[0];
+      const { data: progjaNew } = await supabase
+        .from("program_kerja")
+        .select(`*, divisi(nama_divisi), pj:anggota!penanggung_jawab_id(nama)`)
+        .eq("status", "Rencana")
+        .gte("tanggal", today)
+        .order("tanggal", { ascending: true })
+        .limit(6);
+      setLatestProgja(progjaNew || []);
+
+      // 4. Statistik (Hitung saja)
+      const { count: countAnggota } = await supabase
+        .from("anggota")
+        .select("id", { count: "exact", head: true });
+      const { count: countTotalProgja } = await supabase
+        .from("program_kerja")
+        .select("id", { count: "exact", head: true });
+      const { count: countDone } = await supabase
+        .from("program_kerja")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "Selesai");
+
+      setStats({
+        totalAnggota: countAnggota || 0,
+        totalProgja: countTotalProgja || 0,
+        progjaSelesai: countDone || 0,
+      });
+    } catch (error) {
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   useEffect(() => {
     fetchAllData();
-  }, []);
+  }, [fetchAllData]);
 
-  // --- LOGIC CAROUSEL & TOGGLE ---
-  const nextSlide = useCallback(() => {
-    if (slides.length)
-      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  }, [slides]);
-  const prevSlide = () => {
-    if (slides.length)
-      setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
-
+  // --- SLIDER LOGIC ---
   useEffect(() => {
     if (slides.length <= 1) return;
-    const interval = setInterval(nextSlide, 5000);
+    const interval = setInterval(
+      () =>
+        setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1)),
+      5000
+    );
     return () => clearInterval(interval);
-  }, [slides.length, nextSlide]);
+  }, [slides]);
 
-  const handleToggleBanner = async () => {
-    const newValue = !showBanner;
-    setShowBanner(newValue);
-    await supabase
-      .from("pengaturan")
-      .update({ tampilkan_banner: newValue })
-      .eq("id", 1);
-  };
+  const nextSlide = () =>
+    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+  const prevSlide = () =>
+    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
 
-  const handleToggleSambutan = async () => {
-    if (!sambutan) return;
-    const newValue = !sambutan.tampilkan_sambutan;
-    setSambutan((prev) => ({ ...prev, tampilkan_sambutan: newValue }));
-    await supabase
-      .from("pengaturan")
-      .update({ tampilkan_sambutan: newValue })
-      .eq("id", 1);
+  // --- ACTIONS ---
+  const toggleVisibility = async (field, currentValue) => {
+    try {
+      await supabase
+        .from("pengaturan")
+        .update({ [field]: !currentValue })
+        .eq("id", 1);
+      setSettings((prev) => ({ ...prev, [field]: !currentValue }));
+    } catch (err) {
+      alert("Gagal update.");
+    }
   };
 
   const handleDeleteBanner = async (id) => {
-    if (!confirm("Hapus banner ini?")) return;
-    await supabase.from("beranda_slides").delete().eq("id", id);
-    fetchAllData();
+    if (!confirm("Hapus slide?")) return;
+    try {
+      await supabase.from("beranda_slides").delete().eq("id", id);
+      fetchAllData();
+    } catch (err) {
+      alert("Gagal hapus.");
+    }
   };
 
-  // --- RENDER ---
+  if (loading)
+    return (
+      <PageContainer>
+        <HeroSkeleton />
+      </PageContainer>
+    );
+
+  const showHero = settings?.beranda_tampilkan_hero || isAdmin;
+  const showSambutan = settings?.tampilkan_sambutan || isAdmin;
+
   return (
     <PageContainer>
       {/* 1. HERO CAROUSEL */}
-      {!loading && (showBanner || isAdmin) && (
-        <div
+      {showHero && (
+        <section
           className={styles.carouselContainer}
           style={{
-            opacity: !showBanner && isAdmin ? 0.7 : 1,
-            border: !showBanner && isAdmin ? "2px dashed #ef4444" : "none",
+            opacity: settings?.beranda_tampilkan_hero ? 1 : 0.6,
+            filter: settings?.beranda_tampilkan_hero
+              ? "none"
+              : "grayscale(100%)",
           }}
         >
-          {loading ? (
-            <HeroSkeleton />
-          ) : (
-            <>
-              {isAdmin && (
-                <div className={styles.bannerAdminControls}>
-                  <button
-                    onClick={handleToggleBanner}
-                    className={styles.adminBtnSmall}
-                    title={showBanner ? "Sembunyikan" : "Tampilkan"}
-                  >
-                    {showBanner ? (
-                      <FiEye />
-                    ) : (
-                      <FiEyeOff style={{ color: "#ef4444" }} />
-                    )}
-                  </button>
-                  <button
-                    className={styles.adminAddBtn}
-                    onClick={() => setActiveModal("banner")}
-                  >
-                    <FiCamera /> Kelola Banner
-                  </button>
-                </div>
-              )}
-
-              {isAdmin && !showBanner && (
-                <div className={styles.hiddenOverlayBadge}>
-                  Banner Disembunyikan
-                </div>
-              )}
-
-              {slides.length > 0 ? (
-                slides.map((slide, index) => (
-                  <div
-                    key={slide.id}
-                    className={`${styles.slide} ${
-                      index === currentSlide ? styles.active : ""
-                    }`}
-                    style={{ backgroundImage: `url(${slide.image_url})` }}
-                  >
-                    <div className={styles.overlay}>
-                      <div className={styles.slideContent}>
-                        <h1 className={styles.slideTitle}>{slide.judul}</h1>
-                        <p className={styles.slideDesc}>{slide.deskripsi}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyHero}>
-                  <h2>Belum ada Banner</h2>
-                </div>
-              )}
-
-              {slides.length > 1 && (
-                <>
-                  <button className={styles.navBtnLeft} onClick={prevSlide}>
-                    <FiChevronLeft />
-                  </button>
-                  <button className={styles.navBtnRight} onClick={nextSlide}>
-                    <FiChevronRight />
-                  </button>
-                  <div className={styles.dotsContainer}>
-                    {slides.map((_, idx) => (
-                      <div
-                        key={idx}
-                        className={`${styles.dot} ${
-                          idx === currentSlide ? styles.activeDot : ""
-                        }`}
-                        onClick={() => setCurrentSlide(idx)}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
+          {isAdmin && (
+            <div className={styles.bannerAdminControls}>
+              <button
+                onClick={() =>
+                  toggleVisibility(
+                    "beranda_tampilkan_hero",
+                    settings?.beranda_tampilkan_hero
+                  )
+                }
+                className={styles.adminBtnSmall}
+                style={{
+                  backgroundColor: settings?.beranda_tampilkan_hero
+                    ? "white"
+                    : "#fee2e2",
+                  color: settings?.beranda_tampilkan_hero
+                    ? "#475569"
+                    : "#ef4444",
+                }}
+              >
+                {settings?.beranda_tampilkan_hero ? (
+                  <FiEye size={18} />
+                ) : (
+                  <FiEyeOff size={18} />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveModal("banner")}
+                className={styles.adminBtnSmall}
+                title="Kelola Slide"
+              >
+                <FiCamera size={18} />
+              </button>
+            </div>
           )}
-        </div>
+          {!settings?.beranda_tampilkan_hero && isAdmin && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                padding: "0.5rem 1rem",
+                background: "#ef4444",
+                color: "white",
+                fontSize: "0.8rem",
+                fontWeight: "bold",
+                zIndex: 50,
+                borderBottomRightRadius: "8px",
+              }}
+            >
+              HIDDEN
+            </div>
+          )}
+
+          {slides.length > 0 ? (
+            <>
+              {slides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className={`${styles.slideItem} ${
+                    index === currentSlide ? styles.active : ""
+                  }`}
+                >
+                  <img
+                    src={slide.image_url}
+                    alt={slide.judul}
+                    className={styles.slideImage}
+                  />
+                  <div className={styles.overlay}>
+                    <h2 className={styles.slideTitle}>{slide.judul}</h2>
+                    {slide.deskripsi && (
+                      <p className={styles.slideDesc}>{slide.deskripsi}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button className={styles.navBtnLeft} onClick={prevSlide}>
+                <FiChevronLeft size={24} />
+              </button>
+              <button className={styles.navBtnRight} onClick={nextSlide}>
+                <FiChevronRight size={24} />
+              </button>
+            </>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                color: "#94a3b8",
+                flexDirection: "column",
+              }}
+            >
+              <FiCamera
+                size={48}
+                style={{ marginBottom: "1rem", opacity: 0.3 }}
+              />
+              <p>Belum ada slide.</p>
+            </div>
+          )}
+        </section>
       )}
 
       {/* 2. SAMBUTAN KETUA */}
-      {(sambutan?.tampilkan_sambutan || isAdmin) && (
+      {showSambutan && settings && (
         <section
           className={styles.sambutanSection}
           style={{
-            opacity: !sambutan?.tampilkan_sambutan && isAdmin ? 0.6 : 1,
-            border:
-              !sambutan?.tampilkan_sambutan && isAdmin
-                ? "2px dashed #ef4444"
-                : "1px solid #e2e8f0",
+            opacity: settings.tampilkan_sambutan ? 1 : 0.6,
+            border: settings.tampilkan_sambutan
+              ? "1px solid #e0f2fe"
+              : "2px dashed #94a3b8",
           }}
         >
-          <div className={styles.splitLayout}>
-            <div className={styles.splitImageWrapper}>
-              {sambutan?.sambutan_foto_url ? (
-                <img
-                  src={sambutan.sambutan_foto_url}
-                  alt="Ketua"
-                  className={styles.sambutanImage}
-                />
-              ) : (
-                <div className={styles.placeholderImage}>
-                  <FiUser size={48} />
-                </div>
-              )}
-            </div>
-            <div className={styles.splitContent}>
-              <div
+          {isAdmin && (
+            <div className={styles.sambutanControls}>
+              <button
+                onClick={() =>
+                  toggleVisibility(
+                    "tampilkan_sambutan",
+                    settings.tampilkan_sambutan
+                  )
+                }
+                className={styles.adminBtnSmall}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                  width: "100%",
-                  flexWrap: "wrap",
+                  backgroundColor: settings.tampilkan_sambutan
+                    ? "white"
+                    : "#fee2e2",
+                  color: settings.tampilkan_sambutan ? "#475569" : "#ef4444",
                 }}
               >
-                <h2 className={styles.sectionTitle}>
-                  {sambutan?.sambutan_judul || "Sambutan Ketua"}
-                </h2>
-                {isAdmin && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "0.5rem",
-                      marginLeft: "auto",
-                    }}
-                  >
-                    <button
-                      className={styles.editIconBtn}
-                      onClick={handleToggleSambutan}
-                      title="Toggle"
-                    >
-                      {sambutan?.tampilkan_sambutan ? (
-                        <FiEye />
-                      ) : (
-                        <FiEyeOff style={{ color: "#ef4444" }} />
-                      )}
-                    </button>
-                    <button
-                      className={styles.editIconBtn}
-                      onClick={() => setActiveModal("sambutan")}
-                      title="Edit"
-                    >
-                      <FiEdit />
-                    </button>
-                  </div>
+                {settings.tampilkan_sambutan ? (
+                  <FiEye size={16} />
+                ) : (
+                  <FiEyeOff size={16} />
                 )}
-              </div>
-              <div className={styles.sambutanText}>
-                {sambutan?.sambutan_isi?.split("\n").map((par, i) => (
-                  <p key={i}>{par}</p>
-                ))}
-              </div>
-              {isAdmin && !sambutan?.tampilkan_sambutan && (
-                <span className={styles.hiddenBadge}>
-                  Sambutan Disembunyikan
-                </span>
-              )}
+              </button>
+              <button
+                onClick={() => setActiveModal("sambutan")}
+                className={styles.editSambutanBtn}
+              >
+                <FiEdit size={14} /> Edit Konten
+              </button>
+            </div>
+          )}
+          {!settings.tampilkan_sambutan && isAdmin && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                padding: "0.25rem 0.75rem",
+                background: "#94a3b8",
+                color: "white",
+                fontSize: "0.7rem",
+                fontWeight: "bold",
+                borderBottomRightRadius: "8px",
+              }}
+            >
+              HIDDEN
+            </div>
+          )}
+
+          <div className={styles.splitLayout}>
+            <div className={styles.imageContainer}>
+              <img
+                src={
+                  settings.sambutan_foto_url ||
+                  "https://via.placeholder.com/400x500?text=Foto+Ketua"
+                }
+                alt="Ketua"
+                className={styles.sambutanImage}
+              />
+            </div>
+            <div className={styles.sambutanContent}>
+              <h2>{settings.sambutan_judul || "Sambutan Ketua"}</h2>
+              <p className={styles.sambutanText}>
+                {settings.sambutan_isi || "Belum ada isi sambutan."}
+              </p>
+
+              {/* TOMBOL ACTION PROFIL */}
+              <Link to="/visi-misi" className={styles.btnPrimary}>
+                <FiUsers size={18} /> Lihat Profil Lengkap
+              </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* 3. QUICK LINKS */}
-      <section className={styles.quickLinksSection}>
-        <div className={styles.quickLinksGrid}>
-          <Link to="/program-kerja" className={styles.statCard}>
-            <div className={`${styles.iconWrapper} ${styles.iconBlue}`}>
-              <FaCalendarCheck size={24} />
-            </div>
-            <div className={styles.statContent}>
-              <h3>Program Kerja</h3>
-              <p>Lihat agenda kegiatan kami.</p>
-              {progjaSelesaiCount > 0 && (
-                <span className={styles.statBadge}>
-                  {progjaSelesaiCount} Terlaksana
-                </span>
-              )}
-            </div>
-            <FiArrowRight className={styles.arrowIcon} />
-          </Link>
-          <Link to="/anggota" className={styles.statCard}>
-            <div className={`${styles.iconWrapper} ${styles.iconOrange}`}>
-              <FaUsers size={24} />
-            </div>
-            <div className={styles.statContent}>
-              <h3>Anggota</h3>
-              <p>Kenalan dengan pengurus.</p>
-            </div>
-            <FiArrowRight className={styles.arrowIcon} />
-          </Link>
-          <Link to="/visi-misi" className={styles.statCard}>
-            <div className={`${styles.iconWrapper} ${styles.iconPurple}`}>
-              <FaBullseye size={24} />
-            </div>
-            <div className={styles.statContent}>
-              <h3>Visi Misi</h3>
-              <p>Tujuan dan nilai organisasi.</p>
-            </div>
-            <FiArrowRight className={styles.arrowIcon} />
-          </Link>
-        </div>
-      </section>
-
-      {/* 4. AGENDA TERDEKAT */}
-      <section className={styles.agendaSection}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <div>
-            <h2 className={styles.sectionTitle} style={{ marginBottom: 0 }}>
-              Agenda Terdekat
-            </h2>
-            <p style={{ color: "#64748b", margin: 0 }}>
-              Kegiatan seru yang akan datang.
-            </p>
+      {/* 3. STATISTIK & SHORTCUT (COLORFUL) */}
+      <section className={styles.statsSection}>
+        {/* Card 1: Anggota (BIRU) */}
+        <Link to="/anggota" className={`${styles.statCard} ${styles.cardBlue}`}>
+          <div className={styles.statIconWrapper}>
+            <FiUsers />
           </div>
-          <Link
-            to="/program-kerja"
+          <div className={styles.statLabel}>Anggota Aktif</div>
+          <div className={styles.statNumber}>{stats.totalAnggota}</div>
+          <div className={styles.statActionText}>
+            Lihat Anggota <FiArrowRight />
+          </div>
+        </Link>
+
+        {/* Card 2: Visi Misi (UNGU/VIOLET) - Menggantikan "Total Program" */}
+        <Link
+          to="/visi-misi"
+          className={`${styles.statCard} ${styles.cardViolet}`}
+        >
+          <div className={styles.statIconWrapper}>
+            <FiBookOpen />
+          </div>
+          <div className={styles.statLabel}>Profil Organisasi</div>
+          <div
             style={{
-              color: "#3b82f6",
-              textDecoration: "none",
-              fontWeight: "600",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
+              color: "white",
+              fontSize: "1.8rem",
+              fontWeight: 800,
+              margin: "1rem 0 0 0",
             }}
           >
+            Visi & Misi
+          </div>
+          <div className={styles.statActionText}>
+            Selengkapnya <FiArrowRight />
+          </div>
+        </Link>
+
+        {/* Card 3: Program Terlaksana (HIJAU) - Menjadi Action */}
+        <Link
+          to="/program-kerja"
+          className={`${styles.statCard} ${styles.cardGreen}`}
+        >
+          <div className={styles.statIconWrapper}>
+            <FiCheckCircle />
+          </div>
+          <div className={styles.statLabel}>Program Terlaksana</div>
+          <div className={styles.statNumber}>{stats.progjaSelesai}</div>
+          <div className={styles.statActionText}>
+            Lihat Arsip <FiArrowRight />
+          </div>
+        </Link>
+      </section>
+
+      {/* 4. PROGRAM KERJA MENDATANG (MASONRY) */}
+      <section className={styles.sectionWrapper}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <FiTarget className={styles.iconTitle} /> Agenda Mendatang
+          </h3>
+          <Link to="/program-kerja" className={styles.linkAll}>
             Lihat Semua <FiArrowRight />
           </Link>
         </div>
         {latestProgja.length > 0 ? (
           <div className={styles.progjaGrid}>
-            {latestProgja.map((item) => (
-              <div key={item.id} style={{ height: "100%" }}>
-                <ProgramKerjaCard data={item} isAdmin={false} />
+            {latestProgja.map((progja) => (
+              <div key={progja.id} className={styles.masonryItem}>
+                <ProgramKerjaCard data={progja} />
               </div>
             ))}
           </div>
         ) : (
-          <div className={styles.emptyState}>
-            <p>Belum ada agenda terdekat.</p>
-            {isAdmin && (
-              <Link to="/program-kerja" className="button button-primary">
-                + Tambah Agenda
-              </Link>
-            )}
-          </div>
+          <div className={styles.emptyState}>Belum ada agenda mendatang.</div>
         )}
       </section>
 
-      {/* === MODALS (Render Based on State) === */}
+      {/* MODALS */}
       <Modal
         isOpen={!!activeModal}
         onClose={() => setActiveModal(null)}
-        title={
-          activeModal === "banner" ? "Kelola Banner" : "Edit Sambutan Ketua"
-        }
+        title={activeModal === "banner" ? "Kelola Slide" : "Edit Sambutan"}
       >
         {activeModal === "banner" ? (
-          <>
-            <BannerForm
-              onClose={() => setActiveModal(null)}
-              onSuccess={fetchAllData}
-            />
-            {/* List Hapus Banner - Masih perlu di sini atau bisa dipindah ke dalam BannerForm jika mau lebih rapi */}
-            {slides.length > 0 && (
+          <div style={{ padding: "1rem" }}>
+            <BannerForm onSuccess={fetchAllData} />
+            <div
+              style={{
+                marginTop: "2rem",
+                borderTop: "1px solid #cbd5e1",
+                paddingTop: "1rem",
+              }}
+            >
+              <h4 style={{ marginBottom: "1rem", color: "#334155" }}>
+                Daftar Slide Aktif
+              </h4>
               <div
                 style={{
-                  marginTop: "1rem",
-                  paddingTop: "1rem",
-                  borderTop: "1px solid #eee",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                  gap: "10px",
                 }}
               >
-                <p
-                  style={{
-                    fontSize: "0.8rem",
-                    fontWeight: "bold",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  Hapus Banner:
-                </p>
-                <div
-                  style={{ display: "flex", gap: "0.5rem", overflowX: "auto" }}
-                >
-                  {slides.map((s) => (
-                    <div
-                      key={s.id}
-                      style={{ position: "relative", minWidth: "100px" }}
+                {slides.map((s) => (
+                  <div key={s.id} style={{ position: "relative" }}>
+                    <img
+                      src={s.image_url}
+                      style={{
+                        width: "100%",
+                        aspectRatio: "16/9",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #cbd5e1",
+                      }}
+                      alt="thumb"
+                    />
+                    <button
+                      onClick={() => handleDeleteBanner(s.id)}
+                      style={{
+                        position: "absolute",
+                        top: 4,
+                        right: 4,
+                        background: "#ef4444",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                      }}
                     >
-                      <img
-                        src={s.image_url}
-                        style={{
-                          width: "100px",
-                          height: "60px",
-                          objectFit: "cover",
-                          borderRadius: "4px",
-                        }}
-                        alt="thumb"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteBanner(s.id)}
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          right: 0,
-                          background: "red",
-                          color: "white",
-                          border: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        X
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                      <FiTrash2 size={12} />
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
+            </div>
+          </div>
         ) : (
           <SambutanForm
+            initialData={{
+              nama_ketua: settings?.sambutan_judul,
+              isi_sambutan: settings?.sambutan_isi,
+              foto_url: settings?.sambutan_foto_url,
+            }}
             onClose={() => setActiveModal(null)}
             onSuccess={fetchAllData}
-            initialData={sambutan}
           />
         )}
       </Modal>

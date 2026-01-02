@@ -1,6 +1,6 @@
-/* --- CONTENT WRAPPER --- */
+/* src/pages/ProgramKerja.module.css */
+
 .contentWrapper {
-  /* Jarak dari header ke konten */
   padding-top: 1rem;
   display: flex;
   flex-direction: column;
@@ -8,7 +8,11 @@
   padding-bottom: 4rem;
 }
 
-/* --- SECTION HEADERS --- */
+.timelineSection {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* --- SECTION HEADER --- */
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -27,9 +31,8 @@
   gap: 0.6rem;
 }
 
-/* Warna Judul Section */
 .titleAkanDatang {
-  color: #d97706;
+  color: #ef4444;
 }
 .titleRencana {
   color: #64748b;
@@ -44,10 +47,61 @@
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 99px;
+  font-weight: 600;
 }
 
-/* --- TOGGLE ITEM (DI DALAM MENU OPSI) --- */
-/* Style untuk switch di dalam dropdown Opsi */
+/* --- LAYOUT GRID (MASONRY STYLE TAPI RAPI) --- */
+.masonryGrid {
+  /* Reset display */
+  display: block;
+
+  /* Default Mobile: 1 Kolom */
+  column-count: 1;
+  column-gap: 1.5rem;
+
+  width: 100%;
+}
+
+/* Tablet: 2 Kolom */
+@media (min-width: 640px) {
+  .masonryGrid {
+    column-count: 2;
+  }
+}
+
+/* Desktop: 3 Kolom */
+@media (min-width: 1024px) {
+  .masonryGrid {
+    column-count: 3;
+  }
+}
+
+/* Wrapper Item untuk Mencegah Potongan */
+.masonryItem {
+  /* Penting: Mencegah kartu terbelah antar kolom */
+  break-inside: avoid;
+  page-break-inside: avoid;
+
+  /* Jarak bawah manual karena column-gap hanya menyamping */
+  margin-bottom: 1.5rem;
+
+  /* Pastikan elemen block */
+  display: inline-block;
+  width: 100%;
+}
+
+/* --- EMPTY STATE --- */
+.emptyText {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* --- TOGGLE STYLES (Untuk Menu Opsi) --- */
 .toggleItem {
   display: flex;
   align-items: center;
@@ -70,7 +124,6 @@
   gap: 8px;
 }
 
-/* Custom Switch Kecil */
 .switchTrack {
   width: 36px;
   height: 20px;
@@ -98,21 +151,6 @@
   left: 18px;
 }
 
-/* --- EMPTY STATE --- */
-.emptyState {
-  text-align: center;
-  padding: 4rem 1rem;
-  color: #64748b;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 2px dashed #e2e8f0;
-  margin-top: 2rem;
-}
-
-/* ANIMASI */
-.timelineSection {
-  animation: fadeIn 0.5s ease-out;
-}
 @keyframes fadeIn {
   from {
     opacity: 0;

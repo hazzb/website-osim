@@ -1,135 +1,138 @@
 import React, { useState } from "react";
 import { supabase } from "../../supabaseClient";
-import FormInput from "../admin/FormInput";
+import { uploadImage } from "../../utils/uploadHelper";
 import formStyles from "../admin/AdminForm.module.css";
-import { FiImage } from "react-icons/fi";
+import FormInput from "../admin/FormInput.jsx";
 
-const BannerForm = ({ onClose, onSuccess }) => {
+const BannerForm = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ judul: "", deskripsi: "" });
-  const [formFile, setFormFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [formData, setFormData] = useState({
+    judul: "",
+    deskripsi: "",
+    urutan: 10,
+  });
+  const [file, setFile] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormFile(file);
-      setPreview(URL.createObjectURL(file));
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formFile) return alert("Pilih gambar banner!");
+    if (!file) return alert("Pilih gambar slide terlebih dahulu!");
+
     setLoading(true);
     try {
-      const ext = formFile.name.split(".").pop();
-      const fileName = `banner_${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("banners")
-        .upload(fileName, formFile);
-      if (upErr) throw upErr;
-      const { data: urlData } = supabase.storage
-        .from("banners")
-        .getPublicUrl(fileName);
+      // 1. Upload Gambar
+      // Pastikan bucket 'banners' atau 'beranda_slides' ada di Supabase Storage
+      // Jika belum ada, gunakan 'public' atau sesuaikan helper
+      const imageUrl = await uploadImage(file, "banners");
 
-      const { error: dbErr } = await supabase.from("beranda_slides").insert({
+      // 2. Simpan ke Tabel beranda_slides
+      const { error } = await supabase.from("beranda_slides").insert({
         judul: formData.judul,
         deskripsi: formData.deskripsi,
-        image_url: urlData.publicUrl,
+        image_url: imageUrl,
+        urutan: parseInt(formData.urutan) || 10,
         is_active: true,
       });
-      if (dbErr) throw dbErr;
-      alert("Banner berhasil ditambahkan!");
-      onSuccess();
-      onClose();
-    } catch (err) {
-      alert("Gagal: " + err.message);
+
+      if (error) throw error;
+
+      // 3. Reset & Success
+      setFormData({ judul: "", deskripsi: "", urutan: 10 });
+      setFile(null);
+      alert("Slide berhasil ditambahkan!");
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      alert("Gagal upload slide: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className={formStyles.formGrid}>
-        {/* Upload Row Compact */}
-        <div className={formStyles["col-span-12"]}>
-          <label className={formStyles["form-label"]}>
-            Gambar Banner <span className={formStyles.required}>*</span>
-          </label>
-          <div className={formStyles["upload-row"]}>
-            <div className={formStyles["preview-box"]}>
-              {preview ? (
-                <img src={preview} alt="Preview" />
-              ) : (
-                <FiImage size={20} color="#cbd5e0" />
-              )}
-            </div>
-            <div style={{ flex: 1 }}>
-              <label
-                className={formStyles["upload-btn"]}
-                style={{ display: "inline-block" }}
-              >
-                Pilih File
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  hidden
-                />
-              </label>
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: "#94a3b8",
-                  marginLeft: "0.5rem",
-                }}
-              >
-                {formFile ? formFile.name : "Belum ada file dipilih"}
-              </span>
-            </div>
-          </div>
-        </div>
+    <form
+      onSubmit={handleSubmit}
+      style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+    >
+      <h3 style={{ margin: 0, color: "#1e293b", fontSize: "1.1rem" }}>
+        Tambah Slide Baru
+      </h3>
 
+      <div className={formStyles.formGrid}>
         <FormInput
-          label="Judul Banner"
+          label="Judul Slide"
           name="judul"
           value={formData.judul}
-          onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
+          onChange={handleChange}
           required
-          span={12}
+          span={8}
           placeholder="Contoh: Selamat Datang"
         />
 
         <FormInput
-          label="Deskripsi Singkat"
+          label="Urutan"
+          name="urutan"
+          type="number"
+          value={formData.urutan}
+          onChange={handleChange}
+          span={4}
+          placeholder="Default: 10"
+        />
+
+        <FormInput
+          label="Deskripsi (Opsional)"
           name="deskripsi"
           value={formData.deskripsi}
-          onChange={(e) =>
-            setFormData({ ...formData, deskripsi: e.target.value })
-          }
+          onChange={handleChange}
           span={12}
-          placeholder="Keterangan tambahan..."
+          type="textarea"
+          rows={2}
+          placeholder="Keterangan singkat..."
         />
+
+        <div style={{ gridColumn: "span 12" }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "#475569",
+              marginBottom: "0.5rem",
+            }}
+          >
+            Gambar Slide (Landscape)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={{
+              width: "100%",
+              padding: "0.5rem",
+              border: "1px solid #cbd5e1",
+              borderRadius: "8px",
+            }}
+            required
+          />
+        </div>
       </div>
 
-      <div className={formStyles.formFooter}>
-        <button
-          type="button"
-          onClick={onClose}
-          className="button button-secondary"
-        >
-          Batal
-        </button>
-        <button
-          type="submit"
-          className="button button-primary"
-          disabled={loading}
-        >
-          {loading ? "Menyimpan..." : "Simpan"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        className="button button-primary"
+        disabled={loading}
+        style={{ marginTop: "0.5rem" }}
+      >
+        {loading ? "Mengupload..." : "Upload Slide"}
+      </button>
     </form>
   );
 };
