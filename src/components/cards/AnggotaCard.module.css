@@ -19,7 +19,7 @@
 
 /* --- LAYOUT COMPACT (Horizontal) --- */
 .layoutCompact {
-  flex-direction: row;
+  flex-direction: row-reverse;
   text-align: left;
   padding: 1.25rem;
   gap: 1.25rem;
@@ -47,8 +47,8 @@
 
 /* Ukuran Foto di Compact */
 .layoutCompact .imageWrapper {
-  width: 70px;
-  height: 70px;
+  width: 84px;
+  height: 80px;
 }
 
 /* --- LAYOUT AESTHETIC (Vertical) --- */
@@ -70,8 +70,8 @@
 
 /* Ukuran Foto di Aesthetic */
 .layoutAesthetic .imageWrapper {
-  width: 100px;
-  height: 100px;
+  width: 114px;
+  height: 110px;
 }
 
 /* --- MEDIA SECTION (WRAPPER BARU: FOTO + TOMBOL) --- */
@@ -264,8 +264,8 @@
 
 .alamatRow {
   display: flex;
-  align-items: flex-start;
   gap: 6px;
+  font-size: 0.7rem;
   opacity: 1;
   font-weight: 500;
   color: #475569;

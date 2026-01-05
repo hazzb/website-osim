@@ -494,7 +494,7 @@ function DaftarAnggota() {
                 <option value="semua">Semua Periode</option>
                 {periodeList.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.nama_kabinet}
+                    {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
                   </option>
                 ))}
               </select>

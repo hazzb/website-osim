@@ -1,138 +1,371 @@
 import React from "react";
-import formStyles from "../admin/AdminForm.module.css";
-import FormInput from "../admin/FormInput.jsx";
 
-function ProgramKerjaForm({
+const ProgramKerjaForm = ({
   formData,
-  onChange,
+  setFormData,
   onSubmit,
   onCancel,
   loading,
-  periodeList = [],
-  divisiList = [],
-  anggotaList = [],
-}) {
+  divisiOptions,
+  anggotaOptions,
+  periodeOptions,
+}) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <form onSubmit={onSubmit}>
-      <div className={formStyles.formGrid}>
-        <FormInput
-          label="Nama Acara"
+    <form
+      onSubmit={onSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+        padding: "1rem",
+      }}
+    >
+      {/* NAMA ACARA */}
+      <div>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "4px",
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          Nama Acara
+        </label>
+        <input
           name="nama_acara"
-          value={formData.nama_acara || ""}
-          onChange={onChange}
+          value={formData.nama_acara}
+          onChange={handleChange}
           required
-          span={8}
-          placeholder="Nama kegiatan..."
-        />
-
-        <FormInput
-          label="Status"
-          name="status"
-          type="select"
-          value={formData.status || "Rencana"}
-          onChange={onChange}
-          span={4}
-        >
-          <option value="Rencana">Rencana</option>
-          <option value="Selesai">Selesai</option>
-          <option value="Batal">Batal / Gagal</option>
-        </FormInput>
-
-        {/* ... (SISA INPUT LAIN TETAP SAMA SEPERTI SEBELUMNYA) ... */}
-        {/* Pastikan input embed_html tetap ada: */}
-
-        <FormInput
-          label="Tanggal"
-          name="tanggal"
-          type="date"
-          value={formData.tanggal || ""}
-          onChange={onChange}
-          required
-          span={4}
-        />
-
-        <FormInput
-          label="Periode"
-          name="periode_id"
-          type="select"
-          value={formData.periode_id || ""}
-          onChange={onChange}
-          required
-          span={4}
-        >
-          <option value="">-- Pilih --</option>
-          {periodeList.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nama_kabinet}
-            </option>
-          ))}
-        </FormInput>
-
-        <FormInput
-          label="Divisi Pelaksana"
-          name="divisi_id"
-          type="select"
-          value={formData.divisi_id || ""}
-          onChange={onChange}
-          span={4}
-        >
-          <option value="">-- Pilih --</option>
-          {divisiList.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.nama_divisi}
-            </option>
-          ))}
-        </FormInput>
-
-        <FormInput
-          label="Penanggung Jawab (PJ)"
-          name="penanggung_jawab_id"
-          type="select"
-          value={formData.penanggung_jawab_id || ""}
-          onChange={onChange}
-          span={6}
-          required
-        >
-          <option value="">-- Pilih Anggota --</option>
-          {anggotaList.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.nama}
-            </option>
-          ))}
-        </FormInput>
-
-        <FormInput
-          label="Link Dokumen / LPJ"
-          name="link_dokumentasi"
-          value={formData.link_dokumentasi || ""}
-          onChange={onChange}
-          span={6}
-          placeholder="Google Drive, dll..."
-        />
-
-        <FormInput
-          label="Embed HTML"
-          name="embed_html"
-          value={formData.embed_html || ""}
-          onChange={onChange}
-          span={12}
-          placeholder='<iframe src="..."></iframe>'
-        />
-
-        <FormInput
-          label="Deskripsi Singkat"
-          name="deskripsi"
-          type="textarea"
-          value={formData.deskripsi || ""}
-          onChange={onChange}
-          span={12}
-          rows={3}
-          isMarkdown={true}
-          placeholder="Jelaskan tujuan kegiatan ini..."
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #cbd5e1",
+          }}
         />
       </div>
 
-      <div className={formStyles.formFooter}>
+      {/* TANGGAL & STATUS */}
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+      >
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "4px",
+              fontWeight: 600,
+              color: "#334155",
+            }}
+          >
+            Tanggal (Opsional)
+          </label>
+          {/* HAPUS 'required' DI SINI */}
+          <input
+            type="date"
+            name="tanggal"
+            value={formData.tanggal || ""} // Handle jika null
+            onChange={handleChange}
+            style={{
+              width: "100%",
+              padding: "8px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+            }}
+          />
+        </div>
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "4px",
+              fontWeight: 600,
+              color: "#334155",
+            }}
+          >
+            Status
+          </label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            style={{
+              width: "100%",
+              padding: "8px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+            }}
+          >
+            <option value="Rencana">Rencana</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+        </div>
+      </div>
+
+      {/* ... (SISA KODE SAMA SEPERTI SEBELUMNYA) ... */}
+
+      {/* TARGET GENDER */}
+      <div>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "4px",
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          Target Peserta
+        </label>
+        <div style={{ display: "flex", gap: "1rem" }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="radio"
+              name="target_gender"
+              value="Umum"
+              checked={formData.target_gender === "Umum"}
+              onChange={handleChange}
+            />{" "}
+            Umum
+          </label>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="radio"
+              name="target_gender"
+              value="Ikhwan"
+              checked={formData.target_gender === "Ikhwan"}
+              onChange={handleChange}
+            />{" "}
+            <span style={{ color: "#2563eb" }}>Ikhwan Only</span>
+          </label>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="radio"
+              name="target_gender"
+              value="Akhwat"
+              checked={formData.target_gender === "Akhwat"}
+              onChange={handleChange}
+            />{" "}
+            <span style={{ color: "#db2777" }}>Akhwat Only</span>
+          </label>
+        </div>
+      </div>
+
+      {/* DIVISI & PJ */}
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}
+      >
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "4px",
+              fontWeight: 600,
+              color: "#334155",
+            }}
+          >
+            Divisi
+          </label>
+          <select
+            name="divisi_id"
+            value={formData.divisi_id}
+            onChange={handleChange}
+            style={{
+              width: "100%",
+              padding: "8px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+            }}
+          >
+            <option value="">- Pilih Divisi -</option>
+            {divisiOptions.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.nama_divisi}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "4px",
+              fontWeight: 600,
+              color: "#334155",
+            }}
+          >
+            Penanggung Jawab
+          </label>
+          <select
+            name="penanggung_jawab_id"
+            value={formData.penanggung_jawab_id}
+            onChange={handleChange}
+            required
+            style={{
+              width: "100%",
+              padding: "8px",
+              borderRadius: "6px",
+              border: "1px solid #cbd5e1",
+            }}
+          >
+            <option value="">- Pilih Anggota -</option>
+            {anggotaOptions.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.nama}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* PERIODE */}
+      <div>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "4px",
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          Periode
+        </label>
+        <select
+          name="periode_id"
+          value={formData.periode_id}
+          onChange={handleChange}
+          required
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #cbd5e1",
+          }}
+        >
+          {periodeOptions.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* DESKRIPSI */}
+      <div>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "4px",
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          Deskripsi
+        </label>
+        <textarea
+          name="deskripsi"
+          value={formData.deskripsi}
+          onChange={handleChange}
+          rows={3}
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #cbd5e1",
+          }}
+        />
+      </div>
+
+      {/* LINK DOKUMENTASI */}
+      <div>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "4px",
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          Link Dokumentasi
+        </label>
+        <input
+          name="link_dokumentasi"
+          value={formData.link_dokumentasi}
+          onChange={handleChange}
+          placeholder="https://..."
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #cbd5e1",
+          }}
+        />
+      </div>
+
+      {/* EMBED HTML */}
+      <div>
+        <label
+          style={{
+            display: "block",
+            marginBottom: "4px",
+            fontWeight: 600,
+            color: "#334155",
+          }}
+        >
+          Embed HTML
+        </label>
+        <textarea
+          name="embed_html"
+          value={formData.embed_html}
+          onChange={handleChange}
+          rows={2}
+          placeholder="<iframe ... ></iframe>"
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "6px",
+            border: "1px solid #cbd5e1",
+            fontFamily: "monospace",
+            fontSize: "0.8rem",
+          }}
+        />
+      </div>
+
+      {/* ACTIONS */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: "10px",
+          marginTop: "1rem",
+        }}
+      >
         <button
           type="button"
           onClick={onCancel}
@@ -142,14 +375,14 @@ function ProgramKerjaForm({
         </button>
         <button
           type="submit"
-          className="button button-primary"
           disabled={loading}
+          className="button button-primary"
         >
-          {loading ? "Menyimpan..." : "Simpan Data"}
+          {loading ? "Menyimpan..." : "Simpan"}
         </button>
       </div>
     </form>
   );
-}
+};
 
 export default ProgramKerjaForm;

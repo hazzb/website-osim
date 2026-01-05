@@ -7,27 +7,29 @@ import {
   FiEdit,
   FiTrash2,
   FiInfo,
+  FiUsers,
+  FiArrowRight,
 } from "react-icons/fi";
 import DOMPurify from "dompurify";
-import styles from "./ProgramKerjaCard.module.css"; // Import Module CSS
-
-const sanitizeConfig = {
-  ADD_TAGS: ["iframe", "blockquote", "script"],
-  ADD_ATTR: [
-    "allow",
-    "allowfullscreen",
-    "frameborder",
-    "scrolling",
-    "src",
-    "width",
-    "height",
-    "class",
-    "data-instgrm-permalink",
-    "data-instgrm-version",
-  ],
-};
+import styles from "./ProgramKerjaCard.module.css";
 
 const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
+  const gender = data.target_gender || "Semua";
+  const bgClassKey = `bg${gender}`;
+  const textClassKey = `text${gender}`;
+
+  const formattedDate = data.tanggal ? (
+    new Date(data.tanggal).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
+  ) : (
+    <i>Waktu Tidak ditentukan</i>
+  );
+
+  const isSelesai = data.status === "Selesai";
+
   useEffect(() => {
     if (data.embed_html && data.embed_html.includes("instagram")) {
       if (!window.instgrm) {
@@ -41,137 +43,126 @@ const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
     }
   }, [data.embed_html]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const options = { day: "numeric", month: "long", year: "numeric" };
-    return new Date(dateString).toLocaleDateString("id-ID", options);
-  };
-
-  const getStatusClass = (status) => {
-    switch (status) {
-      case "Selesai":
-        return styles.statusSelesai;
-      case "Akan Datang":
-        return styles.statusAkanDatang;
-      case "Batal":
-        return styles.statusBatal;
-      default:
-        return styles.statusDefault;
-    }
-  };
-
-  const createMarkup = (htmlContent) => {
-    const cleanHTML = DOMPurify.sanitize(htmlContent, sanitizeConfig);
-    const responsiveHTML = cleanHTML
-      .replace(/<iframe\s+width="\d+"/g, '<iframe width="100%"')
-      .replace(/<iframe([^>]+)height="\d+"/g, '<iframe$1height="100%"');
-    return { __html: responsiveHTML };
-  };
-
-  const isInstagram = data.embed_html && data.embed_html.includes("instagram");
-
   return (
-    <div className={styles.card}>
-      {/* 1. EMBED HTML */}
+    <div className={`${styles.card} ${styles[bgClassKey]}`}>
+      {/* Embed (Video/IG) */}
       {data.embed_html && (
-        <div
-          className={styles.embedWrapper}
-          style={{
-            aspectRatio: isInstagram ? "auto" : "16/9",
-            minHeight: isInstagram ? "300px" : "auto",
-          }}
-        >
+        <div className={styles.embedWrapper}>
           <div
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              justifyContent: "center",
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(data.embed_html, {
+                ADD_TAGS: ["iframe", "blockquote", "script"],
+                ADD_ATTR: [
+                  "allow",
+                  "allowfullscreen",
+                  "frameborder",
+                  "scrolling",
+                  "src",
+                  "width",
+                  "height",
+                  "class",
+                  "data-instgrm-permalink",
+                  "data-instgrm-version",
+                ],
+              }),
             }}
-            dangerouslySetInnerHTML={createMarkup(data.embed_html)}
           />
         </div>
       )}
 
-      {/* WRAPPER KONTEN */}
-      <div
-        className={`${styles.content} ${
-          data.embed_html ? styles.contentCompact : ""
-        }`}
-      >
-        {/* HEADER: Tanggal & Status */}
-        <div className={styles.header}>
-          <div className={styles.date}>
-            <FiCalendar /> {formatDate(data.tanggal)}
-          </div>
+      {/* Konten Utama */}
+      <div className={styles.content}>
+        {/* Header */}
+        <div className={styles.headerGroup}>
+          <h3 className={styles.title}>{data.nama_acara}</h3>
           <span
-            className={`${styles.statusBadge} ${getStatusClass(data.status)}`}
+            className={`${styles.statusBadge} ${
+              isSelesai ? styles.statusSelesai : styles.statusRencana
+            }`}
           >
             {data.status}
           </span>
         </div>
 
-        {/* JUDUL */}
-        <Link to={`/program-kerja/${data.id}`} className={styles.titleLink}>
-          <h3 className={styles.title}>{data.nama_acara}</h3>
-        </Link>
-
-        {/* META: PJ & Divisi */}
+        {/* Info Meta */}
         <div className={styles.metaInfo}>
           <div className={styles.metaRow}>
-            <FiUser size={14} /> <strong>PJ:</strong> {data.pj?.nama || "-"}
+            <span className={`${styles.genderBadge} ${styles[textClassKey]}`}>
+              <FiUsers size={12} /> {gender}
+            </span>
+            {data.nama_divisi && (
+              <>
+                <span className={styles.divisiDot}>•</span>
+                <span style={{ fontWeight: 600 }}>{data.nama_divisi}</span>
+              </>
+            )}
           </div>
-          {data.divisi && (
-            <div className={styles.metaRow}>
-              <span className={styles.divisiDot}>#</span>
-              {data.divisi.nama_divisi}
-            </div>
-          )}
+
+          <div className={styles.metaRow}>
+            <FiCalendar size={14} className={styles[textClassKey]} />
+            <span>{formattedDate}</span>
+          </div>
+
+          <div className={styles.metaRow}>
+            <FiUser size={14} className={styles[textClassKey]} />
+            <span>{data.pj?.nama || "PJ Tidak Ada"}</span>
+          </div>
         </div>
 
-        {/* DESKRIPSI */}
         {data.deskripsi && (
           <p className={styles.description}>{data.deskripsi}</p>
         )}
 
-        {/* FOOTER ACTIONS */}
+        {/* FOOTER: Gabungan Admin Actions & Public Links */}
         <div className={styles.footer}>
-          <Link to={`/program-kerja/${data.id}`} className={styles.detailBtn}>
-            <FiInfo size={16} /> Detail
-          </Link>
+          {/* KIRI: Admin Actions (Edit/Delete) */}
+          <div className={styles.adminActions}>
+            {isAdmin ? (
+              <>
+                <button
+                  onClick={onEdit}
+                  className={`${styles.adminBtn} ${styles.editBtn}`}
+                  title="Edit"
+                >
+                  <FiEdit size={14} />
+                </button>
+                <button
+                  onClick={onDelete}
+                  className={`${styles.adminBtn} ${styles.deleteBtn}`}
+                  title="Hapus"
+                >
+                  <FiTrash2 size={14} />
+                </button>
+              </>
+            ) : (
+              // Spacer kosong jika bukan admin agar layout tetap rapi
+              <div />
+            )}
+          </div>
 
-          {data.link_dokumentasi && (
-            <a
-              href={data.link_dokumentasi}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.docLink}
+          {/* KANAN: Public Links (Link/Detail) */}
+          <div className={styles.rightActions}>
+            {data.link_dokumentasi && (
+              <a
+                href={data.link_dokumentasi}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.linkButton}
+                title="Lihat Dokumentasi"
+              >
+                <FiExternalLink size={16} />
+              </a>
+            )}
+
+            <Link
+              to={`/program-kerja/${data.id}`}
+              className={styles.actionButton}
             >
-              <FiExternalLink size={16} />
-            </a>
-          )}
+              Detail <FiArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </div>
-
-      {/* ADMIN ACTIONS */}
-      {isAdmin && (
-        <div className={styles.adminActions}>
-          <button
-            onClick={onEdit}
-            className={`${styles.adminBtn} ${styles.editBtn}`}
-            title="Edit Program"
-          >
-            <FiEdit />
-          </button>
-          <button
-            onClick={onDelete}
-            className={`${styles.adminBtn} ${styles.deleteBtn}`}
-            title="Hapus Program"
-          >
-            <FiTrash2 />
-          </button>
-        </div>
-      )}
     </div>
   );
 };
