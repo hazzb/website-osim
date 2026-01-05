@@ -20,7 +20,7 @@ import {
   FiLogIn,
   FiLayout,
 } from "react-icons/fi";
-import { FaTiktok } from "react-icons/fa";
+import { FaInstagram, FaTiktok } from "react-icons/fa";
 
 const Footer = () => {
   const { session } = useAuth();
@@ -217,6 +217,15 @@ const Footer = () => {
               className={styles.devLink}
             >
               <FiGithub size={12} /> hazzb
+            </a>
+            <span>|</span>
+            <a
+              href="https://www.instagram.com/dan_ilevan/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.devLink}
+            >
+              <FiInstagram size={12} /> dan_ilevan
             </a>
           </div>
         </div>
