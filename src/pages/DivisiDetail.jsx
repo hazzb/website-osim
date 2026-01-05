@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom"; // 1. Import Portal
+import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
@@ -22,13 +22,37 @@ import {
   FiGrid,
   FiEdit,
   FiArrowLeft,
-  FiX, // 2. Import Icon Close
+  FiX,
 } from "react-icons/fi";
 
 // Styles
 import styles from "./DivisiDetail.module.css";
-// 3. REUSE CSS LIGHTBOX DARI KARTU ANGGOTA
 import lightboxStyles from "../components/cards/AnggotaCard.module.css";
+
+// --- HELPER: LOGIKA HIERARKI JABATAN ---
+const getJabatanRank = (jabatan) => {
+  if (!jabatan) return 99; // Jika tidak ada jabatan, taruh paling bawah
+  const role = jabatan.toLowerCase();
+
+  if (
+    role.includes("ketua") ||
+    role.includes("kepala") ||
+    role.includes("direktur")
+  )
+    return 1;
+  if (role.includes("wakil")) return 2;
+  if (role.includes("sekretaris")) return 3;
+  if (role.includes("bendahara")) return 4;
+  if (
+    role.includes("koordinator") ||
+    role.includes("co") ||
+    role.includes("pj")
+  )
+    return 5;
+  if (role.includes("staff") || role.includes("anggota")) return 6;
+
+  return 10; // Lainnya
+};
 
 function DivisiDetail() {
   const { id } = useParams();
@@ -54,7 +78,7 @@ function DivisiDetail() {
   const [formLoading, setFormLoading] = useState(false);
   const [periodeList, setPeriodeList] = useState([]);
 
-  // 4. STATE LIGHTBOX LOGO
+  // State Lightbox
   const [isLogoLightboxOpen, setIsLogoLightboxOpen] = useState(false);
 
   // --- FETCH DATA ---
@@ -70,18 +94,36 @@ function DivisiDetail() {
 
       if (divisiErr) throw divisiErr;
 
-      // 2. Fetch Anggota
+      // 2. Fetch Anggota (Ambil semua dulu, nanti di-sort di JS)
       const { data: anggotaData } = await supabase
         .from("anggota")
         .select("*, master_jabatan(nama_jabatan)")
-        .eq("divisi_id", id)
-        .order("id", { ascending: true });
+        .eq("divisi_id", id);
+
+      // --- LOGIC SORTING HIERARKI ---
+      const sortedAnggota = (anggotaData || []).sort((a, b) => {
+        // Ambil nama jabatan (prioritas: jabatan_di_divisi -> master_jabatan)
+        const roleA =
+          a.jabatan_di_divisi || a.master_jabatan?.nama_jabatan || "";
+        const roleB =
+          b.jabatan_di_divisi || b.master_jabatan?.nama_jabatan || "";
+
+        const rankA = getJabatanRank(roleA);
+        const rankB = getJabatanRank(roleB);
+
+        // Jika rank beda, urutkan berdasarkan rank (kecil ke besar)
+        if (rankA !== rankB) return rankA - rankB;
+
+        // Jika rank sama, urutkan nama abjad
+        return a.nama.localeCompare(b.nama);
+      });
 
       // 3. Fetch Progja
       const { data: progjaData, error: progjaErr } = await supabase
         .from("program_kerja")
         .select(`*, pj:anggota!penanggung_jawab_id (id, nama)`)
-        .eq("divisi_id", id);
+        .eq("divisi_id", id)
+        .order("tanggal", { ascending: true }); // Progja urut tanggal
 
       if (progjaErr) throw progjaErr;
 
@@ -95,7 +137,7 @@ function DivisiDetail() {
 
       setData({
         divisi: divisiData,
-        anggota: anggotaData || [],
+        anggota: sortedAnggota, // Gunakan data yang sudah di-sort
         progja: progjaData || [],
       });
     } catch (err) {
@@ -165,14 +207,27 @@ function DivisiDetail() {
   const handleEditAnggota = (item) => {
     alert(`Edit Anggota: ${item.nama}`);
   };
-  const handleDeleteAnggota = (itemId) => {
-    if (confirm("Hapus anggota?")) alert(`Hapus ID: ${itemId}`);
+  const handleDeleteAnggota = async (itemId) => {
+    if (!confirm("Hapus anggota?")) return;
+    try {
+      await supabase.from("anggota").delete().eq("id", itemId);
+      fetchData(); // Refresh data biar urutan tetap benar
+    } catch (e) {
+      alert("Gagal hapus");
+    }
   };
+
   const handleEditProgja = (item) => {
     alert(`Edit Progja: ${item.nama_acara}`);
   };
-  const handleDeleteProgja = (itemId) => {
-    if (confirm("Hapus proker?")) alert(`Hapus ID: ${itemId}`);
+  const handleDeleteProgja = async (itemId) => {
+    if (!confirm("Hapus proker?")) return;
+    try {
+      await supabase.from("program_kerja").delete().eq("id", itemId);
+      fetchData();
+    } catch (e) {
+      alert("Gagal hapus");
+    }
   };
 
   if (loading) return <LoadingState message="Memuat detail divisi..." />;
@@ -236,7 +291,6 @@ function DivisiDetail() {
               src={divisi.logo_url}
               alt="Logo"
               className={styles.logoImage}
-              // 5. TRIGGER OPEN LIGHTBOX
               onClick={() => setIsLogoLightboxOpen(true)}
               style={{ cursor: "zoom-in" }}
             />
@@ -250,7 +304,7 @@ function DivisiDetail() {
         </div>
       </div>
 
-      {/* SECTION ANGGOTA */}
+      {/* SECTION ANGGOTA (TERURUT HIERARKI) */}
       <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
           <FiUsers style={{ color: "#3b82f6" }} /> Anggota ({anggota.length})
@@ -314,7 +368,7 @@ function DivisiDetail() {
         />
       </Modal>
 
-      {/* 6. LIGHTBOX PORTAL (LOGO) */}
+      {/* LIGHTBOX PORTAL */}
       {isLogoLightboxOpen &&
         divisi.logo_url &&
         createPortal(
@@ -337,13 +391,13 @@ function DivisiDetail() {
                 alt={divisi.nama_divisi}
                 className={lightboxStyles.lightboxImage}
               />
-              {/* Optional: Caption */}
               <div
                 style={{
                   marginTop: "1rem",
                   color: "white",
                   fontWeight: "bold",
                   fontSize: "1.2rem",
+                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
                 }}
               >
                 {divisi.nama_divisi}
