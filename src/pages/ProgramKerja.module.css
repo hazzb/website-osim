@@ -1,62 +1,47 @@
 /* src/pages/ProgramKerja.module.css */
 
-/* --- HEADER CONTROL (PERIODE - Posisi Utama) --- */
-.periodeSelect {
+/* --- SEARCH INPUT --- */
+.searchInput {
+  width: 100%;
   height: 40px;
-  padding: 0 40px 0 16px;
+  padding-left: 38px;
+  padding-right: 12px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  color: #334155;
   background-color: white;
-  font-size: 0.8rem;
-  cursor: pointer;
-  width: 100%; /* Full width di slot search bar header */
-
-  /* Custom Arrow */
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
 }
 
-.periodeSelect:hover {
-  border-color: #cbd5e1;
-  background-color: #f8fafc;
-}
-
-.periodeSelect:focus {
+.searchInput:focus {
   border-color: #3b82f6;
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* --- FILTER MENU STYLING --- */
-
-/* Wrapper Utama Filter */
+/* --- FILTER CONTAINER (SHOW ALL) --- */
 .filterContainer {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap; /* Agar turun ke bawah jika layar sempit */
   gap: 1rem;
   width: 100%;
+  align-items: flex-end; /* Ratakan bawah agar label sejajar */
 }
 
-/* Baris Filter */
-.filterRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-end;
-}
-
-/* Group Label + Input */
+/* Item Filter Individual */
 .filterGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  flex: 1;
-  min-width: 180px;
+  gap: 4px;
+  flex: 1; /* Membagi rata lebar */
+  min-width: 140px; /* Lebar minimal agar tidak gepeng */
+}
+
+/* Khusus Date Range butuh lebar lebih */
+.filterGroupDate {
+  flex: 2;
+  min-width: 250px;
 }
 
 .filterLabel {
@@ -66,17 +51,17 @@
   margin-left: 2px;
 }
 
-/* Input Styles Generic */
+/* Input & Select Style */
 .filterInput,
 .filterSelect {
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
-  border-radius: 8px;
+  height: 38px; /* Tinggi seragam */
+  padding: 0 10px;
+  border-radius: 6px;
   border: 1px solid #cbd5e1;
   background-color: white;
   color: #334155;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: border-color 0.2s;
 }
 
@@ -86,35 +71,7 @@
   outline: none;
 }
 
-/* SEARCH INPUT (Inside Filter) */
-.searchWrapper {
-  position: relative;
-  width: 100%;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-}
-
-.searchInputWithIcon {
-  width: 100%;
-  height: 40px;
-  padding-left: 38px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-size: 0.9rem;
-  color: #334155;
-}
-.searchInputWithIcon:focus {
-  border-color: #3b82f6;
-  outline: none;
-}
-
-/* Date Range Styling */
+/* Date Range Wrapper */
 .dateRangeWrapper {
   display: flex;
   align-items: center;
@@ -125,7 +82,6 @@
 .dateSeparator {
   color: #94a3b8;
   font-size: 0.9rem;
-  padding-top: 24px;
 }
 
 /* --- MASONRY LAYOUT --- */
@@ -149,17 +105,18 @@
   }
 }
 
+@media (max-width: 768px) {
+  /* Di Tablet/HP, filter date jadi full width */
+  .filterGroupDate {
+    flex-basis: 100%;
+  }
+}
+
 @media (max-width: 640px) {
   .masonryGrid {
     column-count: 1;
   }
-
-  .dateRangeWrapper {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  .dateSeparator {
-    display: none;
-  }
+  .filterGroup {
+    flex-basis: 48%;
+  } /* 2 kolom di HP */
 }

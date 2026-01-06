@@ -1,10 +1,9 @@
 /* src/pages/DivisiDetail.module.css */
 
-/* --- SECTION WRAPPERS --- */
+/* --- GENERAL --- */
 .sectionWrapper {
   margin-bottom: 3rem;
 }
-
 .sectionTitle {
   font-size: 1.25rem;
   font-weight: 700;
@@ -17,7 +16,7 @@
   padding-bottom: 0.75rem;
 }
 
-/* --- INFO CARD --- */
+/* Info Card */
 .infoCard {
   background: white;
   border: 1px solid #e2e8f0;
@@ -30,7 +29,6 @@
   margin-bottom: 3rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
-
 @media (min-width: 768px) {
   .infoCard {
     flex-direction: row;
@@ -54,13 +52,11 @@
   padding: 1rem;
   margin-bottom: 1rem;
 }
-
 @media (min-width: 768px) {
   .logoWrapper {
     margin-bottom: 0;
   }
 }
-
 .logoImage {
   width: 100%;
   height: 100%;
@@ -87,24 +83,17 @@
   margin: 0;
 }
 
-/* --- LAYOUTS --- */
-
-/* Grid Aesthetic (Card Besar Vertikal) */
+/* Layouts */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
-
-/* Grid Compact (Card Kecil Horizontal - SEKARANG MULTI COLUMN) */
 .list {
   display: grid;
-  /* Membuat kolom otomatis: minimal lebar 350px per card */
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1rem;
 }
-
-/* --- STATES --- */
 .emptyState {
   background: #f8fafc;
   border: 2px dashed #e2e8f0;
@@ -114,7 +103,6 @@
   color: #94a3b8;
   font-style: italic;
 }
-
 .error {
   background-color: #fef2f2;
   color: #ef4444;
@@ -126,15 +114,19 @@
   border: 1px solid #fecaca;
 }
 
-/* --- CONTROLS --- */
+/* --- HEADER CONTROLS (Langsung di Header) --- */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-/* Tombol Kembali & Edit */
 .actionBtn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 16px; /* Padding kiri kanan */
-  height: 38px; /* Tinggi fix agar sejajar */
+  padding: 0 16px;
+  height: 40px;
   background-color: white;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -143,7 +135,7 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-decoration: none; /* Untuk Link/a tag */
+  white-space: nowrap;
 }
 
 .actionBtn:hover {
@@ -152,14 +144,17 @@
   border-color: #cbd5e1;
 }
 
-/* Modifier untuk tombol Edit (Biru saat hover) */
-.editBtn:hover {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
+.editBtn {
   color: #2563eb;
+  border-color: #bfdbfe;
+  background-color: #eff6ff;
+}
+.editBtn:hover {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
 }
 
-/* Toggle View Group */
+/* View Toggle */
 .viewToggle {
   display: flex;
   background: #f1f5f9;
@@ -167,15 +162,15 @@
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   gap: 2px;
-  height: 38px; /* Samakan tinggi dengan tombol lain */
+  height: 40px;
   box-sizing: border-box;
 }
 
 .viewToggle button {
   border: none;
   background: transparent;
-  padding: 0 10px;
-  height: 100%; /* Full height container */
+  padding: 0 12px;
+  height: 100%;
   border-radius: 6px;
   cursor: pointer;
   color: #64748b;
@@ -188,28 +183,42 @@
 .viewToggle button:hover {
   color: #334155;
 }
-
 .viewToggle button.active {
   background: white;
   color: #2563eb;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  font-weight: bold;
 }
 
-/* Responsiveness */
 @media (max-width: 640px) {
   .hideMobile {
     display: none;
   }
+
+  /* Rapatkan jarak di mobile */
+  .headerActions {
+    gap: 8px;
+  }
+
+  /* Jadikan tombol kotak (icon only) di mobile */
   .actionBtn {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+  }
+  .viewToggle button {
     padding: 0 10px;
   }
 
-  /* Di HP, Compact list kembali ke 1 kolom agar tidak terlalu sempit */
-  .list {
-    grid-template-columns: 1fr;
-  }
+  .list,
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+.persistentToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Rata kanan di desktop */
+  gap: 10px;
+  width: 100%;
 }

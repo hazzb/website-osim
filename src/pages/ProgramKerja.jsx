@@ -21,9 +21,9 @@ function ProgramKerja() {
   const [filteredProgja, setFilteredProgja] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters
-  const [filterPeriode, setFilterPeriode] = useState(""); // Filter Utama (Header)
+  // Filters State
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterPeriode, setFilterPeriode] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [filterDivisi, setFilterDivisi] = useState("");
@@ -43,7 +43,7 @@ function ProgramKerja() {
     nama_acara: "",
     tanggal: "",
     status: "Rencana",
-    target_gender: "Semua",
+    target_gender: "Umum",
     deskripsi: "",
     link_dokumentasi: "",
     divisi_id: "",
@@ -72,7 +72,6 @@ function ProgramKerja() {
       setAnggotaOptions(aggRes.data || []);
       setPeriodeOptions(perRes.data || []);
 
-      // Default Periode
       const activePeriode = perRes.data?.find((p) => p.is_active);
       if (activePeriode) {
         setFilterPeriode(activePeriode.id);
@@ -166,8 +165,9 @@ function ProgramKerja() {
       delete payload.id;
       delete payload.created_at;
 
-      if (!payload.tanggal) payload.tanggal = null;
-      if (!payload.target_gender) payload.target_gender = "Semua";
+      if (payload.tanggal === "" || payload.tanggal === undefined)
+        payload.tanggal = null;
+      if (!payload.target_gender) payload.target_gender = "Umum";
 
       if (editingItem) {
         const { error } = await supabase
@@ -206,105 +206,110 @@ function ProgramKerja() {
       <PageHeader
         title="Program Kerja"
         subtitle="Agenda kegiatan dan proker organisasi."
-        // 1. POSISI UTAMA (HEADER) = PERIODE FILTER
+        // 1. SEARCH BAR (PALING ATAS)
         searchBar={
-          <select
-            value={filterPeriode}
-            onChange={(e) => setFilterPeriode(e.target.value)}
-            className={styles.periodeSelect}
-            title="Pilih Periode Kabinet"
-          >
-            {periodeOptions.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
-              </option>
-            ))}
-          </select>
+          <div style={{ position: "relative", width: "100%" }}>
+            <FiSearch
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#94a3b8",
+              }}
+              size={16}
+            />
+            <input
+              placeholder="Cari program kerja..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
         }
-        // 2. POSISI FILTER MENU = PENCARIAN & LAINNYA
+        // 2. FILTERS (SEMUA DIPERLIHATKAN)
         filters={
           <div className={styles.filterContainer}>
-            {/* Baris 1: Pencarian & Tanggal */}
-            <div className={styles.filterRow}>
-              {/* Search (Pindah ke sini) */}
-              <div className={styles.filterGroup} style={{ flex: 1.5 }}>
-                <label className={styles.filterLabel}>Pencarian</label>
-                <div className={styles.searchWrapper}>
-                  <FiSearch className={styles.searchIcon} size={16} />
-                  <input
-                    placeholder="Cari nama acara..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className={styles.searchInputWithIcon}
-                  />
-                </div>
-              </div>
+            {/* Periode */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Periode</label>
+              <select
+                value={filterPeriode}
+                onChange={(e) => setFilterPeriode(e.target.value)}
+                className={styles.filterSelect}
+              >
+                {periodeOptions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              {/* Rentang Tanggal */}
-              <div className={styles.filterGroup} style={{ flex: 2 }}>
-                <label className={styles.filterLabel}>Rentang Tanggal</label>
-                <div className={styles.dateRangeWrapper}>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className={styles.filterInput}
-                  />
-                  <span className={styles.dateSeparator}>-</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className={styles.filterInput}
-                  />
-                </div>
+            {/* Rentang Tanggal (Lebih Lebar) */}
+            <div className={`${styles.filterGroup} ${styles.filterGroupDate}`}>
+              <label className={styles.filterLabel}>Rentang Tanggal</label>
+              <div className={styles.dateRangeWrapper}>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className={styles.filterInput}
+                />
+                <span className={styles.dateSeparator}>-</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className={styles.filterInput}
+                />
               </div>
             </div>
 
-            {/* Baris 2: Kategori Lainnya */}
-            <div className={styles.filterRow}>
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>Divisi</label>
-                <select
-                  value={filterDivisi}
-                  onChange={(e) => setFilterDivisi(e.target.value)}
-                  className={styles.filterSelect}
-                >
-                  <option value="">Semua Divisi</option>
-                  {divisiOptions.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.nama_divisi}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Divisi */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Divisi</label>
+              <select
+                value={filterDivisi}
+                onChange={(e) => setFilterDivisi(e.target.value)}
+                className={styles.filterSelect}
+              >
+                <option value="">Semua Divisi</option>
+                {divisiOptions.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nama_divisi}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>Status</label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className={styles.filterSelect}
-                >
-                  <option value="">Semua Status</option>
-                  <option value="Rencana">Rencana</option>
-                  <option value="Selesai">Selesai</option>
-                </select>
-              </div>
+            {/* Status */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Status</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className={styles.filterSelect}
+              >
+                <option value="">Semua Status</option>
+                <option value="Rencana">Rencana</option>
+                <option value="Selesai">Selesai</option>
+              </select>
+            </div>
 
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>Target</label>
-                <select
-                  value={filterGender}
-                  onChange={(e) => setFilterGender(e.target.value)}
-                  className={styles.filterSelect}
-                >
-                  <option value="">Semua Target</option>
-                  <option value="Ikhwan">Ikhwan</option>
-                  <option value="Akhwat">Akhwat</option>
-                  <option value="Semua">Semua</option>
-                </select>
-              </div>
+            {/* Target */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Target</label>
+              <select
+                value={filterGender}
+                onChange={(e) => setFilterGender(e.target.value)}
+                className={styles.filterSelect}
+              >
+                <option value="">Semua Target</option>
+                <option value="Ikhwan">Ikhwan</option>
+                <option value="Akhwat">Akhwat</option>
+                <option value="Umum">Umum</option>
+              </select>
             </div>
           </div>
         }

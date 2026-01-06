@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { uploadImage } from "../utils/uploadHelper";
@@ -12,7 +12,11 @@ import LoadingState from "../components/ui/LoadingState.jsx";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import Modal from "../components/Modal.jsx";
+
+// Forms
 import DivisiForm from "../components/forms/DivisiForm.jsx";
+import AnggotaForm from "../components/forms/AnggotaForm.jsx";
+import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
 
 // Icons
 import {
@@ -28,30 +32,17 @@ import {
 // Styles
 import styles from "./DivisiDetail.module.css";
 import lightboxStyles from "../components/cards/AnggotaCard.module.css";
+import ImageViewer from "../components/ui/ImageViewer.jsx";
 
-// --- HELPER: LOGIKA HIERARKI JABATAN ---
 const getJabatanRank = (jabatan) => {
-  if (!jabatan) return 99; // Jika tidak ada jabatan, taruh paling bawah
+  if (!jabatan) return 99;
   const role = jabatan.toLowerCase();
-
-  if (
-    role.includes("ketua") ||
-    role.includes("kepala") ||
-    role.includes("direktur")
-  )
-    return 1;
+  if (role.includes("ketua") || role.includes("kepala")) return 1;
   if (role.includes("wakil")) return 2;
   if (role.includes("sekretaris")) return 3;
   if (role.includes("bendahara")) return 4;
-  if (
-    role.includes("koordinator") ||
-    role.includes("co") ||
-    role.includes("pj")
-  )
-    return 5;
-  if (role.includes("staff") || role.includes("anggota")) return 6;
-
-  return 10; // Lainnya
+  if (role.includes("koordinator") || role.includes("co")) return 5;
+  return 10;
 };
 
 function DivisiDetail() {
@@ -62,87 +53,55 @@ function DivisiDetail() {
 
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("aesthetic");
+  const [data, setData] = useState({ divisi: null, anggota: [], progja: [] });
 
-  // Data Utama
-  const [data, setData] = useState({
-    divisi: null,
-    anggota: [],
-    progja: [],
-  });
-  const [error, setError] = useState(null);
+  const [periodeList, setPeriodeList] = useState([]);
+  const [jabatanList, setJabatanList] = useState([]);
 
-  // State Modal Edit
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [formPreview, setFormPreview] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
-  const [periodeList, setPeriodeList] = useState([]);
-
-  // State Lightbox
   const [isLogoLightboxOpen, setIsLogoLightboxOpen] = useState(false);
 
-  // --- FETCH DATA ---
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch Divisi
-      const { data: divisiData, error: divisiErr } = await supabase
+      const { data: div } = await supabase
         .from("divisi")
         .select("*")
         .eq("id", id)
         .single();
-
-      if (divisiErr) throw divisiErr;
-
-      // 2. Fetch Anggota (Ambil semua dulu, nanti di-sort di JS)
-      const { data: anggotaData } = await supabase
+      const { data: ang } = await supabase
         .from("anggota")
-        .select("*, master_jabatan(nama_jabatan)")
+        .select("*, master_jabatan(*)")
         .eq("divisi_id", id);
-
-      // --- LOGIC SORTING HIERARKI ---
-      const sortedAnggota = (anggotaData || []).sort((a, b) => {
-        // Ambil nama jabatan (prioritas: jabatan_di_divisi -> master_jabatan)
-        const roleA =
-          a.jabatan_di_divisi || a.master_jabatan?.nama_jabatan || "";
-        const roleB =
-          b.jabatan_di_divisi || b.master_jabatan?.nama_jabatan || "";
-
-        const rankA = getJabatanRank(roleA);
-        const rankB = getJabatanRank(roleB);
-
-        // Jika rank beda, urutkan berdasarkan rank (kecil ke besar)
-        if (rankA !== rankB) return rankA - rankB;
-
-        // Jika rank sama, urutkan nama abjad
-        return a.nama.localeCompare(b.nama);
-      });
-
-      // 3. Fetch Progja
-      const { data: progjaData, error: progjaErr } = await supabase
+      const { data: pro } = await supabase
         .from("program_kerja")
-        .select(`*, pj:anggota!penanggung_jawab_id (id, nama)`)
-        .eq("divisi_id", id)
-        .order("tanggal", { ascending: true }); // Progja urut tanggal
-
-      if (progjaErr) throw progjaErr;
-
-      // 4. Fetch Periode
-      const { data: periodeData } = await supabase
+        .select("*, pj:anggota!penanggung_jawab_id(*)")
+        .eq("divisi_id", id);
+      const { data: per } = await supabase
         .from("periode_jabatan")
         .select("*")
         .order("tahun_mulai", { ascending: false });
+      const { data: jab } = await supabase.from("master_jabatan").select("*");
 
-      setPeriodeList(periodeData || []);
-
-      setData({
-        divisi: divisiData,
-        anggota: sortedAnggota, // Gunakan data yang sudah di-sort
-        progja: progjaData || [],
+      const sortedAnggota = (ang || []).sort((a, b) => {
+        const rankA = getJabatanRank(
+          a.jabatan_di_divisi || a.master_jabatan?.nama_jabatan
+        );
+        const rankB = getJabatanRank(
+          b.jabatan_di_divisi || b.master_jabatan?.nama_jabatan
+        );
+        return rankA !== rankB ? rankA - rankB : a.nama.localeCompare(b.nama);
       });
+
+      setData({ divisi: div, anggota: sortedAnggota, progja: pro || [] });
+      setPeriodeList(per || []);
+      setJabatanList(jab || []);
     } catch (err) {
-      console.error("Error fetching detail:", err);
-      setError(err.message);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -152,260 +111,253 @@ function DivisiDetail() {
     if (id) fetchData();
   }, [id]);
 
-  // --- HANDLERS ---
-  const handleBack = () => navigate(-1);
-
-  const handleOpenEdit = () => {
-    setFormData({ ...data.divisi });
-    setFormPreview(data.divisi.logo_url);
-    setIsEditModalOpen(true);
+  const closeModal = () => {
+    setActiveModal(null);
+    setFormData({});
+    setFormPreview(null);
+    setEditingId(null);
   };
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setFormData((prev) => ({ ...prev, file }));
-      setFormPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleEditSubmit = async (e) => {
+  const handleEditDivisi = async (e) => {
     e.preventDefault();
     setFormLoading(true);
     try {
       let logoUrl = formData.logo_url;
-      if (formData.file) {
-        logoUrl = await uploadImage(formData.file, "divisi");
-      }
-      const payload = {
-        nama_divisi: formData.nama_divisi,
-        deskripsi: formData.deskripsi,
-        periode_id: formData.periode_id,
-        tipe: formData.tipe,
-        logo_url: logoUrl,
-      };
-      const { error } = await supabase
+      if (formData.file) logoUrl = await uploadImage(formData.file, "divisi");
+      await supabase
         .from("divisi")
-        .update(payload)
+        .update({ ...formData, logo_url: logoUrl })
         .eq("id", id);
-      if (error) throw error;
-
-      setIsEditModalOpen(false);
+      closeModal();
       fetchData();
     } catch (err) {
-      alert("Gagal update divisi: " + err.message);
+      alert(err.message);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleEditAnggota = (item) => {
-    alert(`Edit Anggota: ${item.nama}`);
-  };
-  const handleDeleteAnggota = async (itemId) => {
-    if (!confirm("Hapus anggota?")) return;
+  const handleEditAnggota = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
     try {
-      await supabase.from("anggota").delete().eq("id", itemId);
-      fetchData(); // Refresh data biar urutan tetap benar
-    } catch (e) {
-      alert("Gagal hapus");
-    }
-  };
-
-  const handleEditProgja = (item) => {
-    alert(`Edit Progja: ${item.nama_acara}`);
-  };
-  const handleDeleteProgja = async (itemId) => {
-    if (!confirm("Hapus proker?")) return;
-    try {
-      await supabase.from("program_kerja").delete().eq("id", itemId);
+      let fotoUrl = formData.foto_url;
+      if (formData.file) fotoUrl = await uploadImage(formData.file, "profiles");
+      const { file, master_jabatan, ...payload } = formData;
+      await supabase
+        .from("anggota")
+        .update({ ...payload, foto_url: fotoUrl })
+        .eq("id", editingId);
+      closeModal();
       fetchData();
-    } catch (e) {
-      alert("Gagal hapus");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setFormLoading(false);
     }
   };
 
-  if (loading) return <LoadingState message="Memuat detail divisi..." />;
-  if (error || !data.divisi)
-    return (
-      <div className={styles.error}>
-        Error: {error || "Divisi tidak ditemukan"}
-      </div>
-    );
+  const handleEditProgja = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      const { pj, id: _, created_at, ...payload } = formData;
+      await supabase.from("program_kerja").update(payload).eq("id", editingId);
+      closeModal();
+      fetchData();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
-  const { divisi, anggota, progja } = data;
+  if (loading) return <LoadingState />;
+  if (!data.divisi)
+    return <div className={styles.error}>Divisi tidak ditemukan</div>;
 
   return (
     <PageContainer>
       <PageHeader
-        title={divisi.nama_divisi}
-        subtitle={divisi.deskripsi || "Informasi detail divisi."}
-        actions={
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        title={data.divisi.nama_divisi}
+        subtitle={data.divisi.deskripsi || "Informasi detail divisi."}
+        // KITA GUNAKAN SLOT 'searchBar' UNTUK TOMBOL
+        // Alasannya: Slot ini biasanya tidak dikollapse menjadi burger menu di mobile
+        searchBar={
+          <div className={styles.persistentToolbar}>
+            {/* Tombol Kembali */}
             <button
               className={styles.actionBtn}
-              onClick={handleBack}
+              onClick={() => navigate(-1)}
               title="Kembali"
             >
-              <FiArrowLeft /> <span className={styles.hideMobile}>Kembali</span>
+              <FiArrowLeft />
+              <span className={styles.hideMobile}>Kembali</span>
             </button>
 
+            {/* Tombol Edit Divisi */}
             {isAdmin && (
               <button
                 className={`${styles.actionBtn} ${styles.editBtn}`}
-                onClick={handleOpenEdit}
+                onClick={() => {
+                  setFormData(data.divisi);
+                  setFormPreview(data.divisi.logo_url);
+                  setActiveModal("divisi");
+                }}
                 title="Edit Divisi"
               >
-                <FiEdit /> <span className={styles.hideMobile}>Edit</span>
+                <FiEdit />
+                <span className={styles.hideMobile}>Edit</span>
               </button>
             )}
 
+            {/* View Toggle */}
             <div className={styles.viewToggle}>
               <button
                 className={viewMode === "aesthetic" ? styles.active : ""}
                 onClick={() => setViewMode("aesthetic")}
+                title="Grid"
               >
                 <FiGrid />
               </button>
               <button
                 className={viewMode === "compact" ? styles.active : ""}
                 onClick={() => setViewMode("compact")}
+                title="List"
               >
                 <FiLayout />
               </button>
             </div>
           </div>
         }
+        // Pastikan Actions & Filters Kosong agar tidak memicu burger
+        actions={null}
+        filters={null}
       />
 
-      {/* INFO CARD */}
+      {/* Info Card Logo */}
       <div className={styles.infoCard}>
         <div className={styles.logoWrapper}>
-          {divisi.logo_url ? (
-            <img
-              src={divisi.logo_url}
-              alt="Logo"
-              className={styles.logoImage}
-              onClick={() => setIsLogoLightboxOpen(true)}
-              style={{ cursor: "zoom-in" }}
-            />
-          ) : (
-            <span className={styles.logoPlaceholder}>#</span>
-          )}
+          <img
+            src={data.divisi.logo_url || "/placeholder.png"}
+            className={styles.logoImage}
+            onClick={() => setIsLogoLightboxOpen(true)}
+            style={{ cursor: "zoom-in" }}
+          />
         </div>
         <div className={styles.infoContent}>
-          <h3>Tentang {divisi.nama_divisi}</h3>
-          <p>{divisi.deskripsi || "Tidak ada deskripsi."}</p>
+          <h3>Tentang {data.divisi.nama_divisi}</h3>
+          <p>{data.divisi.deskripsi}</p>
         </div>
       </div>
 
-      {/* SECTION ANGGOTA (TERURUT HIERARKI) */}
+      {/* Anggota List */}
       <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
-          <FiUsers style={{ color: "#3b82f6" }} /> Anggota ({anggota.length})
+          <FiUsers /> Anggota ({data.anggota.length})
         </h2>
-        {anggota.length === 0 ? (
-          <div className={styles.emptyState}>Belum ada anggota.</div>
-        ) : (
-          <div className={viewMode === "aesthetic" ? styles.grid : styles.list}>
-            {anggota.map((member) => (
-              <AnggotaCard
-                key={member.id}
-                data={member}
-                layout={viewMode}
-                isAdmin={isAdmin}
-                onEdit={() => handleEditAnggota(member)}
-                onDelete={() => handleDeleteAnggota(member.id)}
-              />
-            ))}
-          </div>
-        )}
+        <div className={viewMode === "aesthetic" ? styles.grid : styles.list}>
+          {data.anggota.map((m) => (
+            <AnggotaCard
+              key={m.id}
+              data={m}
+              layout={viewMode}
+              isAdmin={isAdmin}
+              onEdit={() => {
+                setEditingId(m.id);
+                setFormData(m);
+                setFormPreview(m.foto_url);
+                setActiveModal("anggota");
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* SECTION PROGJA */}
+      {/* Progja List */}
       <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
-          <FiBriefcase style={{ color: "#f59e0b" }} /> Program Kerja (
-          {progja.length})
+          <FiBriefcase /> Program Kerja ({data.progja.length})
         </h2>
-        {progja.length === 0 ? (
-          <div className={styles.emptyState}>Belum ada program kerja.</div>
-        ) : (
-          <div className={styles.grid}>
-            {progja.map((program) => (
-              <ProgramKerjaCard
-                key={program.id}
-                data={{ ...program, nama_divisi: divisi.nama_divisi }}
-                isAdmin={isAdmin}
-                onEdit={() => handleEditProgja(program)}
-                onDelete={() => handleDeleteProgja(program.id)}
-              />
-            ))}
-          </div>
-        )}
+        <div className={styles.grid}>
+          {data.progja.map((p) => (
+            <ProgramKerjaCard
+              key={p.id}
+              data={p}
+              isAdmin={isAdmin}
+              onEdit={() => {
+                setEditingId(p.id);
+                setFormData(p);
+                setActiveModal("progja");
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* MODAL EDIT DIVISI */}
+      {/* Modal & Lightbox */}
       <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Edit Divisi"
+        isOpen={!!activeModal}
+        onClose={closeModal}
+        title={`Edit ${activeModal}`}
       >
-        <DivisiForm
-          formData={formData}
-          onChange={handleFormChange}
-          onFileChange={handleFileChange}
-          onSubmit={handleEditSubmit}
-          onCancel={() => setIsEditModalOpen(false)}
-          loading={formLoading}
-          preview={formPreview}
-          periodeList={periodeList}
-        />
+        {activeModal === "divisi" && (
+          <DivisiForm
+            formData={formData}
+            onChange={(e) =>
+              setFormData({ ...formData, [e.target.name]: e.target.value })
+            }
+            onFileChange={(e) => {
+              setFormData({ ...formData, file: e.target.files[0] });
+              setFormPreview(URL.createObjectURL(e.target.files[0]));
+            }}
+            onSubmit={handleEditDivisi}
+            onCancel={closeModal}
+            loading={formLoading}
+            preview={formPreview}
+            periodeList={periodeList}
+          />
+        )}
+        {activeModal === "anggota" && (
+          <AnggotaForm
+            formData={formData}
+            onChange={(e) =>
+              setFormData({ ...formData, [e.target.name]: e.target.value })
+            }
+            onFileChange={(e) => {
+              setFormData({ ...formData, file: e.target.files[0] });
+              setFormPreview(URL.createObjectURL(e.target.files[0]));
+            }}
+            onSubmit={handleEditAnggota}
+            onCancel={closeModal}
+            loading={formLoading}
+            preview={formPreview}
+            periodeList={periodeList}
+            divisiList={[data.divisi]}
+            jabatanList={jabatanList}
+          />
+        )}
+        {activeModal === "progja" && (
+          <ProgramKerjaForm
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={handleEditProgja}
+            onCancel={closeModal}
+            loading={formLoading}
+            divisiOptions={[data.divisi]}
+            anggotaOptions={data.anggota}
+            periodeOptions={periodeList}
+          />
+        )}
       </Modal>
 
-      {/* LIGHTBOX PORTAL */}
-      {isLogoLightboxOpen &&
-        divisi.logo_url &&
-        createPortal(
-          <div
-            className={lightboxStyles.lightboxOverlay}
-            onClick={() => setIsLogoLightboxOpen(false)}
-          >
-            <div
-              className={lightboxStyles.lightboxContent}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className={lightboxStyles.closeButton}
-                onClick={() => setIsLogoLightboxOpen(false)}
-              >
-                <FiX size={24} />
-              </button>
-              <img
-                src={divisi.logo_url}
-                alt={divisi.nama_divisi}
-                className={lightboxStyles.lightboxImage}
-              />
-              <div
-                style={{
-                  marginTop: "1rem",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "1.2rem",
-                  textShadow: "0 2px 4px rgba(0,0,0,0.5)",
-                }}
-              >
-                {divisi.nama_divisi}
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <ImageViewer
+        isOpen={isLogoLightboxOpen}
+        onClose={() => setIsLogoLightboxOpen(false)}
+        src={data.divisi.logo_url}
+        alt={data.divisi.nama_divisi}
+        caption={data.divisi.nama_divisi}
+      />
     </PageContainer>
   );
 }

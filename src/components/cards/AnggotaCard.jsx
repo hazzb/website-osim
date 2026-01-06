@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { createPortal } from "react-dom";
-import { FiEdit, FiTrash2, FiInstagram, FiMapPin, FiX } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiInstagram, FiMapPin } from "react-icons/fi";
 import styles from "./AnggotaCard.module.css";
+import ImageViewer from "../ui/ImageViewer.jsx";
 
 const AnggotaCard = ({
   data,
@@ -13,13 +13,13 @@ const AnggotaCard = ({
 }) => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
+  // --- Layout Logic ---
   const isCompact = layout === "compact";
   const layoutClass = isCompact ? styles.layoutCompact : styles.layoutAesthetic;
 
+  // GENDER BACKGROUND LOGIC
   const genderKey = data.jenis_kelamin === "Akhwat" ? "Akhwat" : "Ikhwan";
-  const colorClass = isCompact
-    ? styles[`compact${genderKey}`]
-    : styles[`aesthetic${genderKey}`];
+  const colorClass = styles[`bg${genderKey}`]; // Menggunakan bgIkhwan / bgAkhwat
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -32,57 +32,47 @@ const AnggotaCard = ({
     e.stopPropagation();
     if (data.foto_url) setIsLightboxOpen(true);
   };
-  const closeLightbox = (e) => {
-    e.stopPropagation();
-    setIsLightboxOpen(false);
-  };
-
-  const renderImage = () => {
-    if (data.foto_url) {
-      return (
-        <img
-          src={data.foto_url}
-          alt={data.nama}
-          className={styles.cardImage}
-          onClick={openLightbox}
-          title="Klik untuk zoom"
-        />
-      );
-    }
-    return (
-      <div className={styles.imagePlaceholder}>
-        <span className={styles.initials}>{getInitials(data.nama)}</span>
-      </div>
-    );
-  };
 
   return (
     <>
       <div className={`${styles.card} ${layoutClass} ${colorClass}`}>
-        {/* Badge Periode (Tetap di pojok kiri atas) */}
-        {showPeriode && data.periode_jabatan?.nama_kabinet && (
-          <div className={styles.periodeBadge}>
-            {data.periode_jabatan.nama_kabinet}
-          </div>
-        )}
+        {/* IMAGE CONTAINER */}
+        <div
+          className={styles.imageContainer}
+          onClick={openLightbox}
+          style={{ cursor: data.foto_url ? "zoom-in" : "default" }}
+        >
+          {data.foto_url ? (
+            <img
+              src={data.foto_url}
+              alt={data.nama}
+              className={styles.image}
+              loading="lazy"
+            />
+          ) : (
+            <div className={styles.imagePlaceholder}>
+              <span className={styles.initials}>{getInitials(data.nama)}</span>
+            </div>
+          )}
 
-        {/* --- WRAPPER FOTO & TOMBOL (Media Section) --- */}
-        <div className={styles.mediaSection}>
-          {/* Foto */}
-          <div className={styles.imageWrapper}>{renderImage()}</div>
-
-          {/* Tombol Aksi (Tepat di bawah foto) */}
+          {/* Admin Actions */}
           {isAdmin && (
-            <div className={styles.adminActions}>
+            <div className={styles.cardActions}>
               <button
-                onClick={() => onEdit(data)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
                 className={styles.actionBtn}
                 title="Edit"
               >
                 <FiEdit size={14} />
               </button>
               <button
-                onClick={() => onDelete(data.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
                 className={`${styles.actionBtn} ${styles.deleteBtn}`}
                 title="Hapus"
               >
@@ -92,78 +82,65 @@ const AnggotaCard = ({
           )}
         </div>
 
-        {/* --- KONTEN TEKS --- */}
-        <div className={styles.cardContent}>
-          <h3 className={styles.name} title={data.nama}>
-            {data.nama}
-          </h3>
+        {/* INFO CONTAINER */}
+        <div className={styles.info}>
+          <div className={styles.mainInfo}>
+            <h3 className={styles.nama}>{data.nama}</h3>
 
-          <div className={styles.jabatan}>
-            <span>{data.master_jabatan?.nama_jabatan || "Anggota"}</span>
-            {data.jabatan_di_divisi && (
-              <span className={styles.subJabatan}>
-                {data.jabatan_di_divisi}
+            <div className={styles.roleWrapper}>
+              <span className={styles.role}>
+                {data.jabatan_di_divisi ||
+                  data.master_jabatan?.nama_jabatan ||
+                  "Anggota"}
               </span>
-            )}
-          </div>
+              {data.divisi?.nama_divisi && (
+                <span className={styles.divisiTag}>
+                  {data.divisi.nama_divisi}
+                </span>
+              )}
+            </div>
 
-          <div className={styles.divider}></div>
-
-          <div className={styles.infoGroup}>
-            {data.alamat && (
-              <div className={styles.alamatRow}>
-                <FiMapPin
-                  size={12}
-                  style={{ marginTop: "2px", flexShrink: 0 }}
-                />{" "}
-                <span>{data.alamat}</span>
-              </div>
-            )}
+            {/* Motto (Fleksibel Height) */}
             {data.motto && <p className={styles.motto}>"{data.motto}"</p>}
           </div>
 
-          {data.instagram_username && (
-            <a
-              href={`https://instagram.com/${data.instagram_username.replace(
-                "@",
-                ""
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.socialLink}
-            >
-              <FiInstagram size={12} /> @
-              {data.instagram_username.replace("@", "")}
-            </a>
-          )}
+          <div className={styles.metaInfo}>
+            {/* 1. ALAMAT (Sekarang di ATAS) */}
+            {data.alamat && (
+              <span className={styles.location}>
+                <FiMapPin size={14} /> {data.alamat}
+              </span>
+            )}
+
+            {/* 2. INSTAGRAM (Sekarang di BAWAH) */}
+            {data.instagram_username && (
+              <a
+                href={`https://instagram.com/${data.instagram_username.replace(
+                  "@",
+                  ""
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.socialLink}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FiInstagram size={14} />@
+                {data.instagram_username.replace("@", "")}
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Lightbox Portal */}
-      {isLightboxOpen &&
-        data.foto_url &&
-        createPortal(
-          <div className={styles.lightboxOverlay} onClick={closeLightbox}>
-            <div
-              className={styles.lightboxContent}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button className={styles.closeButton} onClick={closeLightbox}>
-                <FiX size={24} />
-              </button>
-              <img
-                src={data.foto_url}
-                alt={`Zoom ${data.nama}`}
-                className={styles.lightboxImage}
-              />
-              <div className={styles.lightboxCaption}>
-                <h3>{data.nama}</h3>
-                <p>{data.master_jabatan?.nama_jabatan || "Anggota"}</p>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <ImageViewer
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        src={data.foto_url}
+        alt={data.nama}
+        caption={`${data.nama} - ${
+          data.master_jabatan?.nama_jabatan || "Anggota"
+        }`}
+      />
     </>
   );
 };

@@ -1,382 +1,300 @@
-/* CONTAINER KARTU */
+/* src/components/cards/AnggotaCard.module.css */
+
+/* --- CONTAINER UTAMA --- */
 .card {
   position: relative;
-  display: flex;
-  align-items: center;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
+  display: flex;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid transparent;
   height: 100%;
-  background-color: white;
-  border-width: 1px;
-  border-style: solid;
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
 }
 
-/* --- LAYOUT COMPACT (Horizontal) --- */
-.layoutCompact {
-  flex-direction: row-reverse;
-  text-align: left;
-  padding: 1.25rem;
-  gap: 1.25rem;
-  align-items: flex-start;
-}
+/* --- VARIANT LAYOUT --- */
 
-/* Warna Border Compact */
-.compactIkhwan {
-  border-color: #3b82f6;
-  background: #eff6ff;
-}
-.compactAkhwat {
-  border-color: #ec4899;
-  background: #fdf2f8;
-}
-
-.compactIkhwan:hover {
-  border-color: #2563eb;
-  background: #e0f2fe;
-}
-.compactAkhwat:hover {
-  border-color: #db2777;
-  background: #fce7f3;
-}
-
-/* Ukuran Foto di Compact */
-.layoutCompact .imageWrapper {
-  width: 84px;
-  height: 80px;
-}
-
-/* --- LAYOUT AESTHETIC (Vertical) --- */
+/* 1. MODE AESTHETIC (Grid) */
 .layoutAesthetic {
   flex-direction: column;
-  text-align: center;
-  padding: 2rem 1.5rem;
-  gap: 0;
 }
 
-.aestheticIkhwan {
-  background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
+.layoutAesthetic .imageContainer {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.layoutAesthetic .info {
+  padding: 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.layoutAesthetic .roleWrapper {
+  justify-content: center;
+}
+
+/* 2. MODE COMPACT (List) */
+.layoutCompact {
+  flex-direction: row-reverse;
+  align-items: stretch;
+  min-height: 140px;
+}
+
+.layoutCompact .imageContainer {
+  flex: 1;
+  min-width: 130px;
+  max-width: 160px;
+  border-left: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 0;
+}
+
+.layoutCompact .info {
+  flex: 2;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Mencegah overflow text flex item */
+  min-width: 0;
+}
+
+.layoutCompact .roleWrapper {
+  justify-content: flex-start;
+}
+
+/* --- WARNA GENDER --- */
+.bgIkhwan {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #bfdbfe;
+}
+.bgIkhwan:hover {
+  box-shadow: 0 10px 20px -5px rgba(96, 165, 250, 0.25);
   border-color: #60a5fa;
 }
-.aestheticAkhwat {
-  background: linear-gradient(145deg, #fff1f2, #ffe4e6);
+
+.bgAkhwat {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  border-color: #fbcfe8;
+}
+.bgAkhwat:hover {
+  box-shadow: 0 10px 20px -5px rgba(244, 114, 182, 0.25);
   border-color: #f472b6;
 }
 
-/* Ukuran Foto di Aesthetic */
-.layoutAesthetic .imageWrapper {
-  width: 114px;
-  height: 110px;
-}
-
-/* --- MEDIA SECTION (WRAPPER BARU: FOTO + TOMBOL) --- */
-.mediaSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem; /* Jarak antara foto dan tombol */
-  flex-shrink: 0; /* Jangan mengecil */
-}
-
-/* Margin khusus untuk Aesthetic agar ada jarak ke teks di bawahnya */
-.layoutAesthetic .mediaSection {
-  margin-bottom: 1rem;
-}
-
-/* --- ADMIN ACTIONS (DI BAWAH FOTO) --- */
-.adminActions {
-  /* Hapus posisi absolute */
-  position: static;
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-.actionBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: white; /* Background putih agar terlihat jelas */
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.actionBtn:hover {
-  transform: translateY(-2px);
-  color: #3b82f6;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.deleteBtn:hover {
-  color: #ef4444;
-  border-color: #ef4444;
-}
-
-/* --- BADGE PERIODE (Tetap di Pojok Kiri Atas) --- */
-.periodeBadge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #fff;
-  background: #475569;
-  padding: 3px 8px;
-  border-radius: 99px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  opacity: 0.9;
-}
-
-/* --- IMAGE STYLES --- */
-.imageWrapper {
+/* --- IMAGE SECTION --- */
+.imageContainer {
   position: relative;
-  flex-shrink: 0;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.03);
+  cursor: zoom-in;
 }
 
-.cardImage {
+.image {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
-  border: 3px solid white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  cursor: zoom-in;
-  transition: transform 0.3s ease;
+  transition: transform 0.5s ease;
+  display: block;
 }
-.cardImage:hover {
+
+.card:hover .image {
   transform: scale(1.08);
 }
 
 .imagePlaceholder {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 3px solid white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
-  font-weight: 800;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.5);
+  color: #94a3b8;
 }
 
 .initials {
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  color: #334155;
-  text-transform: uppercase;
+  color: #cbd5e1;
 }
 
-/* --- KONTEN TEKS --- */
-.cardContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-}
-
-.layoutAesthetic .cardContent {
-  align-items: center;
-}
-.layoutCompact .cardContent {
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-
-.name {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-  line-height: 1.3;
-  width: 100%;
-  display: block;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.jabatan {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  font-size: 0.8rem;
-  color: #1d4ed8;
-  font-weight: 700;
-  margin: 4px 0 8px 0;
-  width: 100%;
-}
-
-.subJabatan {
-  font-size: 0.75rem;
-  color: #475569;
-  font-weight: 600;
-  white-space: normal;
-}
-
-.divider {
-  width: 100%;
-  height: 1px;
-  background-color: rgba(0, 0, 0, 0.1);
+/* --- INFO SECTION --- */
+.mainInfo {
   margin-bottom: 0.75rem;
 }
-.layoutAesthetic .divider {
-  width: 40px;
-  margin: 0 auto 0.75rem auto;
-  height: 2px;
+
+.nama {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+  /* Text Overflow Guard */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.infoGroup {
-  font-size: 0.8rem;
-  color: #475569;
+.roleWrapper {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-  margin-bottom: auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.role {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2563eb;
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+  white-space: nowrap;
+}
+
+.divisiTag {
+  font-size: 0.75rem;
+  color: #64748b;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
 }
 
 .motto {
-  font-style: italic;
-  color: #64748b;
-  line-height: 1.5;
-  margin: 0;
-  font-size: 0.75rem;
-  display: block;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.alamatRow {
-  display: flex;
-  gap: 6px;
-  font-size: 0.7rem;
-  opacity: 1;
-  font-weight: 500;
+  font-size: 0.9rem;
   color: #475569;
-  white-space: normal;
-  line-height: 1.3;
-}
-.layoutAesthetic .alamatRow {
-  justify-content: center;
-}
-
-.socialLink {
-  margin-top: 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #c026d3;
-  text-decoration: none;
-  transition: all 0.2s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.socialLink:hover {
-  text-decoration: underline;
-  color: #a21caf;
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-/* LIGHTBOX (Sama) */
-.lightboxOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 99999 !important;
-  background-color: rgba(255, 255, 255, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s ease-out;
-  backdrop-filter: blur(8px);
-}
-.lightboxContent {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
+/* --- META INFO --- */
+.metaInfo {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #64748b;
+  width: 100%;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.layoutAesthetic .metaInfo {
   align-items: center;
-  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.lightboxImage {
+.layoutCompact .metaInfo {
+  align-items: flex-start;
+}
+
+.socialLink,
+.location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s;
+  line-height: 1.2;
+
+  /* Mencegah text panjang merusak layout */
   max-width: 100%;
-  max-height: 85vh;
-  border-radius: 12px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.closeButton {
+
+.socialLink:hover {
+  color: #e1306c;
+}
+
+/* --- ADMIN ACTIONS --- */
+.cardActions {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.1);
-  border: none;
-  color: #334155;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-}
-.closeButton:hover {
-  background: #ef4444;
-  color: white;
-  transform: rotate(90deg);
-}
-.lightboxCaption {
-  margin-top: 1rem;
-  color: #1e293b;
-  text-align: center;
-}
-.lightboxCaption h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-.lightboxCaption p {
-  margin: 0.2rem 0 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
   color: #64748b;
-  font-size: 0.9rem;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.actionBtn:hover {
+  background: white;
+  color: #3b82f6;
+  border-color: #bfdbfe;
+  transform: translateY(-2px);
 }
-@keyframes scaleUp {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
+
+.deleteBtn:hover {
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+/* --- MOBILE RESPONSIVE TWEAKS --- */
+@media (max-width: 640px) {
+  /* Perkecil Font Nama & Role */
+  .nama {
+    font-size: 1rem;
+    margin-bottom: 4px;
   }
-  to {
-    transform: scale(1);
-    opacity: 1;
+  .role,
+  .divisiTag {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+  .motto {
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  .socialLink,
+  .location {
+    font-size: 0.75rem;
+  }
+
+  /* COMPACT MODE MOBILE: Perkecil gambar agar teks muat */
+  .layoutCompact {
+    min-height: 110px; /* Kurangi tinggi minimal */
+  }
+
+  .layoutCompact .imageContainer {
+    min-width: 100px;
+    max-width: 100px;
+  }
+
+  .layoutCompact .info {
+    padding: 0.75rem; /* Kurangi padding */
+  }
+
+  /* AESTHETIC MODE MOBILE */
+  .layoutAesthetic .info {
+    padding: 1rem;
   }
 }
