@@ -1,10 +1,9 @@
 /* src/pages/DivisiDetail.module.css */
 
-/* --- GENERAL LAYOUT --- */
+/* --- LAYOUT UTAMA --- */
 .sectionWrapper {
   margin-bottom: 3rem;
 }
-
 .sectionTitle {
   font-size: 1.25rem;
   font-weight: 700;
@@ -17,7 +16,7 @@
   padding-bottom: 0.75rem;
 }
 
-/* --- INFO CARD (LOGO & DESKRIPSI) --- */
+/* --- INFO CARD --- */
 .infoCard {
   background: white;
   border: 1px solid #e2e8f0;
@@ -30,7 +29,6 @@
   margin-bottom: 3rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
-
 @media (min-width: 768px) {
   .infoCard {
     flex-direction: row;
@@ -54,19 +52,16 @@
   padding: 1rem;
   margin-bottom: 1rem;
 }
-
 @media (min-width: 768px) {
   .logoWrapper {
     margin-bottom: 0;
   }
 }
-
 .logoImage {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-
 .logoPlaceholder {
   font-size: 3rem;
   font-weight: 800;
@@ -76,34 +71,29 @@
 .infoContent {
   flex: 1;
 }
-
 .infoContent h3 {
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
   font-weight: 800;
   color: #1e293b;
 }
-
 .infoContent p {
   color: #64748b;
   line-height: 1.6;
   margin: 0;
 }
 
-/* --- LIST & GRID LAYOUTS --- */
+/* --- GRID & LIST --- */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
 }
-
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1rem;
 }
-
-/* --- STATES --- */
 .emptyState {
   background: #f8fafc;
   border: 2px dashed #e2e8f0;
@@ -113,7 +103,6 @@
   color: #94a3b8;
   font-style: italic;
 }
-
 .error {
   background-color: #fef2f2;
   color: #ef4444;
@@ -125,21 +114,81 @@
   border: 1px solid #fecaca;
 }
 
-/* --- PERSISTENT TOOLBAR (HEADER ACTIONS) --- */
-/* Wrapper untuk tombol di header */
-.persistentToolbar {
+/* --- HEADER TOOLBAR (Style Daftar Anggota) --- */
+/* Container utama untuk menggabungkan Back, Search, Actions */
+.headerToolbar {
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* Desktop: Rata kanan */
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
-/* Tombol Standar (Kembali, Edit) */
-.actionBtn {
+/* Tombol Kembali */
+.backBtn {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.backBtn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+/* Search Wrapper (Flexible Width) */
+.searchWrapper {
+  flex: 1; /* Mengisi ruang kosong */
+  position: relative;
+  min-width: 100px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+  padding-left: 38px; /* Space icon */
+  padding-right: 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+  color: #334155;
+  background-color: white;
+  transition: all 0.2s;
+}
+.searchInput:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Group Action Kanan */
+.rightActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Edit Button */
+.actionBtn {
+  display: flex;
+  align-items: center;
   gap: 8px;
   padding: 0 16px;
   height: 40px;
@@ -150,12 +199,11 @@
   font-weight: 600;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
   white-space: nowrap;
 }
-
 .actionBtn:hover {
-  background-color: #f1f5f9;
+  background: #f1f5f9;
   color: #1e293b;
   border-color: #cbd5e1;
 }
@@ -170,7 +218,7 @@
   border-color: #3b82f6;
 }
 
-/* View Toggle (Grid/List) */
+/* View Toggle */
 .viewToggle {
   display: flex;
   background: #f1f5f9;
@@ -181,11 +229,10 @@
   height: 40px;
   box-sizing: border-box;
 }
-
 .viewToggle button {
   border: none;
   background: transparent;
-  padding: 0 12px;
+  padding: 0 10px;
   height: 100%;
   border-radius: 6px;
   cursor: pointer;
@@ -195,48 +242,33 @@
   justify-content: center;
   transition: all 0.2s;
 }
-
 .viewToggle button:hover {
   color: #334155;
 }
-
 .viewToggle button.active {
   background: white;
   color: #2563eb;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
 }
 
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 640px) {
-  /* Sembunyikan teks tombol di mobile */
   .hideMobile {
     display: none;
   }
 
-  /* Toolbar rata kiri-kanan (space-between) */
-  .persistentToolbar {
-    justify-content: space-between;
+  .headerToolbar {
     gap: 8px;
-    margin-top: 0.25rem;
   }
 
-  /* Tombol jadi kotak (Icon Only) */
+  /* Tombol Edit jadi kotak icon saja */
   .actionBtn {
     padding: 0;
-    width: 42px;
-    flex: 0 0 42px; /* Prevent shrinking */
+    width: 40px;
+    justify-content: center;
   }
 
-  /* View toggle menyesuaikan */
-  .viewToggle {
-    flex: 0 0 auto;
-  }
-
-  .viewToggle button {
-    padding: 0 12px;
-  }
-
-  /* Force 1 kolom penuh di mobile */
   .list,
   .grid {
     grid-template-columns: 1fr;

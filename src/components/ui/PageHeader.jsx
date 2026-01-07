@@ -10,11 +10,8 @@ const PageHeader = ({
   filters,
   options,
 }) => {
-  // State untuk Toggle Area
   const [showFilters, setShowFilters] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
-
-  // State khusus untuk Mobile Menu (Titik Tiga)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -26,69 +23,84 @@ const PageHeader = ({
           {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         </div>
 
-        {/* Tombol Menu Mobile (Hanya muncul di HP via CSS .mobileMenuBtn) */}
-        <button
-          className={`${styles.mobileMenuBtn} ${
-            isMobileMenuOpen ? styles.active : ""
-          }`}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <FiX size={20} /> : <FiMoreVertical size={20} />}
-        </button>
+        {/* PERUBAHAN: Hanya render tombol burger jika ada 'actions' */}
+        {actions && (
+          <button
+            className={`${styles.mobileMenuBtn} ${
+              isMobileMenuOpen ? styles.active : ""
+            }`}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <FiX size={20} />
+            ) : (
+              <FiMoreVertical size={20} />
+            )}
+          </button>
+        )}
 
-        {/* Area Actions */}
-        {/* Di Desktop: Flex Row. Di Mobile: Floating Grid jika isMobileMenuOpen true */}
+        {/* Desktop Actions (Akan disembunyikan di mobile via CSS) */}
+        {actions && <div className={styles.actions}>{actions}</div>}
+      </div>
+
+      {/* PERUBAHAN: Hanya render menu mobile jika ada 'actions' */}
+      {actions && (
         <div
-          className={`${styles.actions} ${
-            isMobileMenuOpen ? styles.actionsOpen : ""
+          className={`${styles.mobileActionMenu} ${
+            isMobileMenuOpen ? styles.show : ""
           }`}
         >
           {actions}
         </div>
-      </div>
+      )}
 
       {/* --- BARIS 2: KONTROL (SEARCH, FILTER, OPSI) --- */}
-      <div className={styles.controlRow}>
-        {/* Area Persistent (Search Bar, Dropdown Periode, dll) */}
-        <div className={styles.persistentControls}>
-          {searchBar && <div className={styles.searchWrapper}>{searchBar}</div>}
+      {/* Hanya render baris ini jika ada searchBar, filters, atau options */}
+      {(searchBar || filters || options) && (
+        <div className={styles.controlRow}>
+          {/* Search Bar & Persistent Controls */}
+          <div className={styles.persistentControls}>
+            {searchBar && (
+              <div className={styles.searchWrapper}>{searchBar}</div>
+            )}
+          </div>
+
+          {/* Tombol Toggle Kanan */}
+          <div className={styles.toggleGroup}>
+            {filters && (
+              <button
+                className={`${styles.filterToggleBtn} ${
+                  showFilters ? styles.active : ""
+                }`}
+                onClick={() => {
+                  setShowFilters(!showFilters);
+                  setShowOptions(false);
+                }}
+              >
+                <FiFilter size={16} />
+                <span>Filter</span>
+              </button>
+            )}
+
+            {options && (
+              <button
+                className={`${styles.optionToggleBtn} ${
+                  showOptions ? styles.active : ""
+                }`}
+                onClick={() => {
+                  setShowOptions(!showOptions);
+                  setShowFilters(false);
+                }}
+              >
+                <FiSettings size={16} />
+                <span>Opsi</span>
+              </button>
+            )}
+          </div>
         </div>
+      )}
 
-        {/* Tombol Toggle Kanan */}
-        <div className={styles.toggleGroup}>
-          {filters && (
-            <button
-              className={`${styles.filterToggleBtn} ${
-                showFilters ? styles.active : ""
-              }`}
-              onClick={() => {
-                setShowFilters(!showFilters);
-                setShowOptions(false); // Tutup opsi jika filter dibuka
-              }}
-            >
-              <FiFilter size={16} />
-              <span>Filter</span>
-            </button>
-          )}
-
-          {options && (
-            <button
-              className={`${styles.optionToggleBtn} ${
-                showOptions ? styles.active : ""
-              }`}
-              onClick={() => {
-                setShowOptions(!showOptions);
-                setShowFilters(false); // Tutup filter jika opsi dibuka
-              }}
-            >
-              <FiSettings size={16} />
-              <span>Opsi</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* --- AREA EXPANDABLE (FILTER & OPSI) --- */}
+      {/* --- AREA EXPANDABLE --- */}
       {showFilters && filters && (
         <div className={styles.filterArea}>{filters}</div>
       )}

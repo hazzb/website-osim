@@ -27,11 +27,11 @@ import {
   FiEdit,
   FiArrowLeft,
   FiX,
+  FiSearch,
 } from "react-icons/fi";
 
 // Styles
 import styles from "./DivisiDetail.module.css";
-import lightboxStyles from "../components/cards/AnggotaCard.module.css";
 import ImageViewer from "../components/ui/ImageViewer.jsx";
 
 const getJabatanRank = (jabatan) => {
@@ -54,6 +54,9 @@ function DivisiDetail() {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("aesthetic");
   const [data, setData] = useState({ divisi: null, anggota: [], progja: [] });
+
+  // State Search (Filter Anggota)
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [periodeList, setPeriodeList] = useState([]);
   const [jabatanList, setJabatanList] = useState([]);
@@ -111,6 +114,15 @@ function DivisiDetail() {
     if (id) fetchData();
   }, [id]);
 
+  // LOGIKA FILTER PENCARIAN
+  const filteredAnggota = data.anggota.filter(
+    (m) =>
+      m.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (m.jabatan_di_divisi || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+  );
+
   const closeModal = () => {
     setActiveModal(null);
     setFormData({});
@@ -118,6 +130,7 @@ function DivisiDetail() {
     setEditingId(null);
   };
 
+  // --- HANDLERS (Sama seperti sebelumnya) ---
   const handleEditDivisi = async (e) => {
     e.preventDefault();
     setFormLoading(true);
@@ -181,61 +194,72 @@ function DivisiDetail() {
       <PageHeader
         title={data.divisi.nama_divisi}
         subtitle={data.divisi.deskripsi || "Informasi detail divisi."}
-        // KITA GUNAKAN SLOT 'searchBar' UNTUK TOMBOL
-        // Alasannya: Slot ini biasanya tidak dikollapse menjadi burger menu di mobile
+        // --- HEADER BARU (Layout mirip Daftar Anggota) ---
+        // Semua dimasukkan ke slot 'searchBar' agar persistent (selalu muncul) di mobile
         searchBar={
-          <div className={styles.persistentToolbar}>
-            {/* Tombol Kembali */}
+          <div className={styles.headerToolbar}>
+            {/* 1. Tombol Kembali (Kiri) */}
             <button
-              className={styles.actionBtn}
+              className={styles.backBtn}
               onClick={() => navigate(-1)}
               title="Kembali"
             >
-              <FiArrowLeft />
-              <span className={styles.hideMobile}>Kembali</span>
+              <FiArrowLeft size={18} />
             </button>
 
-            {/* Tombol Edit Divisi */}
-            {isAdmin && (
-              <button
-                className={`${styles.actionBtn} ${styles.editBtn}`}
-                onClick={() => {
-                  setFormData(data.divisi);
-                  setFormPreview(data.divisi.logo_url);
-                  setActiveModal("divisi");
-                }}
-                title="Edit Divisi"
-              >
-                <FiEdit />
-                <span className={styles.hideMobile}>Edit</span>
-              </button>
-            )}
+            {/* 2. Search Bar (Tengah & Flexible) */}
+            <div className={styles.searchWrapper}>
+              <FiSearch className={styles.searchIcon} size={16} />
+              <input
+                placeholder="Cari anggota divisi..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+            </div>
 
-            {/* View Toggle */}
-            <div className={styles.viewToggle}>
-              <button
-                className={viewMode === "aesthetic" ? styles.active : ""}
-                onClick={() => setViewMode("aesthetic")}
-                title="Grid"
-              >
-                <FiGrid />
-              </button>
-              <button
-                className={viewMode === "compact" ? styles.active : ""}
-                onClick={() => setViewMode("compact")}
-                title="List"
-              >
-                <FiLayout />
-              </button>
+            {/* 3. Actions Kanan (Edit & Toggle) */}
+            <div className={styles.rightActions}>
+              {isAdmin && (
+                <button
+                  className={`${styles.actionBtn} ${styles.editBtn}`}
+                  onClick={() => {
+                    setFormData(data.divisi);
+                    setFormPreview(data.divisi.logo_url);
+                    setActiveModal("divisi");
+                  }}
+                  title="Edit Divisi"
+                >
+                  <FiEdit />
+                  <span className={styles.hideMobile}>Edit</span>
+                </button>
+              )}
+
+              <div className={styles.viewToggle}>
+                <button
+                  className={viewMode === "aesthetic" ? styles.active : ""}
+                  onClick={() => setViewMode("aesthetic")}
+                  title="Grid View"
+                >
+                  <FiGrid />
+                </button>
+                <button
+                  className={viewMode === "compact" ? styles.active : ""}
+                  onClick={() => setViewMode("compact")}
+                  title="List View"
+                >
+                  <FiLayout />
+                </button>
+              </div>
             </div>
           </div>
         }
-        // Pastikan Actions & Filters Kosong agar tidak memicu burger
+        // Kosongkan slot lain agar tidak ada burger menu
         actions={null}
         filters={null}
       />
 
-      {/* Info Card Logo */}
+      {/* Info Card */}
       <div className={styles.infoCard}>
         <div className={styles.logoWrapper}>
           <img
@@ -251,33 +275,44 @@ function DivisiDetail() {
         </div>
       </div>
 
-      {/* Anggota List */}
+      {/* ANGGOTA SECTION (Filtered) */}
       <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
-          <FiUsers /> Anggota ({data.anggota.length})
+          <FiUsers style={{ marginRight: "8px" }} /> Anggota (
+          {filteredAnggota.length})
         </h2>
-        <div className={viewMode === "aesthetic" ? styles.grid : styles.list}>
-          {data.anggota.map((m) => (
-            <AnggotaCard
-              key={m.id}
-              data={m}
-              layout={viewMode}
-              isAdmin={isAdmin}
-              onEdit={() => {
-                setEditingId(m.id);
-                setFormData(m);
-                setFormPreview(m.foto_url);
-                setActiveModal("anggota");
-              }}
-            />
-          ))}
-        </div>
+
+        {filteredAnggota.length === 0 ? (
+          <div className={styles.emptyState}>
+            {searchTerm
+              ? "Tidak ada anggota yang cocok dengan pencarian."
+              : "Belum ada anggota."}
+          </div>
+        ) : (
+          <div className={viewMode === "aesthetic" ? styles.grid : styles.list}>
+            {filteredAnggota.map((m) => (
+              <AnggotaCard
+                key={m.id}
+                data={m}
+                layout={viewMode}
+                isAdmin={isAdmin}
+                onEdit={() => {
+                  setEditingId(m.id);
+                  setFormData(m);
+                  setFormPreview(m.foto_url);
+                  setActiveModal("anggota");
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Progja List */}
+      {/* PROGJA SECTION */}
       <div className={styles.sectionWrapper}>
         <h2 className={styles.sectionTitle}>
-          <FiBriefcase /> Program Kerja ({data.progja.length})
+          <FiBriefcase style={{ marginRight: "8px" }} /> Program Kerja (
+          {data.progja.length})
         </h2>
         <div className={styles.grid}>
           {data.progja.map((p) => (
@@ -295,7 +330,7 @@ function DivisiDetail() {
         </div>
       </div>
 
-      {/* Modal & Lightbox */}
+      {/* MODALS */}
       <Modal
         isOpen={!!activeModal}
         onClose={closeModal}

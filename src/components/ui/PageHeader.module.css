@@ -6,18 +6,14 @@
 
 .headerContainer {
   position: sticky;
-  top: 56px; /* Sesuaikan dengan tinggi Navbar */
-  z-index: 50; /* Z-Index tinggi agar selalu di atas konten lain */
-
+  top: 56px;
+  z-index: 50;
   background-color: rgba(248, 250, 252, 0.95);
   backdrop-filter: blur(8px);
-
   padding: 0.75rem 1.5rem;
   margin: 0 -1.5rem 1rem -1.5rem;
-
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -35,131 +31,130 @@
 .titleGroup {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .title {
-  font-size: 1.4rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #1e293b;
   margin: 0;
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .subtitle {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #64748b;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0.2rem 0 0 0;
+  font-weight: 500;
 }
 
-/* Actions Desktop */
+/* Desktop Actions */
 .actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-/* Tombol Menu Mobile (Hidden di Desktop) */
+/* Tombol Menu Mobile (Hidden by default di Desktop) */
 .mobileMenuBtn {
   display: none;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mobileMenuBtn:hover {
+  background-color: #f1f5f9;
+  color: #334155;
 }
 
-/* --- BARIS 2: KONTROL (SEARCH, FILTER, OPSI) --- */
+/* Mobile Action Menu (Dropdown) */
+.mobileActionMenu {
+  display: none; /* Hidden di desktop */
+  flex-direction: column;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: -0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* --- BARIS 2: KONTROL (SEARCH & TOGGLE) --- */
 .controlRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: space-between; /* Pisahkan Persistent (Kiri) & Toggle (Kanan) */
-  gap: 0.5rem;
-  width: 100%;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-/* Area Kontrol yang Selalu Muncul (misal: Filter Periode / Layout) */
 .persistentControls {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-/* Area Tombol Toggle (Cari & Opsi) */
-.toggleGroup {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  gap: 0.75rem;
+  min-width: 200px;
 }
 
 .searchWrapper {
-  flex: 1;
-  position: relative;
-  min-width: 0;
+  width: 100%;
 }
 
-/* TOMBOL TOGGLE */
+.toggleGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Tombol Toggle Filter/Opsi */
 .filterToggleBtn,
 .optionToggleBtn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  padding: 0 1rem;
-  height: 38px;
-
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
   background-color: white;
-  border: 1px solid #cbd5e0;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  color: #475569;
   font-size: 0.85rem;
   font-weight: 600;
+  color: #64748b;
   cursor: pointer;
-  white-space: nowrap;
   transition: all 0.2s;
+  height: 40px;
 }
 
 .filterToggleBtn:hover,
 .optionToggleBtn:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: #f8fafc;
+  color: #334155;
+  border-color: #94a3b8;
 }
 
-.filterToggleBtn.active,
-.optionToggleBtn.active {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-  color: #2563eb;
+.active {
+  background-color: #eff6ff !important; /* Blue-50 */
+  color: #2563eb !important; /* Blue-600 */
+  border-color: #3b82f6 !important; /* Blue-500 */
 }
 
-/* PANEL DROPDOWN (FILTER & OPSI) */
+/* --- AREA EXPANDABLE --- */
 .filterArea,
 .optionsArea {
-  margin-top: 0.5rem;
-  padding: 1.5rem;
   background-color: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 1rem;
   animation: slideDown 0.2s ease-out;
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -168,161 +163,68 @@
 }
 
 /* ========================================================== */
-/* MOBILE RESPONSIVENESS (HP < 768px)                         */
+/* TAMPILAN MOBILE (RESPONSIVE)                               */
 /* ========================================================== */
-@media (max-width: 768px) {
+
+@media (max-width: 640px) {
   .headerContainer {
-    padding: 0.75rem 1rem !important;
-    gap: 0.75rem !important;
-    /* position: sticky tetap aktif mewarisi desktop */
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin: 0 -1rem 1rem -1rem;
   }
 
-  /* 1. Baris Judul & Tombol Menu */
-  .topRow {
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 0.5rem !important;
-    margin-bottom: 0 !important;
-  }
-
-  .titleGroup {
-    width: auto;
-    flex: 1;
-  }
   .title {
-    font-size: 1.15rem !important;
+    font-size: 1.25rem;
   }
   .subtitle {
-    display: none !important;
+    font-size: 0.8rem;
   }
 
-  /* 2. Tombol Menu Mobile (Titik Tiga) */
-  .mobileMenuBtn {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: transparent;
-    color: #64748b;
-    cursor: pointer;
-    flex-shrink: 0;
-    border: none;
-    transition: all 0.2s;
-  }
-  .mobileMenuBtn:hover,
-  .mobileMenuBtn.active {
-    background: #f1f5f9;
-    color: #1e293b;
-  }
-
-  /* 3. Panel Actions (Floating Menu) */
+  /* 1. Sembunyikan Actions Desktop */
   .actions {
-    display: none !important;
+    display: none;
+  }
 
-    /* Posisi Mengambang (Floating) */
-    position: absolute;
-    top: 50px;
-    left: 1rem;
-    right: 1rem;
-    z-index: 100;
+  /* 2. Tampilkan Tombol Menu Mobile */
+  .mobileMenuBtn {
+    display: flex;
+  }
 
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
+  /* 3. Dropdown Menu Mobile Logic */
+  .mobileActionMenu.show {
+    display: flex; /* Munculkan saat state active */
+  }
 
+  /* Reset styling children di dalam menu mobile agar full width */
+  .mobileActionMenu > button,
+  .mobileActionMenu > a {
+    width: 100%;
+    justify-content: flex-start;
     padding: 0.75rem;
-    /* Grid 4 Kolom */
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 0.5rem !important;
-  }
-
-  .actionsOpen {
-    display: grid !important;
-    animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  /* Styling Tombol di dalam Panel Mobile (Icon Atas, Teks Bawah) */
-  .actions > * {
-    width: 100% !important;
-    height: 48px !important;
-    padding: 0.25rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: #f8fafc !important;
-    border: 1px solid #f1f5f9 !important;
-    border-radius: 8px !important;
-    color: #475569 !important;
-    font-size: 0.65rem !important;
-    line-height: 1.1 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-  }
-  .actions > *:hover {
-    background: #f1f5f9 !important;
-    color: #0ea5e9 !important;
-    border-color: #e0f2fe !important;
-  }
-  .actions > * svg {
-    display: block !important;
-    margin-bottom: 2px;
-    font-size: 16px;
+    border-radius: 6px;
   }
 
   /* 4. Baris Kontrol */
   .controlRow {
-    gap: 0.4rem !important;
+    gap: 0.4rem;
   }
 
-  /* Di Mobile, Tombol Toggle jadi Icon Only (Kotak) */
+  /* Icon Only Toggle Buttons */
   .filterToggleBtn,
   .optionToggleBtn {
-    width: 40px !important;
-    height: 40px !important;
-    padding: 0 !important;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
   }
   .filterToggleBtn span,
   .optionToggleBtn span {
-    display: none !important;
+    display: none;
   }
 
-  /* Pastikan elemen persistent (seperti dropdown periode) fontnya pas */
-  .persistentControls select {
-    font-size: 0.8rem !important;
-  }
-
-  /* 5. PERBAIKAN FILTER AREA DI MOBILE (Stack Vertikal agar tidak Overlap) */
+  /* Stack Filter Area */
   .filterArea,
   .optionsArea {
-    flex-direction: column !important; /* Susun ke bawah */
-    align-items: stretch !important; /* Lebar penuh */
-    gap: 1rem !important;
-    padding: 1rem !important;
-  }
-
-  /* Reset anak elemen agar full width */
-  .filterArea > div,
-  .optionsArea > div {
-    width: 100% !important;
-    min-width: 0 !important;
-    flex: none !important;
-    margin: 0 !important;
-  }
-
-  /* Pastikan select/input di dalamnya juga lebar */
-  .filterArea select,
-  .filterArea input {
-    width: 100% !important;
-    height: 40px !important;
+    flex-direction: column;
   }
 }
