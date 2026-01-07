@@ -23,7 +23,7 @@ const PageHeader = ({
           {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
         </div>
 
-        {/* PERUBAHAN: Hanya render tombol burger jika ada 'actions' */}
+        {/* LOGIC FIX: Tombol Burger hanya muncul jika actions TIDAK NULL */}
         {actions && (
           <button
             className={`${styles.mobileMenuBtn} ${
@@ -39,11 +39,11 @@ const PageHeader = ({
           </button>
         )}
 
-        {/* Desktop Actions (Akan disembunyikan di mobile via CSS) */}
+        {/* Desktop Actions */}
         {actions && <div className={styles.actions}>{actions}</div>}
       </div>
 
-      {/* PERUBAHAN: Hanya render menu mobile jika ada 'actions' */}
+      {/* Mobile Menu Dropdown */}
       {actions && (
         <div
           className={`${styles.mobileActionMenu} ${
@@ -54,18 +54,15 @@ const PageHeader = ({
         </div>
       )}
 
-      {/* --- BARIS 2: KONTROL (SEARCH, FILTER, OPSI) --- */}
-      {/* Hanya render baris ini jika ada searchBar, filters, atau options */}
+      {/* --- BARIS 2: KONTROL --- */}
       {(searchBar || filters || options) && (
         <div className={styles.controlRow}>
-          {/* Search Bar & Persistent Controls */}
           <div className={styles.persistentControls}>
             {searchBar && (
               <div className={styles.searchWrapper}>{searchBar}</div>
             )}
           </div>
 
-          {/* Tombol Toggle Kanan */}
           <div className={styles.toggleGroup}>
             {filters && (
               <button
@@ -100,11 +97,10 @@ const PageHeader = ({
         </div>
       )}
 
-      {/* --- AREA EXPANDABLE --- */}
+      {/* Expandable Areas */}
       {showFilters && filters && (
         <div className={styles.filterArea}>{filters}</div>
       )}
-
       {showOptions && options && (
         <div className={styles.optionsArea}>{options}</div>
       )}

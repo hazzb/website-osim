@@ -47,7 +47,7 @@
 }
 
 .layoutCompact .imageContainer {
-  flex: 1;
+  flex: 2;
   min-width: 130px;
   max-width: 160px;
   border-left: 1px solid rgba(0, 0, 0, 0.05);
@@ -201,7 +201,7 @@
 
 .socialLink,
 .location {
-  display: inline-flex;
+  display: block;
   align-items: center;
   gap: 6px;
   color: #64748b;
@@ -276,7 +276,7 @@
   }
   .socialLink,
   .location {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
   }
 
   /* COMPACT MODE MOBILE: Perkecil gambar agar teks muat */

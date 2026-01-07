@@ -6,8 +6,8 @@
 
 .headerContainer {
   position: sticky;
-  top: 56px;
-  z-index: 50;
+  top: 56px; /* Sesuaikan dengan tinggi Navbar */
+  z-index: 50; /* Z-Index tinggi agar selalu di atas konten lain */
   background-color: rgba(248, 250, 252, 0.95);
   backdrop-filter: blur(8px);
   padding: 0.75rem 1.5rem;
@@ -48,7 +48,7 @@
   font-weight: 500;
 }
 
-/* Desktop Actions */
+/* Desktop Actions (Akan disembunyikan di Mobile/iPad) */
 .actions {
   display: flex;
   align-items: center;
@@ -70,8 +70,12 @@
   background-color: #f1f5f9;
   color: #334155;
 }
+.mobileMenuBtn.active {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
 
-/* Mobile Action Menu (Dropdown) */
+/* Mobile Action Menu (Dropdown Container) */
 .mobileActionMenu {
   display: none; /* Hidden di desktop */
   flex-direction: column;
@@ -81,7 +85,7 @@
   border-radius: 8px;
   padding: 1rem;
   margin-top: -0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 /* --- BARIS 2: KONTROL (SEARCH & TOGGLE) --- */
@@ -163,10 +167,11 @@
 }
 
 /* ========================================================== */
-/* TAMPILAN MOBILE (RESPONSIVE)                               */
+/* TAMPILAN MOBILE & TABLET (RESPONSIVE)                      */
+/* Breakpoint 1024px mencakup iPad Portrait/Landscape         */
 /* ========================================================== */
 
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
   .headerContainer {
     gap: 0.5rem;
     padding: 0.75rem 1rem;
@@ -177,7 +182,7 @@
     font-size: 1.25rem;
   }
   .subtitle {
-    font-size: 0.8rem;
+    font-size: 0.65rem;
   }
 
   /* 1. Sembunyikan Actions Desktop */
@@ -190,26 +195,42 @@
     display: flex;
   }
 
-  /* 3. Dropdown Menu Mobile Logic */
+  /* 3. Logic Dropdown Menu Mobile */
   .mobileActionMenu.show {
-    display: flex; /* Munculkan saat state active */
+    display: flex;
   }
 
-  /* Reset styling children di dalam menu mobile agar full width */
+  /* Reset styling children di dalam menu mobile agar rapi */
   .mobileActionMenu > button,
-  .mobileActionMenu > a {
+  .mobileActionMenu > a,
+  .mobileActionMenu > div {
+    /* Handle div wrapper inside actions */
     width: 100%;
     justify-content: flex-start;
     padding: 0.75rem;
     border-radius: 6px;
+    margin-bottom: 4px;
+    /* Reset style tombol */
+    background: transparent;
+    border: none;
+    color: #475569;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobileActionMenu > button:hover {
+    background: #f1f5f9;
+    color: #0f172a;
   }
 
   /* 4. Baris Kontrol */
   .controlRow {
-    gap: 0.4rem;
+    gap: 0.2rem;
   }
 
-  /* Icon Only Toggle Buttons */
+  /* Icon Only Toggle Buttons di Mobile/Tablet */
   .filterToggleBtn,
   .optionToggleBtn {
     width: 40px;

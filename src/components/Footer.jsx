@@ -32,20 +32,27 @@ const Footer = () => {
 
   useEffect(() => {
     const fetchInfo = async () => {
-      const { data } = await supabase
-        .from("pengaturan")
-        .select("*")
-        .eq("id", 1)
-        .single();
-      if (data) setInfo(data);
+      try {
+        const { data: settingsData } = await supabase
+          .from("pengaturan")
+          .select("*")
+          .eq("id", 1)
+          .single();
 
-      const { data: periode } = await supabase
-        .from("periode_jabatan")
-        .select("nama_kabinet")
-        .eq("is_active", true)
-        .single();
-      if (periode) setActivePeriode(periode.nama_kabinet);
+        if (settingsData) setInfo(settingsData);
+
+        const { data: periodeData } = await supabase
+          .from("periode_jabatan")
+          .select("nama_kabinet")
+          .eq("is_active", true)
+          .single();
+
+        if (periodeData) setActivePeriode(periodeData.nama_kabinet);
+      } catch (err) {
+        console.error("Error fetching footer info:", err);
+      }
     };
+
     fetchInfo();
   }, []);
 
@@ -54,138 +61,130 @@ const Footer = () => {
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
-        {/* --- KOLOM 1: INFO & BRAND (Span 2 di Mobile) --- */}
-        <div className={styles.infoSection}>
-          <div className={styles.logoRow}>
-            {/* Logo Sekolah */}
-            {info.logo_sekolah_url && (
-              <img
-                src={info.logo_sekolah_url}
-                alt="Logo Sekolah"
-                className={styles.logoImg}
-              />
-            )}
+        <div className={styles.grid}>
+          {/* KOLOM 1: IDENTITAS (Full Width di Mobile) */}
+          <div className={`${styles.col} ${styles.colIdentity}`}>
+            <div className={styles.logoGroup}>
+              {/* Container Logo */}
+              <div className={styles.logoImages}>
+                {info.logo_sekolah_url && (
+                  <img
+                    src={info.logo_sekolah_url}
+                    alt="Logo Sekolah"
+                    className={styles.logo}
+                  />
+                )}
+                {info.logo_osis_url && (
+                  <img
+                    src={info.logo_osis_url}
+                    alt="Logo OSIS"
+                    className={styles.logo}
+                  />
+                )}
+              </div>
 
-            {/* Separator Line */}
-            {info.logo_sekolah_url && info.logo_osis_url && (
-              <div className={styles.logoSeparator}></div>
-            )}
+              {/* Container Teks: Nama Organisasi & Sekolah */}
+              <div className={styles.textGroup}>
+                <h3 className={styles.orgName}>{info.nama_organisasi}</h3>
+                {info.nama_sekolah && (
+                  <div className={styles.schoolName}>{info.nama_sekolah}</div>
+                )}
+              </div>
+            </div>
 
-            {/* Logo OSIS */}
-            {info.logo_osis_url && (
-              <img
-                src={info.logo_osis_url}
-                alt="Logo Organisasi"
-                className={styles.logoImg}
-              />
-            )}
+            <p className={styles.desc}>
+              {info.deskripsi_singkat || "Wadah aspirasi dan kreasi siswa."}
+            </p>
 
-            {/* Teks Nama Brand */}
-            <div className={styles.brandName}>
-              <span className={styles.orgName}>
-                {/* HAPUS 'OSIS', Ganti dengan data database */}
-                {info.singkatan_organisasi || info.nama_organisasi}
-              </span>
-              <span className={styles.schoolName}>{info.nama_sekolah}</span>
+            <div className={styles.socialIcons}>
+              {info.instagram_url && (
+                <a href={info.instagram_url} target="_blank" rel="noreferrer">
+                  <FaInstagram />
+                </a>
+              )}
+              {info.tiktok_url && (
+                <a href={info.tiktok_url} target="_blank" rel="noreferrer">
+                  <FaTiktok />
+                </a>
+              )}
+              {info.youtube_url && (
+                <a href={info.youtube_url} target="_blank" rel="noreferrer">
+                  <FiYoutube />
+                </a>
+              )}
             </div>
           </div>
 
-          <p className={styles.description}>
-            Wadah aspirasi dan kreasi siswa untuk mewujudkan lingkungan sekolah
-            yang aktif, kreatif, dan berprestasi.
-          </p>
-
-          <div className={styles.socialRow}>
-            {info.instagram_url && (
-              <a
-                href={`https://instagram.com/${info.instagram_url}`}
-                target="_blank"
-                rel="noreferrer"
-                className={styles.socialIcon}
-                title="Instagram"
-              >
-                <FiInstagram />
-              </a>
-            )}
-            {info.youtube_url && (
-              <a
-                href={info.youtube_url}
-                target="_blank"
-                rel="noreferrer"
-                className={styles.socialIcon}
-                title="YouTube"
-              >
-                <FiYoutube />
-              </a>
-            )}
-            {info.tiktok_url && (
-              <a
-                href={`https://tiktok.com/@${info.tiktok_url}`}
-                target="_blank"
-                rel="noreferrer"
-                className={styles.socialIcon}
-                title="TikTok"
-              >
-                <FaTiktok />
-              </a>
-            )}
+          {/* KOLOM 2: JELAJAHI (Kiri di Mobile) */}
+          <div className={`${styles.col} ${styles.colNav}`}>
+            <h4 className={styles.colTitle}>Jelajahi</h4>
+            <ul className={styles.links}>
+              <li>
+                <Link to="/">
+                  <FiHome /> Beranda
+                </Link>
+              </li>
+              <li>
+                <Link to="/visi-misi">
+                  <FiTarget /> Visi & Misi
+                </Link>
+              </li>
+              <li>
+                <Link to="/daftar-anggota">
+                  <FiUsers /> Anggota
+                </Link>
+              </li>
+              <li>
+                <Link to="/program-kerja">
+                  <FiCalendar /> Progja
+                </Link>
+              </li>
+              {isAdmin ? (
+                <li>
+                  <Link to="/dashboard" style={{ color: "#3b82f6" }}>
+                    <FiLayout /> Admin
+                  </Link>
+                </li>
+              ) : (
+                <li>
+                  <Link to="/login">
+                    <FiLogIn /> Login
+                  </Link>
+                </li>
+              )}
+            </ul>
           </div>
-        </div>
 
-        {/* --- KOLOM 2: MENU (Kiri di Mobile) --- */}
-        <div>
-          <h4 className={styles.colTitle}>Menu</h4>
-          <div className={styles.linkGroup}>
-            <Link to="/" className={styles.footerLink}>
-              <FiHome size={14} /> Beranda
-            </Link>
-            <Link to="/visi-misi" className={styles.footerLink}>
-              <FiTarget size={14} /> Profile
-            </Link>
-            <Link to="/anggota" className={styles.footerLink}>
-              <FiUsers size={14} /> Anggota
-            </Link>
-            <Link to="/program-kerja" className={styles.footerLink}>
-              <FiCalendar size={14} /> Progja
-            </Link>
-
-            {isAdmin ? (
-              <Link
-                to="/dashboard"
-                className={styles.footerLink}
-                style={{ color: "#0284c7", fontWeight: 700 }}
-              >
-                <FiLayout size={14} /> Dashboard
-              </Link>
-            ) : (
-              <Link to="/login" className={styles.footerLink}>
-                <FiLogIn size={14} /> Login
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* --- KOLOM 3: KONTAK (Kanan di Mobile) --- */}
-        <div>
-          <h4 className={styles.colTitle}>Kontak</h4>
-          <div className={styles.linkGroup}>
-            <div className={styles.contactItem}>
-              <FiMapPin className={styles.contactIcon} size={14} />
-              <span>{info.alamat_sekolah || "-"}</span>
-            </div>
-            <div className={styles.contactItem}>
-              <FiMail className={styles.contactIcon} size={14} />
-              <span>{info.email_kontak || "-"}</span>
-            </div>
-            <div className={styles.contactItem}>
-              <FiPhone className={styles.contactIcon} size={14} />
-              <span>{info.telepon_kontak || "-"}</span>
-            </div>
+          {/* KOLOM 3: HUBUNGI KAMI (Kanan di Mobile) */}
+          <div className={`${styles.col} ${styles.colContact}`}>
+            <h4 className={styles.colTitle}>Hubungi Kami</h4>
+            <ul className={styles.contactList}>
+              {info.alamat && (
+                <li>
+                  <FiMapPin className={styles.icon} />
+                  <span>{info.alamat}</span>
+                </li>
+              )}
+              {info.email && (
+                <li>
+                  <FiMail className={styles.icon} />
+                  <a href={`mailto:${info.email}`}>{info.email}</a>
+                </li>
+              )}
+              {info.no_hp && (
+                <li>
+                  <FiPhone className={styles.icon} />
+                  <a href={`https://wa.me/${info.no_hp.replace(/\D/g, "")}`}>
+                    {info.no_hp}
+                  </a>
+                </li>
+              )}
+            </ul>
           </div>
         </div>
       </div>
 
-      {/* --- COPYRIGHT --- */}
+      {/* COPYRIGHT */}
       <div className={styles.copyright}>
         <div className={styles.copyrightContainer}>
           <div>

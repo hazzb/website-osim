@@ -450,7 +450,7 @@ function DaftarAnggota() {
                 className="button button-secondary"
                 title="Wizard Kabinet"
               >
-                <FiZap /> Wizard
+                <FiZap /> Kabinet
               </button>
               <button
                 onClick={() => openModal("jabatan")}

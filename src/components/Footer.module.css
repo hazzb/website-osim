@@ -1,244 +1,269 @@
 /* src/components/Footer.module.css */
 
 .footer {
-  /* TEMA ASLI */
   background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%);
   color: #0c4a6e;
-  
-  /* Layout Compact */
   padding-top: 3rem;
   margin-top: auto;
   border-top: 1px solid #7dd3fc;
   font-size: 0.9rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-/* CONTAINER GRID DESKTOP (Asimetris agar rapi) */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
-  
+  padding-bottom: 2rem;
+}
+
+/* GRID LAYOUT UTAMA */
+.grid {
   display: grid;
-  /* Kolom Brand lebih lebar (2fr), Links & Kontak (1fr 1fr) */
-  grid-template-columns: 2fr 1fr 1fr;
+  /* Desktop: 3 Kolom */
+  grid-template-columns: 1.8fr 1fr 1.2fr;
+  grid-template-areas: "identity nav contact";
   gap: 3rem;
   align-items: start;
 }
 
-/* --- BAGIAN 1: INFO BRAND --- */
-.infoSection {
+/* Mapping Area Grid */
+.colIdentity {
+  grid-area: identity;
+}
+.colNav {
+  grid-area: nav;
+}
+.colContact {
+  grid-area: contact;
+}
+
+.col {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.logoRow {
+/* --- LOGO GROUP & TEXT --- */
+.logoGroup {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
 }
 
-.logoImg {
-  height: 40px;
+.logoImages {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo {
+  height: 48px;
   width: auto;
   object-fit: contain;
 }
 
-/* Garis Pemisah Logo */
-.logoSeparator {
-  width: 1px;
-  height: 28px;
-  background-color: #7dd3fc;
-  opacity: 0.6;
-}
-
-.brandName {
+.textGroup {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  line-height: 1.1;
 }
 
 .orgName {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #0284c7;
-  letter-spacing: -0.01em;
+  color: #0369a1;
+  margin: 0;
+  line-height: 1.1;
 }
 
 .schoolName {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #0c4a6e;
-  opacity: 0.9;
-}
-
-.description {
-  color: #334155;
-  opacity: 0.9;
-  max-width: 320px; 
   font-size: 0.9rem;
-  margin-bottom: 0.2rem;
+  font-weight: 600;
+  color: #0284c7; /* Warna sedikit lebih terang */
+  margin-top: 2px;
 }
 
-/* Social Icons */
-.socialRow {
+.desc {
+  color: #334155;
+  margin: 0;
+  max-width: 320px;
+}
+
+.socialIcons {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
 }
 
-.socialIcon {
-  width: 32px;
-  height: 32px;
+.socialIcons a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.4);
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.6);
   border: 1px solid #bae6fd;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #0284c7;
-  transition: all 0.2s;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
 }
-.socialIcon:hover {
-  background-color: #0284c7;
+
+.socialIcons a:hover {
+  background: #0284c7;
   color: white;
   transform: translateY(-2px);
+  border-color: #0284c7;
 }
 
-/* --- BAGIAN 2 & 3: LINKS & KONTAK --- */
+/* --- LISTS --- */
 .colTitle {
-  font-size: 0.85rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-  color: #0284c7;
+  color: #0369a1;
+  margin: 0 0 0.5rem 0;
 }
 
-.linkGroup {
+.links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
-.footerLink {
-  color: #475569;
+.links li a {
   text-decoration: none;
+  color: #0c4a6e;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: 0.2s;
+  transition: color 0.2s;
   font-weight: 500;
-  font-size: 0.9rem;
-}
-.footerLink:hover {
-  color: #0284c7;
-  transform: translateX(3px);
 }
 
-.contactItem {
+.contactList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.contactList li {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
-  margin-bottom: 0.8rem;
-  color: #475569;
-  font-size: 0.9rem;
-}
-.contactIcon {
-  color: #0284c7;
-  flex-shrink: 0;
-  margin-top: 3px;
-  width: 14px;
+  gap: 0.75rem;
+  color: #334155;
+  word-break: break-word; /* Agar email panjang turun */
 }
 
-/* --- BAGIAN BAWAH: COPYRIGHT --- */
+.icon {
+  color: #0284c7;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.contactList a {
+  color: #0c4a6e;
+  text-decoration: none;
+}
+
+/* --- COPYRIGHT --- */
 .copyright {
-  margin-top: 3rem;
-  padding: 1.5rem 0;
-  background-color: rgba(255, 255, 255, 0.25);
-  border-top: 1px solid rgba(125, 211, 252, 0.4);
-  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid #bae6fd;
+  padding: 1.5rem 1.5rem;
+  font-size: 0.8rem;
+  color: #475569;
 }
 
 .copyrightContainer {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
-  
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
   gap: 1rem;
-  color: #475569;
 }
 
 .managedBy {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background: rgba(255, 255, 255, 0.6);
-  padding: 3px 12px;
+  padding: 4px 12px;
   border-radius: 99px;
   border: 1px solid #bae6fd;
-  font-size: 0.75rem;
 }
 
 .signature {
   display: flex;
   align-items: center;
-  gap: 4px;
-  opacity: 0.9;
+  gap: 6px;
 }
+
 .devLink {
-  font-weight: 700;
+  font-weight: 600;
   color: #0284c7;
   text-decoration: none;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }
-.devLink:hover { text-decoration: underline; }
-
 
 /* ========================================= */
-/* OPTIMASI MOBILE (2 KOLOM)           */
+/* RESPONSIVE MOBILE                         */
 /* ========================================= */
 @media (max-width: 768px) {
-  .footer {
-    padding-top: 2rem;
+  .grid {
+    grid-template-columns: 1fr 1fr; /* Jadi 2 Kolom */
+    grid-template-areas:
+      "identity identity" /* Baris 1: Full Identity */
+      "nav contact"; /* Baris 2: Nav | Contact */
+    gap: 2rem 1rem; /* Jarak baris 2rem, Jarak kolom 1rem */
+    text-align: left;
   }
 
-  .container {
-    /* GRID 2 KOLOM */
-    grid-template-columns: 1fr 1fr; 
-    gap: 2rem 1rem; /* Jarak Baris 2rem, Jarak Kolom 1rem (Rapat) */
-    text-align: left; /* Rata Kiri agar rapi */
+  /* Identity Section Rata Tengah */
+  .colIdentity {
+    align-items: center;
+    text-align: center;
   }
 
-  /* 1. INFO SECTION (Logo & Desc) -> FULL WIDTH */
-  .infoSection {
-    grid-column: span 2; 
-    border-bottom: 1px dashed #bae6fd;
-    padding-bottom: 1.5rem;
-    align-items: flex-start; /* Pastikan rata kiri */
-  }
-  
-  .description {
-    max-width: 100%;
+  .logoGroup {
+    flex-direction: column; /* Logo & Teks tumpuk di tengah */
+    gap: 0.5rem;
   }
 
-  /* 2. Menu Jelajahi & Kontak -> BERDAMPINGAN (1fr 1fr) */
-  /* Tidak perlu CSS khusus karena grid container sudah mengatur ini */
+  .textGroup {
+    align-items: center;
+  }
 
-  /* 3. Copyright Center */
+  /* Nav & Contact agar lebih rapat di mobile */
+  .links,
+  .contactList {
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .links li a,
+  .contactList li {
+    gap: 0.4rem;
+  }
+
+  /* Copyright Stack */
   .copyrightContainer {
     flex-direction: column;
-    text-align: center;
+    justify-content: center;
     gap: 0.8rem;
+    text-align: center;
   }
-  
-  .footerLink:hover { transform: none; }
 }

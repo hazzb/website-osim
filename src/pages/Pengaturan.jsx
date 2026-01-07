@@ -14,15 +14,7 @@ import styles from "./Pengaturan.module.css";
 import formStyles from "../components/admin/AdminForm.module.css";
 
 // Icons
-import {
-  FiSave,
-  FiMonitor,
-  FiInfo,
-  FiShare2,
-  FiPhone,
-  FiImage,
-  FiCheck
-} from "react-icons/fi";
+import { FiSave, FiMonitor, FiInfo, FiPhone, FiImage } from "react-icons/fi";
 
 function Pengaturan() {
   const { session } = useAuth();
@@ -30,34 +22,45 @@ function Pengaturan() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("umum"); 
+  const [activeTab, setActiveTab] = useState("umum");
 
-  // Data State
+  // Data State (Sesuai kolom tabel public.pengaturan)
   const [formData, setFormData] = useState({});
   const [files, setFiles] = useState({ logo_sekolah: null, logo_osis: null });
-  const [previews, setPreviews] = useState({ logo_sekolah: null, logo_osis: null });
+  const [previews, setPreviews] = useState({
+    logo_sekolah: null,
+    logo_osis: null,
+  });
 
-  // 1. FETCH DATA
+  // 1. FETCH DATA SESUAI TABEL
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSettings = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase.from("pengaturan").select("*").eq("id", 1).single();
-        if (error) throw error;
+        const { data, error } = await supabase
+          .from("pengaturan")
+          .select("*") // Mengambil semua kolom sesuai tabel
+          .eq("id", 1)
+          .single();
+
+        if (error && error.code !== "PGRST116") throw error;
+
         if (data) {
           setFormData(data);
+          // Set preview gambar
           setPreviews({
             logo_sekolah: data.logo_sekolah_url,
             logo_osis: data.logo_osis_url,
           });
         }
       } catch (err) {
-        console.error("Gagal load pengaturan:", err);
+        console.error("Error fetching settings:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
+
+    fetchSettings();
   }, []);
 
   // 2. HANDLERS
@@ -69,38 +72,36 @@ function Pengaturan() {
     }));
   };
 
-  const handleFileChange = (e, fieldName) => {
+  const handleFileChange = (e, field) => {
     const file = e.target.files[0];
     if (file) {
-      setFiles((prev) => ({ ...prev, [fieldName]: file }));
-      setPreviews((prev) => ({ ...prev, [fieldName]: URL.createObjectURL(file) }));
+      setFiles((prev) => ({ ...prev, [field]: file }));
+      setPreviews((prev) => ({ ...prev, [field]: URL.createObjectURL(file) }));
     }
   };
 
-  // Submit Handler (Bisa dipanggil dari tombol Header)
   const handleSubmit = async (e) => {
-    if(e) e.preventDefault(); // Mencegah reload jika dipanggil dari form
-    
+    e.preventDefault();
     setSaving(true);
     try {
-      let updatedData = { ...formData };
+      let updates = { ...formData, id: 1 };
 
-      // Upload Images jika ada perubahan
+      // Upload Images jika ada file baru
       if (files.logo_sekolah) {
-        const url1 = await uploadImage(files.logo_sekolah, "logo");
-        updatedData.logo_sekolah_url = url1;
+        updates.logo_sekolah_url = await uploadImage(
+          files.logo_sekolah,
+          "logos"
+        );
       }
-
       if (files.logo_osis) {
-        const url2 = await uploadImage(files.logo_osis, "logo");
-        updatedData.logo_osis_url = url2;
+        updates.logo_osis_url = await uploadImage(files.logo_osis, "logos");
       }
 
-      const { error } = await supabase.from("pengaturan").update(updatedData).eq("id", 1);
+      const { error } = await supabase.from("pengaturan").upsert(updates);
       if (error) throw error;
 
       alert("Pengaturan berhasil disimpan!");
-      window.location.reload(); 
+      window.location.reload();
     } catch (err) {
       alert("Gagal menyimpan: " + err.message);
     } finally {
@@ -108,184 +109,290 @@ function Pengaturan() {
     }
   };
 
-  // --- RENDER ---
-  if (loading) return <PageContainer><LoadingState /></PageContainer>;
+  if (loading) return <LoadingState />;
 
   return (
-    <PageContainer breadcrumbText="Pengaturan">
-      
-      {/* HEADER STICKY */}
+    <PageContainer>
       <PageHeader
-        title="Pengaturan"
-        subtitle="Kelola identitas dan tampilan."
-        
-        // 1. TOMBOL SIMPAN DI HEADER (ACTIONS)
+        title="Pengaturan Website"
+        subtitle="Kelola informasi umum, kontak, dan tampilan sesuai database."
         actions={
-          <button 
-            onClick={handleSubmit} 
+          <button
+            onClick={handleSubmit}
             disabled={saving}
             className="button button-primary"
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              gap: "8px",
-              padding: "0.5rem 1.2rem",
-              fontSize: "0.9rem",
-              fontWeight: 600,
-              backgroundColor: "#2563eb",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: saving ? "not-allowed" : "pointer",
-              opacity: saving ? 0.7 : 1,
-              boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)"
-            }}
+            style={{ minWidth: "120px" }}
           >
             {saving ? (
-               <>Menyimpan...</>
+              "Menyimpan..."
             ) : (
-               <><FiCheck size={18} /> Simpan Perubahan</>
+              <>
+                <FiSave /> Simpan
+              </>
             )}
           </button>
         }
-
-        // 2. NAVIGASI TABS DI HEADER (SEARCH BAR SLOT)
-        // Ini membuat Tabs ikut sticky di bawah judul
-        searchBar={
-          <div className={styles.tabGroup} style={{ 
-            display: 'flex', 
-            gap: '0.5rem', 
-            overflowX: 'auto', 
-            padding: '2px',
-            width: '100%' 
-          }}>
-            {[
-              { id: "umum", label: "Umum", icon: <FiInfo /> },
-              { id: "kontak", label: "Kontak", icon: <FiPhone /> },
-              { id: "sosmed", label: "Sosmed", icon: <FiShare2 /> },
-              { id: "tampilan", label: "Tampilan", icon: <FiMonitor /> },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={styles.tabBtn}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '0.4rem 1rem',
-                  borderRadius: '6px',
-                  border: activeTab === tab.id ? '1px solid #bfdbfe' : '1px solid transparent',
-                  backgroundColor: activeTab === tab.id ? '#eff6ff' : 'transparent',
-                  color: activeTab === tab.id ? '#2563eb' : '#64748b',
-                  fontWeight: activeTab === tab.id ? 600 : 500,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tab.icon} {tab.label}
-              </button>
-            ))}
-          </div>
-        }
       />
 
-      {/* FORM CONTENT */}
-      {/* Tidak perlu margin top besar karena header sudah menghandle space */}
-      <div style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '4rem' }}>
-        
-        <div className={styles.card}>
-          <form onSubmit={handleSubmit} className={formStyles.form}>
-            
-            {/* TAB: UMUM */}
+      {/* Tabs Navigation */}
+      <div className={styles.tabContainer}>
+        <div className={styles.tabGroup}>
+          <button
+            onClick={() => setActiveTab("umum")}
+            className={`${styles.tabBtn} ${
+              activeTab === "umum" ? styles.active : ""
+            }`}
+          >
+            <FiMonitor /> Umum & Tampilan
+          </button>
+          <button
+            onClick={() => setActiveTab("kontak")}
+            className={`${styles.tabBtn} ${
+              activeTab === "kontak" ? styles.active : ""
+            }`}
+          >
+            <FiPhone /> Kontak & Sosmed
+          </button>
+          <button
+            onClick={() => setActiveTab("tentang")}
+            className={`${styles.tabBtn} ${
+              activeTab === "tentang" ? styles.active : ""
+            }`}
+          >
+            <FiInfo /> Tentang & Footer
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.card}>
+        <div className={formStyles.formWrapper}>
+          <form onSubmit={handleSubmit} className={formStyles.formGrid}>
+            {/* --- TAB 1: UMUM & TAMPILAN --- */}
             {activeTab === "umum" && (
-              <div className={formStyles.formGrid} style={{ animation: "fadeIn 0.3s" }}>
+              <>
                 <div className={formStyles.colSpan12}>
-                  <h3 className={styles.sectionTitle}><FiInfo /> Identitas Organisasi</h3>
+                  <h3 className={styles.sectionTitle}>Identitas Organisasi</h3>
                 </div>
 
-                <FormInput label="Nama Organisasi" name="nama_organisasi" value={formData.nama_organisasi || ""} onChange={handleChange} required span={6} placeholder="Contoh: OSIS SMA 1..." />
-                <FormInput label="Singkatan" name="singkatan_organisasi" value={formData.singkatan_organisasi || ""} onChange={handleChange} required span={6} placeholder="Contoh: OSIM / OSIS" />
-                
-                <FormInput label="Nama Sekolah" name="nama_sekolah" value={formData.nama_sekolah || ""} onChange={handleChange} span={12} />
-                <FormInput label="Alamat Lengkap" name="alamat_sekolah" type="textarea" value={formData.alamat_sekolah || ""} onChange={handleChange} span={12} rows={2} />
-
-                <div className={formStyles.colSpan12}>
-                  <h3 className={styles.sectionTitle} style={{ marginTop: '1rem' }}><FiImage /> Logo</h3>
-                </div>
-
-                {/* Upload Logo Sekolah */}
                 <div className={formStyles.colSpan6}>
-                  <div className={styles.uploadPreviewContainer}>
-                    <img src={previews.logo_sekolah || "/placeholder.png"} alt="Sekolah" className={styles.logoPreview} />
-                    <div className={styles.uploadInfo}>
-                      <label>Logo Sekolah</label>
-                      <p>Format PNG/JPG, Max 1MB</p>
-                      <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "logo_sekolah")} style={{ fontSize: "0.8rem" }} />
+                  <FormInput
+                    label="Nama Organisasi"
+                    name="nama_organisasi"
+                    value={formData.nama_organisasi || ""}
+                    onChange={handleChange}
+                    placeholder="Contoh: OSIS SMAN Contoh"
+                  />
+                </div>
+                <div className={formStyles.colSpan6}>
+                  <FormInput
+                    label="Nama Sekolah"
+                    name="nama_sekolah"
+                    value={formData.nama_sekolah || ""}
+                    onChange={handleChange}
+                    placeholder="Nama sekolah lengkap"
+                  />
+                </div>
+
+                {/* Upload Logos */}
+                <div className={formStyles.colSpan6}>
+                  <div className={formStyles.formGroup}>
+                    <label className={formStyles.formLabel}>
+                      <FiImage style={{ marginRight: 4 }} /> Logo Sekolah
+                    </label>
+                    <div className={formStyles.uploadRow}>
+                      <div className={formStyles.previewBox}>
+                        {previews.logo_sekolah ? (
+                          <img
+                            src={previews.logo_sekolah}
+                            className={formStyles.previewImage}
+                            alt="Preview"
+                          />
+                        ) : (
+                          <span
+                            style={{ fontSize: "0.7rem", color: "#cbd5e1" }}
+                          >
+                            No img
+                          </span>
+                        )}
+                      </div>
+                      <div className={formStyles.fileInputWrapper}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, "logo_sekolah")}
+                          className={formStyles.fileInput}
+                        />
+                        <span className={formStyles.helperText}>
+                          Maks 2MB (PNG/JPG)
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Upload Logo OSIS */}
                 <div className={formStyles.colSpan6}>
-                  <div className={styles.uploadPreviewContainer}>
-                    <img src={previews.logo_osis || "/placeholder.png"} alt="OSIS" className={styles.logoPreview} />
-                    <div className={styles.uploadInfo}>
-                      <label>Logo OSIS</label>
-                      <p>Format PNG/JPG, Max 1MB</p>
-                      <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "logo_osis")} style={{ fontSize: "0.8rem" }} />
+                  <div className={formStyles.formGroup}>
+                    <label className={formStyles.formLabel}>
+                      <FiImage style={{ marginRight: 4 }} /> Logo OSIS
+                    </label>
+                    <div className={formStyles.uploadRow}>
+                      <div className={formStyles.previewBox}>
+                        {previews.logo_osis ? (
+                          <img
+                            src={previews.logo_osis}
+                            className={formStyles.previewImage}
+                            alt="Preview"
+                          />
+                        ) : (
+                          <span
+                            style={{ fontSize: "0.7rem", color: "#cbd5e1" }}
+                          >
+                            No img
+                          </span>
+                        )}
+                      </div>
+                      <div className={formStyles.fileInputWrapper}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, "logo_osis")}
+                          className={formStyles.fileInput}
+                        />
+                        <span className={formStyles.helperText}>
+                          Maks 2MB (PNG/JPG)
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+
+                <div className={formStyles.colSpan12}>
+                  <FormInput
+                    label="Alamat Lengkap"
+                    name="alamat"
+                    type="textarea"
+                    value={formData.alamat || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
             )}
 
-            {/* TAB: KONTAK */}
+            {/* --- TAB 2: KONTAK & SOSMED --- */}
             {activeTab === "kontak" && (
-              <div className={formStyles.formGrid} style={{ animation: "fadeIn 0.3s" }}>
+              <>
                 <div className={formStyles.colSpan12}>
-                  <h3 className={styles.sectionTitle}><FiPhone /> Informasi Kontak</h3>
+                  <h3 className={styles.sectionTitle}>Kontak & Sosial Media</h3>
                 </div>
-                <FormInput label="Email Resmi" name="email_kontak" type="email" value={formData.email_kontak || ""} onChange={handleChange} span={6} />
-                <FormInput label="Nomor Telepon / WA" name="telepon_kontak" value={formData.telepon_kontak || ""} onChange={handleChange} span={6} />
-              </div>
-            )}
 
-            {/* TAB: SOSMED */}
-            {activeTab === "sosmed" && (
-              <div className={formStyles.formGrid} style={{ animation: "fadeIn 0.3s" }}>
-                <div className={formStyles.colSpan12}>
-                  <h3 className={styles.sectionTitle}><FiShare2 /> Media Sosial</h3>
-                </div>
-                <FormInput label="Instagram Username" name="instagram_url" value={formData.instagram_url || ""} onChange={handleChange} span={6} placeholder="tanpa @" helper="Contoh: osis.sma1" />
-                <FormInput label="YouTube Channel" name="youtube_url" value={formData.youtube_url || ""} onChange={handleChange} span={6} placeholder="Nama Channel" />
-                <FormInput label="TikTok Username" name="tiktok_url" value={formData.tiktok_url || ""} onChange={handleChange} span={6} placeholder="tanpa @" />
-                <FormInput label="Facebook Page" name="facebook_url" value={formData.facebook_url || ""} onChange={handleChange} span={6} />
-              </div>
-            )}
-
-            {/* TAB: TAMPILAN */}
-            {activeTab === "tampilan" && (
-              <div className={formStyles.formGrid} style={{ animation: "fadeIn 0.3s" }}>
-                <div className={formStyles.colSpan12}>
-                  <h3 className={styles.sectionTitle}><FiMonitor /> Pengaturan Tampilan</h3>
-                </div>
-                
                 <div className={formStyles.colSpan6}>
-                  <div style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'flex', gap: '1rem', alignItems: 'center', height: '100%' }}>
-                    <input type="checkbox" name="tampilkan_hero" checked={formData.tampilkan_hero || false} onChange={handleChange} style={{ width: 20, height: 20, cursor: 'pointer' }} />
-                    <div>
-                      <strong style={{ display: 'block', marginBottom: '4px', color: '#1e293b' }}>Hero Banner</strong>
-                      <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Tampilkan judul besar di halaman utama.</span>
+                  <FormInput
+                    label="Email Resmi"
+                    name="email"
+                    type="email"
+                    value={formData.email || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className={formStyles.colSpan6}>
+                  <FormInput
+                    label="Nomor HP / WA"
+                    name="no_hp"
+                    value={formData.no_hp || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div
+                  className={formStyles.colSpan12}
+                  style={{ margin: "1rem 0", borderTop: "1px dashed #e2e8f0" }}
+                ></div>
+
+                <div className={formStyles.colSpan6}>
+                  <FormInput
+                    label="Instagram URL"
+                    name="instagram_url"
+                    value={formData.instagram_url || ""}
+                    onChange={handleChange}
+                    placeholder="https://instagram.com/..."
+                  />
+                </div>
+                <div className={formStyles.colSpan6}>
+                  <FormInput
+                    label="TikTok URL"
+                    name="tiktok_url"
+                    value={formData.tiktok_url || ""}
+                    onChange={handleChange}
+                    placeholder="https://tiktok.com/@..."
+                  />
+                </div>
+                <div className={formStyles.colSpan6}>
+                  <FormInput
+                    label="YouTube URL"
+                    name="youtube_url"
+                    value={formData.youtube_url || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* --- TAB 3: TENTANG & FOOTER --- */}
+            {activeTab === "tentang" && (
+              <>
+                <div className={formStyles.colSpan12}>
+                  <h3 className={styles.sectionTitle}>Konfigurasi Halaman</h3>
+                </div>
+
+                <div className={formStyles.colSpan12}>
+                  <FormInput
+                    label="Deskripsi Singkat (Footer)"
+                    name="deskripsi_singkat"
+                    type="textarea"
+                    value={formData.deskripsi_singkat || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className={formStyles.colSpan6}>
+                  <div className={formStyles.formGroup}>
+                    <label className={formStyles.formLabel}>
+                      Tampilan Hero Section
+                    </label>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        name="beranda_tampilkan_hero"
+                        checked={formData.beranda_tampilkan_hero || false}
+                        onChange={handleChange}
+                        id="chkHero"
+                        style={{ width: "16px", height: "16px" }}
+                      />
+                      <label
+                        htmlFor="chkHero"
+                        style={{ fontSize: "0.9rem", color: "#334155" }}
+                      >
+                        Tampilkan judul besar di halaman utama
+                      </label>
                     </div>
                   </div>
                 </div>
 
                 <div className={formStyles.colSpan6}>
-                  <FormInput label="Layout Visi Misi" name="visi_misi_layout" type="select" value={formData.visi_misi_layout || "modular"} onChange={handleChange}>
+                  <FormInput
+                    label="Layout Visi Misi"
+                    name="visi_misi_layout"
+                    type="select"
+                    value={formData.visi_misi_layout || "modular"}
+                    onChange={handleChange}
+                  >
                     <option value="modular">Modular Grid (Modern)</option>
                     <option value="split">Split Card (Klasik)</option>
                     <option value="zigzag">Zig-Zag Story</option>
@@ -293,20 +400,34 @@ function Pengaturan() {
                 </div>
 
                 {/* SETTING FOOTER */}
-                <div className={formStyles.colSpan12} style={{marginTop:'1rem', paddingTop:'1rem', borderTop:'1px dashed #e2e8f0'}}>
-                    <strong style={{display:'block', marginBottom:'0.5rem', color:'#334155'}}>Pengaturan Footer</strong>
-                    <FormInput 
-                        label="Divisi Pengelola (Managed By)" 
-                        name="footer_managed_by" 
-                        value={formData.footer_managed_by || ""} 
-                        onChange={handleChange} 
-                        span={12} 
-                        placeholder="Contoh: Divisi Media / Divisi IT"
-                    />
+                <div
+                  className={formStyles.colSpan12}
+                  style={{
+                    marginTop: "1rem",
+                    paddingTop: "1rem",
+                    borderTop: "1px dashed #e2e8f0",
+                  }}
+                >
+                  <strong
+                    style={{
+                      display: "block",
+                      marginBottom: "0.5rem",
+                      color: "#334155",
+                    }}
+                  >
+                    Pengaturan Footer
+                  </strong>
+                  <FormInput
+                    label="Divisi Pengelola (Managed By)"
+                    name="footer_managed_by"
+                    value={formData.footer_managed_by || ""}
+                    onChange={handleChange}
+                    span={12}
+                    placeholder="Contoh: Divisi Media"
+                  />
                 </div>
-              </div>
+              </>
             )}
-
           </form>
         </div>
       </div>

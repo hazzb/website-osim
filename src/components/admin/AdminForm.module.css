@@ -4,8 +4,9 @@
 .formGrid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 1rem 1.5rem;
-  padding: 0.5rem;
+  /* UBAH: Gap diperkecil (Atas-Bawah 0.75rem, Kiri-Kanan 1rem) */
+  gap: 0.75rem 1rem;
+  padding: 0.25rem;
 }
 
 /* SPANS */
@@ -34,7 +35,12 @@
   grid-column: span 1;
 }
 
+/* RESPONSIVE: Stack ke bawah di mobile */
 @media (max-width: 768px) {
+  .formGrid {
+    gap: 0.75rem; /* Gap lebih rapat di mobile */
+  }
+
   .colSpan12,
   .colSpan9,
   .colSpan8,
@@ -51,66 +57,94 @@
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  /* Margin bawah dihapus karena sudah dihandle oleh Grid Gap */
+  margin-bottom: 0;
+  width: 100%;
 }
 
 .formLabel {
-  font-size: 0.85rem;
+  font-size: 0.85rem; /* Font label sedikit diperkecil */
   font-weight: 600;
-  color: #475569;
-  margin: 0;
+  color: #334155;
+  margin-bottom: 0.25rem; /* Jarak label ke input diperkecil */
 }
 
-.requiredMark {
+.requiredStar {
   color: #ef4444;
   margin-left: 2px;
 }
 
-/* INPUT FIELDS */
+/* INPUTS & SELECTS (COMPACT STYLE) */
 .formInput,
-.formSelect,
-.formTextarea {
+.formSelect {
   width: 100%;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.9rem;
+  /* UBAH: Tinggi dikurangi jadi 38px (sebelumnya 42px) */
+  height: 38px;
+  padding: 0.4rem 0.75rem;
   border: 1px solid #cbd5e0;
   border-radius: 6px;
-  background-color: white;
-  transition: all 0.2s;
+  font-size: 0.875rem; /* Font input sedikit lebih rapi */
   color: #1e293b;
+  background-color: #fff;
+  transition: all 0.2s ease;
 }
 
 .formInput:focus,
-.formSelect:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.formInput::placeholder {
+  color: #94a3b8;
+}
+
+/* TEXTAREA */
+.formTextarea {
+  width: 100%;
+  min-height: 80px; /* Tinggi minimal textarea */
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #1e293b;
+  resize: vertical;
+  font-family: inherit;
+}
 .formTextarea:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.formInput:disabled,
-.formSelect:disabled {
-  background-color: #f1f5f9;
-  cursor: not-allowed;
+/* MARKDOWN EDITOR CUSTOM */
+.markdownWrapper {
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  overflow: hidden;
 }
-
-/* MARKDOWN STYLE */
 .markdownEditor {
-  font-family: "Consolas", monospace;
-  line-height: 1.5;
-  border-left: 3px solid #cbd5e0;
+  width: 100%;
+  min-height: 120px;
+  padding: 0.75rem;
+  border: none;
+  font-size: 0.875rem;
+  resize: vertical;
+  font-family: monospace;
   background-color: #f8fafc;
+  line-height: 1.6;
 }
 .markdownEditor:focus {
   background-color: white;
-  border-left-color: #3b82f6;
+  outline: none;
 }
 
 /* HELPER TEXT */
 .helperText {
   font-size: 0.75rem;
   color: #64748b;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem; /* Jarak helper ke input lebih rapat */
   display: flex;
   justify-content: space-between;
 }
@@ -119,17 +153,18 @@
 .uploadRow {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
+  gap: 0.75rem;
+  /* UBAH: Padding dikurangi */
+  padding: 0.5rem;
   border: 1px dashed #cbd5e0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #fdfdfd;
 }
 
 .previewBox {
-  width: 50px;
-  height: 50px;
-  border-radius: 6px; /* Kotak rounded untuk logo */
+  width: 42px; /* Perkecil preview box */
+  height: 42px;
+  border-radius: 6px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
   display: flex;
@@ -139,44 +174,46 @@
   flex-shrink: 0;
 }
 
-/* Khusus Foto Profil Bulat */
-.previewCircle {
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-}
-
-.previewBox img,
-.previewCircle img {
+.previewImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.uploadBtn {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #2563eb;
-  cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  background: #eff6ff;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.uploadBtn:hover {
-  background: #dbeafe;
+/* Khusus Foto Profil Bulat */
+.previewCircle {
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
 }
 
-/* FOOTER (TOMBOL KANAN) */
-.formFooter {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+/* File Input Wrapper */
+.fileInputWrapper {
+  flex: 1;
   display: flex;
-  justify-content: flex-end; /* INI KUNCINYA: Tombol di Kanan */
-  gap: 0.75rem;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.fileInput {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* File input button style override (Chrome/Edge) */
+.fileInput::file-selector-button {
+  border: 1px solid #e2e8f0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.fileInput::file-selector-button:hover {
+  background-color: #e2e8f0;
 }
