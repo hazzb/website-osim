@@ -3,6 +3,7 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
+// ... (Import Components & Styles sama seperti sebelumnya) ...
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
 import PageHeader from "../components/ui/PageHeader.jsx";
@@ -18,13 +19,8 @@ import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
 import JabatanManager from "../components/admin/JabatanManager.jsx";
 import KabinetWizard from "../components/admin/KabinetWizard.jsx";
 
-// Styles
 import styles from "./DaftarAnggota.module.css";
-
-// Utils
 import { uploadImage } from "../utils/uploadHelper";
-
-// Icons
 import {
   FiSearch,
   FiPlus,
@@ -46,10 +42,7 @@ function DaftarAnggota() {
   // --- STATE ---
   const [periodeList, setPeriodeList] = useState([]);
   const [activeTab, setActiveTab] = useState("");
-
-  // View Mode: 'aesthetic' (Grid) or 'compact' (List)
   const [viewMode, setViewMode] = useState("aesthetic");
-
   const [allDivisi, setAllDivisi] = useState([]);
   const [jabatanList, setJabatanList] = useState([]);
   const [divisiPerPeriode, setDivisiPerPeriode] = useState([]);
@@ -71,12 +64,12 @@ function DaftarAnggota() {
   const [formFile, setFormFile] = useState(null);
   const [formPreview, setFormPreview] = useState(null);
 
-  // Helper Periode Data
+  // ... (activePeriodeData, fetchInitialData, fetchAnggota, useEffects tetap sama) ...
+  // [JANGAN DIHAPUS BAGIAN FETCH DATA YANG SUDAH ADA]
   const activePeriodeData = periodeList.find(
     (p) => String(p.id) === String(activeTab)
   );
 
-  // --- FETCH DATA ---
   const fetchInitialData = useCallback(async () => {
     setLoading(true);
     try {
@@ -85,18 +78,15 @@ function DaftarAnggota() {
         .select("*")
         .order("tahun_mulai", { ascending: false });
       setPeriodeList(periodes || []);
-
       if (periodes?.length > 0 && !activeTab) {
         const active = periodes.find((p) => p.is_active);
         setActiveTab(active ? active.id : periodes[0].id);
       }
-
       const { data: divisis } = await supabase
         .from("divisi")
         .select("*")
         .order("urutan", { ascending: true });
       setAllDivisi(divisis || []);
-
       const { data: jabatans } = await supabase
         .from("master_jabatan")
         .select("*")
@@ -119,28 +109,20 @@ function DaftarAnggota() {
       setLoading(true);
       try {
         let relevantDivisi = [];
-        if (periodeId === "semua") {
-          relevantDivisi = allDivisi;
-        } else {
+        if (periodeId === "semua") relevantDivisi = allDivisi;
+        else
           relevantDivisi = allDivisi.filter(
             (d) => String(d.periode_id) === String(periodeId)
           );
-        }
         setDivisiPerPeriode(relevantDivisi);
 
-        let query = supabase.from("anggota").select(`
-            *, 
-            divisi ( nama_divisi, urutan, logo_url, tipe ), 
-            master_jabatan ( nama_jabatan ),
-            periode_jabatan ( nama_kabinet ) 
-        `);
-
-        if (periodeId !== "semua") {
-          query = query.eq("periode_id", periodeId);
-        }
-
+        let query = supabase
+          .from("anggota")
+          .select(
+            `*, divisi ( nama_divisi, urutan, logo_url, tipe ), master_jabatan ( nama_jabatan ), periode_jabatan ( nama_kabinet )`
+          );
+        if (periodeId !== "semua") query = query.eq("periode_id", periodeId);
         const { data, error } = await query;
-
         if (error) throw error;
         setAnggotaList(data || []);
       } catch (err) {
@@ -153,14 +135,10 @@ function DaftarAnggota() {
   );
 
   useEffect(() => {
-    if (activeTab) {
-      fetchAnggota(activeTab);
-    }
+    if (activeTab) fetchAnggota(activeTab);
   }, [activeTab, fetchAnggota]);
 
-  // --- HANDLERS ---
-
-  // Sort Logic: Ketua -> Wakil -> ... -> Anggota
+  // ... (Sort Logic helper functions tetap sama) ...
   const getJobRank = (jabatan) => {
     const j = jabatan?.toLowerCase() || "";
     if (j.includes("ketua") && !j.includes("wakil")) return 1;
@@ -171,7 +149,6 @@ function DaftarAnggota() {
     if (j.includes("staff ahli")) return 6;
     return 99;
   };
-
   const sortMembers = (members) => {
     return members.sort((a, b) => {
       const rankA = getJobRank(a.master_jabatan?.nama_jabatan);
@@ -180,7 +157,6 @@ function DaftarAnggota() {
       return a.nama.localeCompare(b.nama);
     });
   };
-
   const getModalTitle = () => {
     if (activeModal === "jabatan") return "Kelola Jabatan";
     const action = editingId ? "Edit" : "Tambah";
@@ -188,7 +164,6 @@ function DaftarAnggota() {
       activeModal?.charAt(0).toUpperCase() + activeModal?.slice(1) || ""
     }`;
   };
-
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -196,42 +171,49 @@ function DaftarAnggota() {
       setFormPreview(URL.createObjectURL(file));
     }
   };
-
   const handleFormChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // --- MODAL MANAGEMENT ---
+  // --- MODAL MANAGEMENT (PERBAIKAN UTAMA) ---
   const openModal = (type, item = null) => {
     setActiveModal(type);
     setFormFile(null);
     setFormPreview(null);
 
-    // 1. Reorder Divisi (Modal Khusus)
+    // 1. Reorder & Jabatan
     if (type === "reorder_divisi") {
-      setIsModalOpen(false); // Pastikan modal generic tertutup
+      setIsModalOpen(false);
       return;
     }
-
-    // 2. Jabatan (Modal Generic)
     if (type === "jabatan") {
       setIsModalOpen(true);
       return;
     }
 
-    // 3. Anggota/Divisi (Modal Generic)
+    // 2. Anggota/Divisi (Generic)
     if (item) {
       setEditingId(item.id);
-      setFormData({
-        ...item,
-        divisi_id: item.divisi_id,
-        jabatan_id: item.jabatan_id || "",
-      });
-      if (type === "anggota") setFormPreview(item.foto_url);
-      else if (type === "divisi") setFormPreview(item.logo_url);
+
+      // PERBAIKAN: Handle null value agar input form tidak warning
+      if (type === "anggota") {
+        setFormData({
+          ...item,
+          divisi_id: item.divisi_id || "",
+          jabatan_id: item.jabatan_id || "",
+          instagram_username: item.instagram_username || "", // Handle null
+          motto: item.motto || "", // Handle null
+          alamat: item.alamat || "", // Handle null
+        });
+        setFormPreview(item.foto_url);
+      } else if (type === "divisi") {
+        setFormData({ ...item });
+        setFormPreview(item.logo_url);
+      }
     } else {
       setEditingId(null);
       const targetPeriode = activeTab === "semua" ? "" : activeTab;
+
       if (type === "anggota") {
         setFormData({
           nama: "",
@@ -262,14 +244,13 @@ function DaftarAnggota() {
     setFormData({});
   };
 
-  // --- CRUD ACTIONS ---
+  // --- CRUD ACTIONS (Tetap sama) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
     try {
       let payload = {};
       let table = "";
-
       if (!formData.periode_id)
         throw new Error("Periode Jabatan harus dipilih!");
 
@@ -314,7 +295,6 @@ function DaftarAnggota() {
         const { error } = await supabase.from(table).insert(payload);
         if (error) throw error;
       }
-
       alert("Berhasil disimpan!");
       if (activeModal === "anggota") await fetchAnggota(activeTab);
       else {
@@ -341,7 +321,7 @@ function DaftarAnggota() {
     }
   };
 
-  // --- FILTERING ---
+  // --- FILTERING (Tetap sama) ---
   const filteredAnggota = anggotaList.filter((anggota) => {
     const matchDivisi =
       selectedDivisi === "semua" ||
@@ -367,7 +347,6 @@ function DaftarAnggota() {
 
   return (
     <PageContainer breadcrumbText="Daftar Anggota">
-      {/* --- PAGE HEADER --- */}
       <PageHeader
         title={
           <div
@@ -384,7 +363,6 @@ function DaftarAnggota() {
                 style={{
                   fontSize: "0.6em",
                   color: "#64748b",
-                  fontWeight: "400",
                   backgroundColor: "#f1f5f9",
                   padding: "4px 10px",
                   borderRadius: "20px",
@@ -412,7 +390,6 @@ function DaftarAnggota() {
           </div>
         }
         subtitle="Manajemen personil, struktur divisi, dan jabatan."
-        // ACTIONS (TOMBOL ADMIN) - DIRECT CHILDREN
         actions={
           isAdmin && (
             <>
@@ -462,7 +439,6 @@ function DaftarAnggota() {
             </>
           )
         }
-        // SEARCH BAR (PERSISTENT ITEMS: Kabinet & Layout)
         searchBar={
           <div
             style={{
@@ -472,7 +448,6 @@ function DaftarAnggota() {
               alignItems: "center",
             }}
           >
-            {/* Filter Kabinet */}
             <div style={{ flex: 1, minWidth: "130px" }}>
               <select
                 value={activeTab}
@@ -488,7 +463,6 @@ function DaftarAnggota() {
                   color: "#475569",
                   outline: "none",
                   cursor: "pointer",
-                  textOverflow: "ellipsis",
                 }}
               >
                 <option value="semua">Semua Periode</option>
@@ -499,8 +473,6 @@ function DaftarAnggota() {
                 ))}
               </select>
             </div>
-
-            {/* Layout Toggle */}
             <div
               style={{
                 display: "flex",
@@ -513,15 +485,11 @@ function DaftarAnggota() {
             >
               <button
                 onClick={() => setViewMode("compact")}
-                title="List View"
                 style={{
                   border: "none",
                   borderRadius: "6px",
                   padding: "0 8px",
                   cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
                   backgroundColor:
                     viewMode === "compact" ? "white" : "transparent",
                   color: viewMode === "compact" ? "#2563eb" : "#94a3b8",
@@ -529,22 +497,17 @@ function DaftarAnggota() {
                     viewMode === "compact"
                       ? "0 1px 2px rgba(0,0,0,0.1)"
                       : "none",
-                  transition: "all 0.2s",
                 }}
               >
                 <FiLayout size={16} />
               </button>
               <button
                 onClick={() => setViewMode("aesthetic")}
-                title="Grid View"
                 style={{
                   border: "none",
                   borderRadius: "6px",
                   padding: "0 8px",
                   cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
                   backgroundColor:
                     viewMode === "aesthetic" ? "white" : "transparent",
                   color: viewMode === "aesthetic" ? "#2563eb" : "#94a3b8",
@@ -552,7 +515,6 @@ function DaftarAnggota() {
                     viewMode === "aesthetic"
                       ? "0 1px 2px rgba(0,0,0,0.1)"
                       : "none",
-                  transition: "all 0.2s",
                 }}
               >
                 <FiGrid size={16} />
@@ -560,10 +522,8 @@ function DaftarAnggota() {
             </div>
           </div>
         }
-        // FILTERS (EXPANDABLE ITEMS: Search, Divisi, Gender)
         filters={
           <>
-            {/* Input Search */}
             <div
               style={{
                 width: "100%",
@@ -599,8 +559,6 @@ function DaftarAnggota() {
                 autoFocus
               />
             </div>
-
-            {/* Filter Divisi */}
             <div style={{ flex: 1, minWidth: "150px" }}>
               <FilterSelect
                 label="Filter Divisi"
@@ -615,8 +573,6 @@ function DaftarAnggota() {
                 ))}
               </FilterSelect>
             </div>
-
-            {/* Filter Gender */}
             <div style={{ flex: 1, minWidth: "120px" }}>
               <FilterSelect
                 label="Filter Gender"
@@ -632,7 +588,6 @@ function DaftarAnggota() {
         }
       />
 
-      {/* --- CONTENT AREA --- */}
       {loading ? (
         <AnggotaSkeletonGrid />
       ) : anggotaList.length === 0 ? (
@@ -642,13 +597,10 @@ function DaftarAnggota() {
         </div>
       ) : (
         <div className={styles.contentWrapper}>
-          {/* Loop per Divisi */}
           {sortedDivisiList.map((divisi) => {
             const rawMembers = memberMap[divisi.id] || [];
             const members = sortMembers([...rawMembers]);
-
             if (members.length === 0) return null;
-
             return (
               <section key={divisi.id} className={styles.divisiSection}>
                 <div className={styles.divisiHeader}>
@@ -673,7 +625,6 @@ function DaftarAnggota() {
                       )}
                     </div>
                   </div>
-
                   <div className={styles.divisiActions}>
                     <Link
                       to={`/divisi/${divisi.id}`}
@@ -691,25 +642,23 @@ function DaftarAnggota() {
                     )}
                   </div>
                 </div>
-
                 <div className={styles.cardGrid}>
                   {members.map((anggota) => (
                     <AnggotaCard
                       key={anggota.id}
                       data={anggota}
                       isAdmin={isAdmin}
-                      onEdit={(item) => openModal("anggota", item)}
+                      onEdit={(item) =>
+                        openModal("anggota", item)
+                      } /* LINK PREFILL DATA SUDAH BENAR DISINI */
                       onDelete={(id) => handleDelete("anggota", id)}
-                      showPeriode={activeTab === "semua"}
-                      layout={viewMode} // Pass Layout State
+                      layout={viewMode}
                     />
                   ))}
                 </div>
               </section>
             );
           })}
-
-          {/* Anggota Tanpa Divisi */}
           {memberMap["others"]?.length > 0 && (
             <section className={styles.divisiSection}>
               <div className={styles.divisiHeader}>
@@ -723,7 +672,6 @@ function DaftarAnggota() {
                     isAdmin={isAdmin}
                     onDelete={(id) => handleDelete("anggota", id)}
                     onEdit={(item) => openModal("anggota", item)}
-                    showPeriode={activeTab === "semua"}
                     layout={viewMode}
                   />
                 ))}
@@ -733,9 +681,7 @@ function DaftarAnggota() {
         </div>
       )}
 
-      {/* --- MODALS --- */}
-
-      {/* 1. Generic Modal (Form Anggota/Divisi/Jabatan) */}
+      {/* MODALS */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
         {activeModal === "anggota" && (
           <AnggotaForm
@@ -771,8 +717,6 @@ function DaftarAnggota() {
           />
         )}
       </Modal>
-
-      {/* 2. Modal Reorder Divisi (Render Terpisah) */}
       {activeModal === "reorder_divisi" && (
         <DivisiReorderModal
           isOpen={true}
@@ -782,8 +726,6 @@ function DaftarAnggota() {
           onSuccess={() => fetchInitialData()}
         />
       )}
-
-      {/* 3. Modal Wizard Kabinet */}
       {isWizardOpen && (
         <KabinetWizard
           isOpen={isWizardOpen}
