@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../supabaseClient";
 
-// Reuse CSS yang sudah ada (List Style)
-import styles from "./DivisiReorderModal.module.css";
-// Import Global Form Style (Footer Style)
-import globalFormStyles from "./AdminForm.module.css";
-
 export default function KontenReorderModal({
   isOpen,
   onClose,
@@ -19,7 +14,7 @@ export default function KontenReorderModal({
     if (isOpen) {
       // Sort berdasarkan urutan saat ini
       const sorted = [...contentList].sort(
-        (a, b) => (a.urutan || 99) - (b.urutan || 99)
+        (a, b) => (a.urutan || 99) - (b.urutan || 99),
       );
       setReorderList(sorted);
     }
@@ -72,44 +67,41 @@ export default function KontenReorderModal({
 
   return (
     <div>
-      <p className={styles.instruction}>
+      <p className="text-sm text-slate-500 mb-4 bg-yellow-50 p-2 border border-yellow-100 rounded">
         <strong>Catatan Penting:</strong> Item urutan <strong>No. 1</strong>{" "}
         akan otomatis menjadi <strong>Judul Utama (Hero)</strong> halaman (jika
         fitur Hero diaktifkan).
       </p>
 
       {reorderList.length === 0 ? (
-        <div className={styles.empty}>Tidak ada konten.</div>
+        <div className="text-center py-8 text-slate-400 italic bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+          Tidak ada konten.
+        </div>
       ) : (
-        <div className={styles.list}>
+        <div className="flex flex-col gap-2 mb-6 max-h-[300px] overflow-y-auto pr-1">
           {reorderList.map((item, index) => (
-            <div key={item.id} className={styles.item}>
-              <div className={styles.info}>
-                <div className={styles.number}>{index + 1}</div>
-                <span className={styles.name}>
+            <div
+              key={item.id}
+              className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-md shadow-sm transition-all hover:border-blue-400 hover:shadow-md"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-bold text-xs flex items-center justify-center border border-slate-200">
+                  {index + 1}
+                </div>
+                <span className="font-medium text-slate-700 text-sm flex items-center gap-2">
                   {item.judul}
                   {index === 0 && (
-                    <span
-                      style={{
-                        fontSize: "0.7rem",
-                        color: "#3182ce",
-                        marginLeft: "8px",
-                        background: "#ebf8ff",
-                        padding: "2px 6px",
-                        borderRadius: "4px",
-                        fontWeight: "600",
-                      }}
-                    >
+                    <span className="text-[10px] uppercase font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 mt-[1px]">
                       (HEADER UTAMA)
                     </span>
                   )}
                 </span>
               </div>
 
-              <div className={styles.controls}>
+              <div className="flex gap-1">
                 <button
                   type="button"
-                  className={styles.btnArrow}
+                  className="w-8 h-8 flex items-center justify-center rounded bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-slate-50 transition-colors"
                   onClick={() => moveItem(index, "up")}
                   disabled={index === 0}
                   title="Naikkan"
@@ -118,7 +110,7 @@ export default function KontenReorderModal({
                 </button>
                 <button
                   type="button"
-                  className={styles.btnArrow}
+                  className="w-8 h-8 flex items-center justify-center rounded bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-slate-50 transition-colors"
                   onClick={() => moveItem(index, "down")}
                   disabled={index === reorderList.length - 1}
                   title="Turunkan"
@@ -131,19 +123,19 @@ export default function KontenReorderModal({
         </div>
       )}
 
-      {/* FOOTER MENGGUNAKAN GLOBAL STYLE (CAMELCASE) */}
-      <div className={globalFormStyles.formFooter}>
+      {/* FOOTER */}
+      <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end gap-3">
         <button
           type="button"
           onClick={onClose}
-          className="button button-secondary"
+          className="px-4 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 text-sm font-medium transition-colors"
         >
           Batal
         </button>
         <button
           type="button"
           onClick={handleSave}
-          className="button button-primary"
+          className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-white hover:bg-blue-700 text-sm font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
           disabled={loading}
         >
           {loading ? "Menyimpan..." : "Simpan Urutan"}

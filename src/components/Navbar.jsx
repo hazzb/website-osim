@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import styles from "./Navbar.module.css";
 
 // ICONS
 import {
@@ -59,32 +58,35 @@ const Navbar = () => {
   }, [location]);
 
   return (
-    <nav className={styles.navbar}>
-      <div className={styles.container}>
+    <nav className="sticky top-0 z-[1000] bg-white/85 backdrop-blur-lg border-b border-primary-border/50 shadow-sm transition-all w-full">
+      <div className="max-w-6xl mx-auto px-4 h-14 flex justify-between items-center">
         {/* LEFT SECTION */}
-        <div className={styles.leftSection}>
-          <Link to="/" className={styles.logoLink}>
+        <div className="flex items-center gap-8">
+          <Link to="/" className="flex items-center gap-2.5 no-underline">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className={styles.logoImage} />
-            ) : (
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  background: "#e2e8f0",
-                  borderRadius: "50%",
-                }}
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="w-[30px] h-[30px] object-contain"
               />
+            ) : (
+              <div className="w-[34px] h-[34px] bg-slate-200 rounded-full" />
             )}
-            <span className={styles.logoText}>{orgName}</span>
+            <span className="font-extrabold text-lg tracking-tight bg-gradient-to-br from-secondary to-indigo-600 bg-clip-text text-transparent">
+              {orgName}
+            </span>
           </Link>
 
           {/* Desktop Menu */}
-          <div className={styles.desktopMenu}>
+          <div className="hidden md:flex gap-1 bg-slate-100/50 p-0.5 rounded-full border border-white/50">
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
+                `flex items-center gap-1.5 no-underline font-semibold text-xs px-4 py-1.5 rounded-full transition-all ${
+                  isActive
+                    ? "bg-gradient-to-br from-primary-border to-primary-light text-secondary font-bold shadow-md shadow-primary/15"
+                    : "text-slate-500 hover:text-primary hover:bg-white/80 hover:-translate-y-px"
+                }`
               }
             >
               <FiHome size={18} /> Beranda
@@ -92,7 +94,11 @@ const Navbar = () => {
             <NavLink
               to="/visi-misi"
               className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
+                `flex items-center gap-1.5 no-underline font-semibold text-xs px-4 py-1.5 rounded-full transition-all ${
+                  isActive
+                    ? "bg-gradient-to-br from-primary-border to-primary-light text-secondary font-bold shadow-md shadow-primary/15"
+                    : "text-slate-500 hover:text-primary hover:bg-white/80 hover:-translate-y-px"
+                }`
               }
             >
               <FiTarget size={18} /> Profile
@@ -100,7 +106,11 @@ const Navbar = () => {
             <NavLink
               to="/anggota"
               className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
+                `flex items-center gap-1.5 no-underline font-semibold text-xs px-4 py-1.5 rounded-full transition-all ${
+                  isActive
+                    ? "bg-gradient-to-br from-primary-border to-primary-light text-secondary font-bold shadow-md shadow-primary/15"
+                    : "text-slate-500 hover:text-primary hover:bg-white/80 hover:-translate-y-px"
+                }`
               }
             >
               <FiUsers size={18} /> Anggota
@@ -108,7 +118,11 @@ const Navbar = () => {
             <NavLink
               to="/program-kerja"
               className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ""}`
+                `flex items-center gap-1.5 no-underline font-semibold text-xs px-4 py-1.5 rounded-full transition-all ${
+                  isActive
+                    ? "bg-gradient-to-br from-primary-border to-primary-light text-secondary font-bold shadow-md shadow-primary/15"
+                    : "text-slate-500 hover:text-primary hover:bg-white/80 hover:-translate-y-px"
+                }`
               }
             >
               <FiCalendar size={18} /> Program
@@ -117,28 +131,33 @@ const Navbar = () => {
         </div>
 
         {/* RIGHT SECTION */}
-        <div className={styles.rightSection}>
+        <div className="flex items-center gap-3">
           {isAdmin ? (
             <>
-              <Link to="/dashboard" className={styles.authBtn}>
+              <Link
+                to="/dashboard"
+                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-border bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
+              >
                 <FiLayout /> Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className={styles.authBtn}
-                style={{ color: "#ef4444", borderColor: "#fee2e2" }}
+                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-white shadow-sm text-danger border-danger-border hover:border-danger hover:-translate-y-px"
               >
                 <FiLogOut />
               </button>
             </>
           ) : (
-            <Link to="/login" className={styles.authBtn}>
+            <Link
+              to="/login"
+              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-border bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
+            >
               <FiLogIn /> Login
             </Link>
           )}
 
           <button
-            className={styles.hamburger}
+            className="md:hidden bg-slate-100 border-0 cursor-pointer text-slate-700 p-1.5 rounded-md transition-all hover:bg-slate-200 hover:text-slate-900"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -147,11 +166,19 @@ const Navbar = () => {
       </div>
 
       {/* MOBILE MENU */}
-      <div className={`${styles.mobileMenu} ${isOpen ? styles.show : ""}`}>
+      <div
+        className={`${
+          isOpen ? "flex" : "hidden"
+        } md:hidden flex-col absolute top-14 left-0 w-full z-[999] bg-white border-b border-slate-200 p-4 shadow-xl animate-slideDown`}
+      >
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+            `flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm transition-all ${
+              isActive
+                ? "bg-primary-light text-secondary border-primary-border"
+                : "text-slate-500 hover:bg-slate-50 hover:text-secondary hover:pl-4"
+            }`
           }
         >
           <FiHome /> Beranda
@@ -159,7 +186,11 @@ const Navbar = () => {
         <NavLink
           to="/visi-misi"
           className={({ isActive }) =>
-            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+            `flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm transition-all ${
+              isActive
+                ? "bg-primary-light text-secondary border-primary-border"
+                : "text-slate-500 hover:bg-slate-50 hover:text-secondary hover:pl-4"
+            }`
           }
         >
           <FiTarget /> Profile
@@ -167,7 +198,11 @@ const Navbar = () => {
         <NavLink
           to="/anggota"
           className={({ isActive }) =>
-            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+            `flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm transition-all ${
+              isActive
+                ? "bg-primary-light text-secondary border-primary-border"
+                : "text-slate-500 hover:bg-slate-50 hover:text-secondary hover:pl-4"
+            }`
           }
         >
           <FiUsers /> Daftar Anggota
@@ -175,37 +210,29 @@ const Navbar = () => {
         <NavLink
           to="/program-kerja"
           className={({ isActive }) =>
-            `${styles.mobileLink} ${isActive ? styles.active : ""}`
+            `flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm transition-all ${
+              isActive
+                ? "bg-primary-light text-secondary border-primary-border"
+                : "text-slate-500 hover:bg-slate-50 hover:text-secondary hover:pl-4"
+            }`
           }
         >
           <FiCalendar /> Program Kerja
         </NavLink>
 
-        <div
-          style={{ borderTop: "1px solid #f1f5f9", margin: "0.5rem 0" }}
-        ></div>
+        <div className="border-t border-slate-100 my-2"></div>
 
         {isAdmin ? (
           <>
             <Link
               to="/dashboard"
-              className={styles.mobileLink}
-              style={{ color: "#2563eb" }}
+              className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm text-blue-600 hover:bg-slate-50 transition-all"
             >
               <FiLayout /> Dashboard Admin
             </Link>
             <button
               onClick={handleLogout}
-              className={styles.mobileLink}
-              style={{
-                color: "#ef4444",
-                width: "100%",
-                background: "none",
-                border: "none",
-                textAlign: "left",
-                paddingLeft: "1rem",
-                cursor: "pointer",
-              }}
+              className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg font-semibold text-sm text-danger w-full bg-transparent border-0 text-left cursor-pointer hover:bg-slate-50 transition-all"
             >
               <FiLogOut /> Logout
             </button>
@@ -213,8 +240,7 @@ const Navbar = () => {
         ) : (
           <Link
             to="/login"
-            className={styles.mobileLink}
-            style={{ color: "#475569" }}
+            className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm text-slate-600 hover:bg-slate-50 transition-all"
           >
             <FiLogIn /> Login Admin
           </Link>

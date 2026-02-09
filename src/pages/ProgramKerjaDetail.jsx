@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import DOMPurify from "dompurify";
-import styles from "./ProgramKerjaDetail.module.css";
+// import styles from "./ProgramKerjaDetail.module.css"; // REMOVED
 
 // ICONS
 import {
@@ -51,7 +51,7 @@ function ProgramKerjaDetail() {
       const { data, error } = await supabase
         .from("program_kerja")
         .select(
-          `*, divisi:divisi_id (nama_divisi), pj:penanggung_jawab_id (nama)`
+          `*, divisi:divisi_id (nama_divisi), pj:penanggung_jawab_id (nama)`,
         )
         .eq("id", id)
         .single();
@@ -146,7 +146,7 @@ function ProgramKerjaDetail() {
   if (loading) return <LoadingState />;
   if (!progja)
     return (
-      <div style={{ textAlign: "center", marginTop: "3rem", color: "#ef4444" }}>
+      <div className="text-center mt-12 text-red-500 font-medium">
         Data tidak ditemukan
       </div>
     );
@@ -174,30 +174,30 @@ function ProgramKerjaDetail() {
         subtitle="Informasi lengkap kegiatan."
         // CUSTOM TOOLBAR (Slot SearchBar)
         searchBar={
-          <div className={styles.headerToolbar}>
+          <div className="flex items-center justify-between w-full gap-2.5 mt-1 sm:mt-0">
             <button
-              className={styles.actionBtn}
+              className="flex items-center justify-center gap-2 px-4 h-10 bg-white border border-slate-200 rounded-lg text-slate-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-slate-50 hover:text-slate-800 transition-all sm:w-auto w-10 p-0 sm:px-4"
               onClick={() => navigate(-1)}
               title="Kembali"
             >
-              <FiArrowLeft /> <span className={styles.hideMobile}>Kembali</span>
+              <FiArrowLeft /> <span className="hidden sm:inline">Kembali</span>
             </button>
 
             {isAdmin && (
-              <div className={styles.rightActions}>
+              <div className="flex items-center gap-2">
                 <button
-                  className={`${styles.actionBtn} ${styles.editBtn}`}
+                  className="flex items-center justify-center gap-2 px-4 h-10 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-blue-100 hover:border-blue-400 transition-all sm:w-auto w-10 p-0 sm:px-4"
                   onClick={handleEdit}
                   title="Edit"
                 >
-                  <FiEdit /> <span className={styles.hideMobile}>Edit</span>
+                  <FiEdit /> <span className="hidden sm:inline">Edit</span>
                 </button>
                 <button
-                  className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                  className="flex items-center justify-center gap-2 px-4 h-10 bg-red-50 border border-red-200 rounded-lg text-red-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-red-100 hover:border-red-400 transition-all sm:w-auto w-10 p-0 sm:px-4"
                   onClick={handleDelete}
                   title="Hapus"
                 >
-                  <FiTrash2 /> <span className={styles.hideMobile}>Hapus</span>
+                  <FiTrash2 /> <span className="hidden sm:inline">Hapus</span>
                 </button>
               </div>
             )}
@@ -206,10 +206,10 @@ function ProgramKerjaDetail() {
         actions={null}
       />
 
-      <div className={styles.contentCard}>
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mt-4">
         {progja.embed_html && (
-          <div className={styles.mediaContainer}>
-            <div className={styles.embedWrapper}>
+          <div className="bg-black flex justify-center items-center p-8 min-h-[300px]">
+            <div className="bg-white rounded-lg overflow-hidden max-w-[500px] w-full">
               <div
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(progja.embed_html, {
@@ -233,56 +233,68 @@ function ProgramKerjaDetail() {
           </div>
         )}
 
-        <div className={styles.headerInfo}>
-          <h1 className={styles.title}>{progja.nama_acara}</h1>
+        <div className="p-6 md:p-10 bg-slate-50 border-b border-slate-200">
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-6 leading-tight">
+            {progja.nama_acara}
+          </h1>
 
-          <div className={styles.metaGrid}>
+          <div className="flex flex-wrap gap-8">
             {/* Waktu */}
-            <div className={styles.metaItem}>
-              <div className={styles.iconBox}>
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
                 <FiCalendar />
               </div>
               <div>
-                <span className={styles.metaLabel}>Waktu Pelaksanaan</span>
-                <span className={styles.metaValue}>{formattedDate}</span>
+                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+                  Waktu Pelaksanaan
+                </span>
+                <span className="block text-base font-semibold text-slate-700">
+                  {formattedDate}
+                </span>
               </div>
             </div>
 
             {/* Divisi */}
-            <div className={styles.metaItem}>
-              <div className={styles.iconBox}>
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
                 <FiBriefcase />
               </div>
               <div>
-                <span className={styles.metaLabel}>Divisi Pelaksana</span>
-                <span className={styles.metaValue} style={{ color: "#3182ce" }}>
+                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+                  Divisi Pelaksana
+                </span>
+                <span className="block text-base font-semibold text-blue-600">
                   {progja.divisi?.nama_divisi || "Umum"}
                 </span>
               </div>
             </div>
 
             {/* Penanggung Jawab */}
-            <div className={styles.metaItem}>
-              <div className={styles.iconBox}>
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
                 <FiUser />
               </div>
               <div>
-                <span className={styles.metaLabel}>Penanggung Jawab</span>
-                <span className={styles.metaValue}>
+                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+                  Penanggung Jawab
+                </span>
+                <span className="block text-base font-semibold text-slate-700">
                   {progja.pj?.nama || "-"}
                 </span>
               </div>
             </div>
 
             {/* BARU: Target Peserta */}
-            <div className={styles.metaItem}>
-              <div className={styles.iconBox}>
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
                 <FiUsers />
               </div>
               <div>
-                <span className={styles.metaLabel}>Target Peserta</span>
+                <span className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">
+                  Target Peserta
+                </span>
                 <span
-                  className={styles.metaValue}
+                  className="block text-base font-semibold"
                   style={{ color: getGenderColor(progja.target_gender) }}
                 >
                   {progja.target_gender || "Umum"}
@@ -292,25 +304,27 @@ function ProgramKerjaDetail() {
           </div>
         </div>
 
-        <div className={styles.bodySection}>
-          <h3 className={styles.descTitle}>Deskripsi Kegiatan</h3>
+        <div className="p-8 md:p-10">
+          <h3 className="text-lg font-bold text-slate-800 mb-4">
+            Deskripsi Kegiatan
+          </h3>
           {progja.deskripsi ? (
-            <div className={styles.descContent}>
+            <div className="text-base leading-loose text-slate-600 space-y-4">
               {progja.deskripsi.split("\n").map((paragraph, idx) => (
                 <p key={idx}>{paragraph}</p>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyDesc}>Tidak ada deskripsi detail.</p>
+            <p className="text-slate-400 italic">Tidak ada deskripsi detail.</p>
           )}
 
           {progja.link_dokumentasi && (
-            <div className={styles.docSection}>
+            <div className="mt-8 pt-6 border-t border-slate-100">
               <a
                 href={progja.link_dokumentasi}
                 target="_blank"
                 rel="noreferrer"
-                className={styles.docLink}
+                className="inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-blue-50 text-blue-600 font-semibold hover:bg-blue-100 hover:text-blue-700 transition-colors border border-transparent"
               >
                 <FiExternalLink /> Lihat Dokumentasi Lengkap
               </a>

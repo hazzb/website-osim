@@ -3,7 +3,6 @@ import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
-// ... (Import Components & Styles sama seperti sebelumnya) ...
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
 import PageHeader from "../components/ui/PageHeader.jsx";
@@ -19,7 +18,6 @@ import DivisiReorderModal from "../components/admin/DivisiReorderModal.jsx";
 import JabatanManager from "../components/admin/JabatanManager.jsx";
 import KabinetWizard from "../components/admin/KabinetWizard.jsx";
 
-import styles from "./DaftarAnggota.module.css";
 import { uploadImage } from "../utils/uploadHelper";
 import {
   FiSearch,
@@ -67,7 +65,7 @@ function DaftarAnggota() {
   // ... (activePeriodeData, fetchInitialData, fetchAnggota, useEffects tetap sama) ...
   // [JANGAN DIHAPUS BAGIAN FETCH DATA YANG SUDAH ADA]
   const activePeriodeData = periodeList.find(
-    (p) => String(p.id) === String(activeTab)
+    (p) => String(p.id) === String(activeTab),
   );
 
   const fetchInitialData = useCallback(async () => {
@@ -112,14 +110,14 @@ function DaftarAnggota() {
         if (periodeId === "semua") relevantDivisi = allDivisi;
         else
           relevantDivisi = allDivisi.filter(
-            (d) => String(d.periode_id) === String(periodeId)
+            (d) => String(d.periode_id) === String(periodeId),
           );
         setDivisiPerPeriode(relevantDivisi);
 
         let query = supabase
           .from("anggota")
           .select(
-            `*, divisi ( nama_divisi, urutan, logo_url, tipe ), master_jabatan ( nama_jabatan ), periode_jabatan ( nama_kabinet )`
+            `*, divisi ( nama_divisi, urutan, logo_url, tipe ), master_jabatan ( nama_jabatan ), periode_jabatan ( nama_kabinet )`,
           );
         if (periodeId !== "semua") query = query.eq("periode_id", periodeId);
         const { data, error } = await query;
@@ -131,7 +129,7 @@ function DaftarAnggota() {
         setLoading(false);
       }
     },
-    [allDivisi]
+    [allDivisi],
   );
 
   useEffect(() => {
@@ -342,47 +340,22 @@ function DaftarAnggota() {
   });
 
   const sortedDivisiList = [...divisiPerPeriode].sort(
-    (a, b) => (a.urutan || 99) - (b.urutan || 99)
+    (a, b) => (a.urutan || 99) - (b.urutan || 99),
   );
 
   return (
     <PageContainer breadcrumbText="Daftar Anggota">
       <PageHeader
         title={
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}
-          >
+          <div className="flex items-center flex-wrap gap-2">
             <span>Daftar Anggota</span>
             {activeTab === "semua" ? (
-              <span
-                style={{
-                  fontSize: "0.6em",
-                  color: "#64748b",
-                  backgroundColor: "#f1f5f9",
-                  padding: "4px 10px",
-                  borderRadius: "20px",
-                }}
-              >
+              <span className="text-[0.6em] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                 Semua Periode
               </span>
             ) : (
               activePeriodeData && (
-                <span
-                  style={{
-                    fontSize: "0.6em",
-                    color: "#2563eb",
-                    fontWeight: "600",
-                    backgroundColor: "#eff6ff",
-                    padding: "4px 12px",
-                    borderRadius: "20px",
-                    border: "1px solid #bfdbfe",
-                  }}
-                >
+                <span className="text-[0.6em] text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
                   {activePeriodeData.nama_kabinet}
                 </span>
               )
@@ -395,11 +368,11 @@ function DaftarAnggota() {
             <>
               <button
                 onClick={() => navigate("/kelola-anggota")}
-                className="button button-secondary"
+                className="button button-secondary" // Reusing global utility class but keeping logic
                 title="Database"
               >
                 <FiDatabase />{" "}
-                <span style={{ display: "inline-block" }}>Database</span>
+                <span className="hidden sm:inline">Database</span>
               </button>
               <button
                 onClick={() => openModal("anggota")}
@@ -440,30 +413,12 @@ function DaftarAnggota() {
           )
         }
         searchBar={
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              width: "100%",
-              alignItems: "center",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: "130px" }}>
+          <div className="flex gap-2 w-full items-center">
+            <div className="flex-1 min-w-[130px]">
               <select
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "40px",
-                  padding: "0 0.5rem",
-                  border: "1px solid #cbd5e0",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  backgroundColor: "white",
-                  color: "#475569",
-                  outline: "none",
-                  cursor: "pointer",
-                }}
+                className="w-full h-10 px-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer"
               >
                 <option value="semua">Semua Periode</option>
                 {periodeList.map((p) => (
@@ -473,49 +428,16 @@ function DaftarAnggota() {
                 ))}
               </select>
             </div>
-            <div
-              style={{
-                display: "flex",
-                backgroundColor: "#f1f5f9",
-                padding: "3px",
-                borderRadius: "8px",
-                height: "40px",
-                flexShrink: 0,
-              }}
-            >
+            <div className="flex bg-slate-100 p-1 rounded-lg h-10 shrink-0 gap-0.5 border border-slate-200">
               <button
                 onClick={() => setViewMode("compact")}
-                style={{
-                  border: "none",
-                  borderRadius: "6px",
-                  padding: "0 8px",
-                  cursor: "pointer",
-                  backgroundColor:
-                    viewMode === "compact" ? "white" : "transparent",
-                  color: viewMode === "compact" ? "#2563eb" : "#94a3b8",
-                  boxShadow:
-                    viewMode === "compact"
-                      ? "0 1px 2px rgba(0,0,0,0.1)"
-                      : "none",
-                }}
+                className={`border-none rounded-md px-2 cursor-pointer flex items-center justify-center transition-all ${viewMode === "compact" ? "bg-white text-blue-600 shadow-sm" : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"}`}
               >
                 <FiLayout size={16} />
               </button>
               <button
                 onClick={() => setViewMode("aesthetic")}
-                style={{
-                  border: "none",
-                  borderRadius: "6px",
-                  padding: "0 8px",
-                  cursor: "pointer",
-                  backgroundColor:
-                    viewMode === "aesthetic" ? "white" : "transparent",
-                  color: viewMode === "aesthetic" ? "#2563eb" : "#94a3b8",
-                  boxShadow:
-                    viewMode === "aesthetic"
-                      ? "0 1px 2px rgba(0,0,0,0.1)"
-                      : "none",
-                }}
+                className={`border-none rounded-md px-2 cursor-pointer flex items-center justify-center transition-all ${viewMode === "aesthetic" ? "bg-white text-blue-600 shadow-sm" : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"}`}
               >
                 <FiGrid size={16} />
               </button>
@@ -524,42 +446,18 @@ function DaftarAnggota() {
         }
         filters={
           <>
-            <div
-              style={{
-                width: "100%",
-                marginBottom: "0.5rem",
-                paddingBottom: "0.5rem",
-                borderBottom: "1px dashed #e2e8f0",
-                position: "relative",
-              }}
-            >
-              <FiSearch
-                style={{
-                  position: "absolute",
-                  left: "12px",
-                  top: "40%",
-                  transform: "translateY(-50%)",
-                  color: "#94a3b8",
-                }}
-              />
+            <div className="w-full mb-2 pb-2 border-b border-dashed border-slate-200 relative">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Ketik nama anggota..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: "40px",
-                  padding: "0 0.8rem 0 2.5rem",
-                  border: "1px solid #cbd5e0",
-                  borderRadius: "8px",
-                  fontSize: "0.9rem",
-                  outline: "none",
-                }}
+                className="w-full h-10 pl-10 pr-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
                 autoFocus
               />
             </div>
-            <div style={{ flex: 1, minWidth: "150px" }}>
+            <div className="flex-1 min-w-[150px]">
               <FilterSelect
                 label="Filter Divisi"
                 value={selectedDivisi}
@@ -573,7 +471,7 @@ function DaftarAnggota() {
                 ))}
               </FilterSelect>
             </div>
-            <div style={{ flex: 1, minWidth: "120px" }}>
+            <div className="flex-1 min-w-[120px]">
               <FilterSelect
                 label="Filter Gender"
                 value={selectedGender}
@@ -591,66 +489,70 @@ function DaftarAnggota() {
       {loading ? (
         <AnggotaSkeletonGrid />
       ) : anggotaList.length === 0 ? (
-        <div className={styles.emptyState}>
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📂</div>
-          <p>Belum ada data anggota di periode ini.</p>
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-4 grayscale opacity-50">📂</div>
+          <p className="font-medium">Belum ada data anggota di periode ini.</p>
         </div>
       ) : (
-        <div className={styles.contentWrapper}>
+        <div className="flex flex-col gap-8 pt-6 pb-20">
           {sortedDivisiList.map((divisi) => {
             const rawMembers = memberMap[divisi.id] || [];
             const members = sortMembers([...rawMembers]);
             if (members.length === 0) return null;
             return (
-              <section key={divisi.id} className={styles.divisiSection}>
-                <div className={styles.divisiHeader}>
-                  <div className={styles.divisiTitleGroup}>
+              <section
+                key={divisi.id}
+                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
                     {divisi.logo_url ? (
                       <img
                         src={divisi.logo_url}
                         alt="logo"
-                        className={styles.divisiLogo}
+                        className="w-12 h-12 object-cover rounded-xl bg-slate-50 border border-slate-100"
                       />
                     ) : (
-                      <div className={styles.divisiLogoPlaceholder}>
+                      <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center font-bold text-slate-400 text-xl border border-slate-200">
                         {divisi.nama_divisi.charAt(0)}
                       </div>
                     )}
                     <div>
-                      <h3 className={styles.divisiTitle}>
+                      <h3 className="text-lg font-bold text-slate-800 m-0 leading-tight">
                         {divisi.nama_divisi}
                       </h3>
                       {divisi.tipe === "Inti" && (
-                        <span className={styles.badgeInti}>BPH / INTI</span>
+                        <span className="bg-red-50 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 inline-block border border-red-100">
+                          BPH / INTI
+                        </span>
                       )}
                     </div>
                   </div>
-                  <div className={styles.divisiActions}>
+                  <div className="flex items-center gap-2">
                     <Link
                       to={`/divisi/${divisi.id}`}
-                      className={styles.linkDetail}
+                      className="inline-flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline"
                     >
                       Detail <FiArrowRight />
                     </Link>
                     {isAdmin && (
                       <button
                         onClick={() => openModal("divisi", divisi)}
-                        className={styles.btnIconEdit}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                        title="Edit Divisi"
                       >
-                        <FiEdit />
+                        <FiEdit size={16} />
                       </button>
                     )}
                   </div>
                 </div>
-                <div className={styles.cardGrid}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {members.map((anggota) => (
                     <AnggotaCard
                       key={anggota.id}
                       data={anggota}
                       isAdmin={isAdmin}
-                      onEdit={(item) =>
-                        openModal("anggota", item)
-                      } /* LINK PREFILL DATA SUDAH BENAR DISINI */
+                      onEdit={(item) => openModal("anggota", item)}
                       onDelete={(id) => handleDelete("anggota", id)}
                       layout={viewMode}
                     />
@@ -660,11 +562,13 @@ function DaftarAnggota() {
             );
           })}
           {memberMap["others"]?.length > 0 && (
-            <section className={styles.divisiSection}>
-              <div className={styles.divisiHeader}>
-                <h3 className={styles.divisiTitle}>Lainnya / Tanpa Divisi</h3>
+            <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                <h3 className="text-lg font-bold text-slate-800 m-0">
+                  Lainnya / Tanpa Divisi
+                </h3>
               </div>
-              <div className={styles.cardGrid}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {sortMembers([...memberMap["others"]]).map((m) => (
                   <AnggotaCard
                     key={m.id}

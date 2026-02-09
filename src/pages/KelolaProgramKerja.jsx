@@ -8,10 +8,9 @@ import PageHeader from "../components/ui/PageHeader.jsx";
 import Modal from "../components/Modal.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
-import { FilterSelect } from "../components/ui/FilterBar.jsx"; // Import FilterSelect
+import { FilterSelect } from "../components/ui/FilterBar.jsx";
 
-// Styles & Icons
-import tableStyles from "../components/admin/AdminTable.module.css";
+// Icons
 import {
   FiPlus,
   FiEdit,
@@ -24,7 +23,6 @@ import {
 
 function KelolaProgramKerja() {
   // --- STATE FILTER ---
-  // Default "" artinya menampilkan SEMUA data
   const [selectedPeriodeId, setSelectedPeriodeId] = useState("");
 
   // --- 1. SETUP TABLE HOOK ---
@@ -44,7 +42,6 @@ function KelolaProgramKerja() {
     searchColumn: "nama_acara",
     select: "*, divisi(nama_divisi), periode_jabatan(nama_kabinet)",
     defaultOrder: { column: "tanggal", ascending: false },
-    // Tambahkan filter dinamis ke sini
     filters: selectedPeriodeId ? { periode_id: selectedPeriodeId } : {},
   });
 
@@ -59,14 +56,23 @@ function KelolaProgramKerja() {
   const [divisiList, setDivisiList] = useState([]);
   const [anggotaList, setAnggotaList] = useState([]);
 
-  // Fetch Dropdowns (Sekali saja saat mount)
+  // Fetch Dropdowns
   useEffect(() => {
     const fetchDropdowns = async () => {
-      const { data: p } = await supabase.from("periode_jabatan").select("id, nama_kabinet").order("tahun_mulai", { ascending: false });
+      const { data: p } = await supabase
+        .from("periode_jabatan")
+        .select("id, nama_kabinet")
+        .order("tahun_mulai", { ascending: false });
       setPeriodeList(p || []);
-      const { data: d } = await supabase.from("divisi").select("id, nama_divisi").order("nama_divisi");
+      const { data: d } = await supabase
+        .from("divisi")
+        .select("id, nama_divisi")
+        .order("nama_divisi");
       setDivisiList(d || []);
-      const { data: a } = await supabase.from("anggota").select("id, nama").order("nama");
+      const { data: a } = await supabase
+        .from("anggota")
+        .select("id, nama")
+        .order("nama");
       setAnggotaList(a || []);
     };
     fetchDropdowns();
@@ -83,7 +89,7 @@ function KelolaProgramKerja() {
         nama_acara: "",
         status: "Rencana",
         tanggal: "",
-        periode_id: selectedPeriodeId || "", // Auto-fill jika sedang filter periode tertentu
+        periode_id: selectedPeriodeId || "",
         divisi_id: "",
         penanggung_jawab_id: "",
         deskripsi: "",
@@ -102,11 +108,15 @@ function KelolaProgramKerja() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      if (editingId) await supabase.from("program_kerja").update(formData).eq("id", editingId);
+      if (editingId)
+        await supabase
+          .from("program_kerja")
+          .update(formData)
+          .eq("id", editingId);
       else await supabase.from("program_kerja").insert(formData);
-      
+
       setIsModalOpen(false);
-      refreshData(); 
+      refreshData();
       alert("Berhasil disimpan!");
     } catch (err) {
       alert("Error: " + err.message);
@@ -115,42 +125,62 @@ function KelolaProgramKerja() {
     }
   };
 
+  // Helper for Status Badge
+  const getStatusBadge = (status) => {
+    let classes = "bg-slate-100 text-slate-600";
+    let icon = <FiClock />;
+
+    if (status === "Selesai") {
+      classes = "bg-green-100 text-green-700";
+      icon = <FiCheckCircle />;
+    } else if (status === "Berjalan") {
+      classes = "bg-blue-100 text-blue-700";
+      icon = <FiActivity />;
+    }
+
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${classes}`}
+      >
+        {icon} {status}
+      </span>
+    );
+  };
+
   // --- RENDER ---
   return (
     <PageContainer breadcrumbText="Kelola Program Kerja">
-      
       <PageHeader
         title="Kelola Program Kerja"
         subtitle="Database seluruh kegiatan organisasi."
-        
         // Actions
         actions={
           <button
             onClick={() => openModal()}
-            className="button button-primary"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors shadow-sm"
           >
             <FiPlus /> Tambah Progja
           </button>
         }
-
         // Search Bar (Kiri)
         searchBar={
-          <div style={{ position: "relative", width: "100%" }}>
-            <FiSearch style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+          <div className="relative w-full">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Cari nama acara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "0 0.8rem 0 2rem", height: "34px", border: "1px solid #cbd5e0", borderRadius: "6px", fontSize: "0.85rem", outline: "none" }}
+              className="w-full pl-9 pr-4 h-[38px] border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
             />
           </div>
         }
-
         // Filters (Dropdown Periode)
         filters={
-          <div style={{ minWidth: '200px' }}>
+          <div className="min-w-[200px]">
+            {/* Note: FilterSelect internally renders a Select, assuming it accepts standard props or className? 
+                 If FilterSelect is custom, we hope it looks good. If not, we might need to check FilterBar.jsx.
+                 But preserving existing functionality is safer. */}
             <FilterSelect
               label="Filter Periode"
               value={selectedPeriodeId}
@@ -167,47 +197,88 @@ function KelolaProgramKerja() {
         }
       />
 
-      {error && <div style={{ color: "red", margin: "1rem 0" }}>{error}</div>}
+      {error && (
+        <div className="text-red-500 my-4 bg-red-50 p-3 rounded-lg border border-red-200">
+          {error}
+        </div>
+      )}
 
       {/* TABLE CONTENT */}
       {loading ? (
         <LoadingState message="Memuat data..." />
       ) : (
-        <div className={tableStyles.tableContainer}>
-          <table className={tableStyles.table}>
+        <div className="w-full overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm">
+          <table className="w-full border-collapse min-w-[1000px]">
             <thead>
-              <tr>
-                <th>Nama Acara</th>
-                <th>Divisi</th>
-                <th>Periode</th>
-                <th>Status</th>
-                <th>Tanggal</th>
-                <th style={{ textAlign: "right" }}>Aksi</th>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="p-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Nama Acara
+                </th>
+                <th className="p-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Divisi
+                </th>
+                <th className="p-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Periode
+                </th>
+                <th className="p-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Status
+                </th>
+                <th className="p-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Tanggal
+                </th>
+                <th className="p-4 text-right text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody>
               {progjaList.length === 0 ? (
-                <tr><td colSpan="6" style={{textAlign:'center', padding:'2rem', color:'#64748b'}}>Tidak ada data program kerja.</td></tr>
+                <tr>
+                  <td colSpan="6" className="text-center p-8 text-slate-400">
+                    Tidak ada data program kerja.
+                  </td>
+                </tr>
               ) : (
                 progjaList.map((item) => (
-                  <tr key={item.id}>
-                    <td><strong>{item.nama_acara}</strong></td>
-                    <td>{item.divisi?.nama_divisi || "-"}</td>
-                    <td>{item.periode_jabatan?.nama_kabinet || "-"}</td>
-                    <td>
-                      <span className={`${tableStyles.badge} ${
-                        item.status === 'Selesai' ? tableStyles.badgeSuccess : 
-                        item.status === 'Berjalan' ? tableStyles.badgeWarning : tableStyles.badgeGray
-                      }`}>
-                        {item.status === 'Selesai' ? <FiCheckCircle/> : item.status === 'Berjalan' ? <FiActivity/> : <FiClock/>} 
-                        {item.status}
-                      </span>
+                  <tr
+                    key={item.id}
+                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-0"
+                  >
+                    <td className="p-4 align-middle text-sm text-slate-800 font-semibold">
+                      {item.nama_acara}
                     </td>
-                    <td>{new Date(item.tanggal).toLocaleDateString("id-ID")}</td>
-                    <td>
-                      <div className={tableStyles.actionCell}>
-                        <button onClick={() => openModal(item)} className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}><FiEdit /></button>
-                        <button onClick={() => handleDelete(item.id)} className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}><FiTrash2 /></button>
+                    <td className="p-4 align-middle text-sm text-slate-600">
+                      {item.divisi?.nama_divisi || "-"}
+                    </td>
+                    <td className="p-4 align-middle text-sm text-slate-600">
+                      {item.periode_jabatan?.nama_kabinet || "-"}
+                    </td>
+                    <td className="p-4 align-middle">
+                      {getStatusBadge(item.status)}
+                    </td>
+                    <td className="p-4 align-middle text-sm text-slate-600">
+                      {new Date(item.tanggal).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => openModal(item)}
+                          className="p-1.5 rounded-md border border-slate-200 bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                          title="Edit"
+                        >
+                          <FiEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-1.5 rounded-md border border-slate-200 bg-white text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+                          title="Hapus"
+                        >
+                          <FiTrash2 />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -220,11 +291,25 @@ function KelolaProgramKerja() {
 
       {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className={tableStyles.paginationContainer}>
-          <span>Halaman {currentPage} dari {totalPages}</span>
-          <div className={tableStyles.paginationButtons}>
-            <button className={tableStyles.paginationButton} onClick={() => setCurrentPage((p) => p - 1)} disabled={currentPage === 1}>Prev</button>
-            <button className={tableStyles.paginationButton} onClick={() => setCurrentPage((p) => p + 1)} disabled={currentPage === totalPages}>Next</button>
+        <div className="flex justify-between items-center mt-6 px-2">
+          <span className="text-sm text-slate-500">
+            Halaman {currentPage} dari {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              className="px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              onClick={() => setCurrentPage((p) => p - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            <button
+              className="px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              onClick={() => setCurrentPage((p) => p + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

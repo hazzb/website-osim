@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import styles from "./ProgramKerja.module.css";
+// import styles from "./ProgramKerja.module.css"; // REMOVED
 import { ProgjaSkeletonGrid } from "../components/ui/Skeletons.jsx";
 
-import { FiPlus, FiSearch } from "react-icons/fi";
+import {
+  FiPlus,
+  FiSearch,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
 
 import PageContainer from "../components/ui/PageContainer.jsx";
 import PageHeader from "../components/ui/PageHeader.jsx";
@@ -20,6 +25,10 @@ function ProgramKerja() {
   const [progjaList, setProgjaList] = useState([]);
   const [filteredProgja, setFilteredProgja] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   // Filters State
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,7 +97,7 @@ function ProgramKerja() {
           *,
           divisi:divisi_id (nama_divisi),
           pj:penanggung_jawab_id (nama)
-        `
+        `,
         )
         .order("tanggal", { ascending: false });
 
@@ -114,11 +123,11 @@ function ProgramKerja() {
       result = result.filter((item) => item.periode_id == filterPeriode);
     if (searchTerm)
       result = result.filter((item) =>
-        item.nama_acara.toLowerCase().includes(searchTerm.toLowerCase())
+        item.nama_acara.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     if (startDate)
       result = result.filter(
-        (item) => item.tanggal && item.tanggal >= startDate
+        (item) => item.tanggal && item.tanggal >= startDate,
       );
     if (endDate)
       result = result.filter((item) => item.tanggal && item.tanggal <= endDate);
@@ -140,6 +149,17 @@ function ProgramKerja() {
     filterStatus,
     filterGender,
   ]);
+
+  // Reset pagination when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredProgja]);
+
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProgja.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProgja.length / itemsPerPage);
 
   // --- HANDLERS ---
   const handleOpenModal = (item = null) => {
@@ -208,35 +228,31 @@ function ProgramKerja() {
         subtitle="Agenda kegiatan dan proker organisasi."
         // 1. SEARCH BAR (PALING ATAS)
         searchBar={
-          <div style={{ position: "relative", width: "100%" }}>
+          <div className="relative w-full">
             <FiSearch
-              style={{
-                position: "absolute",
-                left: 12,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#94a3b8",
-              }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={16}
             />
             <input
               placeholder="Cari program kerja..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
+              className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 placeholder:text-slate-400"
             />
           </div>
         }
         // 2. FILTERS (SEMUA DIPERLIHATKAN)
         filters={
-          <div className={styles.filterContainer}>
+          <div className="flex flex-wrap gap-4 w-full items-end">
             {/* Periode */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Periode</label>
+            <div className="flex flex-col gap-1 flex-1 min-w-[140px] sm:flex-basis-[48%]">
+              <label className="text-xs font-semibold text-slate-500 ml-0.5">
+                Periode
+              </label>
               <select
                 value={filterPeriode}
                 onChange={(e) => setFilterPeriode(e.target.value)}
-                className={styles.filterSelect}
+                className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white text-slate-700 text-xs transition-colors focus:outline-none focus:border-blue-500"
               >
                 {periodeOptions.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -247,32 +263,36 @@ function ProgramKerja() {
             </div>
 
             {/* Rentang Tanggal (Lebih Lebar) */}
-            <div className={`${styles.filterGroup} ${styles.filterGroupDate}`}>
-              <label className={styles.filterLabel}>Rentang Tanggal</label>
-              <div className={styles.dateRangeWrapper}>
+            <div className="flex flex-col gap-1 flex-[2] min-w-[250px] w-full sm:flex-basis-full">
+              <label className="text-xs font-semibold text-slate-500 ml-0.5">
+                Rentang Tanggal
+              </label>
+              <div className="flex items-center gap-2 w-full">
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className={styles.filterInput}
+                  className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white text-slate-700 text-xs transition-colors focus:outline-none focus:border-blue-500"
                 />
-                <span className={styles.dateSeparator}>-</span>
+                <span className="text-slate-400 text-sm">-</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className={styles.filterInput}
+                  className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white text-slate-700 text-xs transition-colors focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
 
             {/* Divisi */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Divisi</label>
+            <div className="flex flex-col gap-1 flex-1 min-w-[140px] sm:flex-basis-[48%]">
+              <label className="text-xs font-semibold text-slate-500 ml-0.5">
+                Divisi
+              </label>
               <select
                 value={filterDivisi}
                 onChange={(e) => setFilterDivisi(e.target.value)}
-                className={styles.filterSelect}
+                className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white text-slate-700 text-xs transition-colors focus:outline-none focus:border-blue-500"
               >
                 <option value="">Semua Divisi</option>
                 {divisiOptions.map((d) => (
@@ -284,12 +304,14 @@ function ProgramKerja() {
             </div>
 
             {/* Status */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Status</label>
+            <div className="flex flex-col gap-1 flex-1 min-w-[140px] sm:flex-basis-[48%]">
+              <label className="text-xs font-semibold text-slate-500 ml-0.5">
+                Status
+              </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className={styles.filterSelect}
+                className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white text-slate-700 text-xs transition-colors focus:outline-none focus:border-blue-500"
               >
                 <option value="">Semua Status</option>
                 <option value="Rencana">Rencana</option>
@@ -298,12 +320,14 @@ function ProgramKerja() {
             </div>
 
             {/* Target */}
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Target</label>
+            <div className="flex flex-col gap-1 flex-1 min-w-[140px] sm:flex-basis-[48%]">
+              <label className="text-xs font-semibold text-slate-500 ml-0.5">
+                Target
+              </label>
               <select
                 value={filterGender}
                 onChange={(e) => setFilterGender(e.target.value)}
-                className={styles.filterSelect}
+                className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white text-slate-700 text-xs transition-colors focus:outline-none focus:border-blue-500"
               >
                 <option value="">Semua Target</option>
                 <option value="Ikhwan">Ikhwan</option>
@@ -317,10 +341,10 @@ function ProgramKerja() {
         actions={
           isAdmin && (
             <button
-              className="button button-primary"
+              className="px-5 py-2.5 bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-600 hover:-translate-y-0.5 transition-all text-sm font-semibold flex items-center gap-2"
               onClick={() => handleOpenModal()}
             >
-              <FiPlus /> Tambah
+              <FiPlus size={18} /> Tambah
             </button>
           )
         }
@@ -329,35 +353,72 @@ function ProgramKerja() {
       {loading ? (
         <ProgjaSkeletonGrid />
       ) : (
-        <div className={styles.masonryGrid}>
-          {filteredProgja.map((progja) => (
-            <div key={progja.id} className={styles.masonryItem}>
-              <ProgramKerjaCard
-                data={{
-                  ...progja,
-                  nama_divisi: progja.divisi?.nama_divisi,
-                  pj: progja.pj,
-                }}
-                isAdmin={isAdmin}
-                onEdit={() => handleOpenModal(progja)}
-                onDelete={() => handleDelete(progja.id)}
-              />
-            </div>
-          ))}
-          {filteredProgja.length === 0 && (
-            <div
-              style={{
-                gridColumn: "1 / -1",
-                textAlign: "center",
-                padding: "3rem",
-                color: "#94a3b8",
-                width: "100%",
-              }}
-            >
-              <p>Tidak ada program kerja yang ditemukan.</p>
+        <>
+          <div className="w-full columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            {currentItems.map((progja) => (
+              <div key={progja.id} className="break-inside-avoid">
+                <ProgramKerjaCard
+                  data={{
+                    ...progja,
+                    nama_divisi: progja.divisi?.nama_divisi,
+                    pj: progja.pj,
+                  }}
+                  isAdmin={isAdmin}
+                  onEdit={() => handleOpenModal(progja)}
+                  onDelete={() => handleDelete(progja.id)}
+                />
+              </div>
+            ))}
+            {filteredProgja.length === 0 && (
+              <div className="col-span-full py-12 text-center text-slate-400 italic">
+                <p>Tidak ada program kerja yang ditemukan.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Sebelumnya"
+              >
+                <FiChevronLeft size={18} />
+              </button>
+
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-9 h-9 rounded-md text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+              </div>
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Selanjutnya"
+              >
+                <FiChevronRight size={18} />
+              </button>
             </div>
           )}
-        </div>
+        </>
       )}
 
       {/* Modal Form */}

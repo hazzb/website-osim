@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { createPortal } from "react-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { uploadImage } from "../utils/uploadHelper";
@@ -26,12 +25,9 @@ import {
   FiGrid,
   FiEdit,
   FiArrowLeft,
-  FiX,
   FiSearch,
 } from "react-icons/fi";
 
-// Styles
-import styles from "./DivisiDetail.module.css";
 import ImageViewer from "../components/ui/ImageViewer.jsx";
 
 const getJabatanRank = (jabatan) => {
@@ -92,10 +88,10 @@ function DivisiDetail() {
 
       const sortedAnggota = (ang || []).sort((a, b) => {
         const rankA = getJabatanRank(
-          a.jabatan_di_divisi || a.master_jabatan?.nama_jabatan
+          a.jabatan_di_divisi || a.master_jabatan?.nama_jabatan,
         );
         const rankB = getJabatanRank(
-          b.jabatan_di_divisi || b.master_jabatan?.nama_jabatan
+          b.jabatan_di_divisi || b.master_jabatan?.nama_jabatan,
         );
         return rankA !== rankB ? rankA - rankB : a.nama.localeCompare(b.nama);
       });
@@ -120,7 +116,7 @@ function DivisiDetail() {
       m.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (m.jabatan_di_divisi || "")
         .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+        .includes(searchTerm.toLowerCase()),
   );
 
   const closeModal = () => {
@@ -187,7 +183,11 @@ function DivisiDetail() {
 
   if (loading) return <LoadingState />;
   if (!data.divisi)
-    return <div className={styles.error}>Divisi tidak ditemukan</div>;
+    return (
+      <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-center font-semibold mt-8">
+        Divisi tidak ditemukan
+      </div>
+    );
 
   return (
     <PageContainer>
@@ -195,12 +195,11 @@ function DivisiDetail() {
         title={data.divisi.nama_divisi}
         subtitle={data.divisi.deskripsi || "Informasi detail divisi."}
         // --- HEADER BARU (Layout mirip Daftar Anggota) ---
-        // Semua dimasukkan ke slot 'searchBar' agar persistent (selalu muncul) di mobile
         searchBar={
-          <div className={styles.headerToolbar}>
+          <div className="flex items-center gap-3 w-full">
             {/* 1. Tombol Kembali (Kiri) */}
             <button
-              className={styles.backBtn}
+              className="flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 transition-all shrink-0 cursor-pointer"
               onClick={() => navigate(-1)}
               title="Kembali"
             >
@@ -208,21 +207,24 @@ function DivisiDetail() {
             </button>
 
             {/* 2. Search Bar (Tengah & Flexible) */}
-            <div className={styles.searchWrapper}>
-              <FiSearch className={styles.searchIcon} size={16} />
+            <div className="flex-1 relative min-w-[100px]">
+              <FiSearch
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={16}
+              />
               <input
                 placeholder="Cari anggota divisi..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput}
+                className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
               />
             </div>
 
             {/* 3. Actions Kanan (Edit & Toggle) */}
-            <div className={styles.rightActions}>
+            <div className="flex items-center gap-2 shrink-0">
               {isAdmin && (
                 <button
-                  className={`${styles.actionBtn} ${styles.editBtn}`}
+                  className="flex items-center gap-2 px-4 h-10 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-blue-100 hover:border-blue-300 transition-all w-10 p-0 sm:w-auto sm:px-4 justify-center"
                   onClick={() => {
                     setFormData(data.divisi);
                     setFormPreview(data.divisi.logo_url);
@@ -231,20 +233,20 @@ function DivisiDetail() {
                   title="Edit Divisi"
                 >
                   <FiEdit />
-                  <span className={styles.hideMobile}>Edit</span>
+                  <span className="hidden sm:inline">Edit</span>
                 </button>
               )}
 
-              <div className={styles.viewToggle}>
+              <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 h-10 box-border gap-0.5">
                 <button
-                  className={viewMode === "aesthetic" ? styles.active : ""}
+                  className={`border-none bg-transparent px-2.5 h-full rounded-md cursor-pointer flex items-center justify-center transition-all ${viewMode === "aesthetic" ? "bg-white text-blue-600 shadow-sm font-bold" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
                   onClick={() => setViewMode("aesthetic")}
                   title="Grid View"
                 >
                   <FiGrid />
                 </button>
                 <button
-                  className={viewMode === "compact" ? styles.active : ""}
+                  className={`border-none bg-transparent px-2.5 h-full rounded-md cursor-pointer flex items-center justify-center transition-all ${viewMode === "compact" ? "bg-white text-blue-600 shadow-sm font-bold" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
                   onClick={() => setViewMode("compact")}
                   title="List View"
                 >
@@ -260,36 +262,47 @@ function DivisiDetail() {
       />
 
       {/* Info Card */}
-      <div className={styles.infoCard}>
-        <div className={styles.logoWrapper}>
+      <div className="bg-white border border-slate-200 rounded-xl p-8 flex flex-col md:flex-row items-center md:items-start md:text-left text-center mb-12 shadow-sm gap-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+        <div className="w-[120px] h-[120px] shrink-0 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center p-4 overflow-hidden md:mb-0 shadow-inner group">
           <img
             src={data.divisi.logo_url || "/placeholder.png"}
-            className={styles.logoImage}
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 cursor-zoom-in"
             onClick={() => setIsLogoLightboxOpen(true)}
-            style={{ cursor: "zoom-in" }}
+            alt={data.divisi.nama_divisi}
           />
         </div>
-        <div className={styles.infoContent}>
-          <h3>Tentang {data.divisi.nama_divisi}</h3>
-          <p>{data.divisi.deskripsi}</p>
+        <div className="flex-1">
+          <h3 className="m-0 mb-3 text-2xl font-extrabold text-slate-800 tracking-tight">
+            Tentang {data.divisi.nama_divisi}
+          </h3>
+          <p className="text-slate-600 leading-relaxed text-base">
+            {data.divisi.deskripsi}
+          </p>
         </div>
       </div>
 
       {/* ANGGOTA SECTION (Filtered) */}
-      <div className={styles.sectionWrapper}>
-        <h2 className={styles.sectionTitle}>
-          <FiUsers style={{ marginRight: "8px" }} /> Anggota (
+      <div className="mb-12">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 border-b border-slate-200 pb-3">
+          <FiUsers className="text-blue-500" /> Anggota (
           {filteredAnggota.length})
         </h2>
 
         {filteredAnggota.length === 0 ? (
-          <div className={styles.emptyState}>
+          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-12 text-center text-slate-400 italic">
             {searchTerm
               ? "Tidak ada anggota yang cocok dengan pencarian."
               : "Belum ada anggota."}
           </div>
         ) : (
-          <div className={viewMode === "aesthetic" ? styles.grid : styles.list}>
+          <div
+            className={
+              viewMode === "aesthetic"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            }
+          >
             {filteredAnggota.map((m) => (
               <AnggotaCard
                 key={m.id}
@@ -309,24 +322,30 @@ function DivisiDetail() {
       </div>
 
       {/* PROGJA SECTION */}
-      <div className={styles.sectionWrapper}>
-        <h2 className={styles.sectionTitle}>
-          <FiBriefcase style={{ marginRight: "8px" }} /> Program Kerja (
+      <div className="mb-12">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 border-b border-slate-200 pb-3">
+          <FiBriefcase className="text-indigo-500" /> Program Kerja (
           {data.progja.length})
         </h2>
-        <div className={styles.grid}>
+        <div className="w-full columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           {data.progja.map((p) => (
-            <ProgramKerjaCard
-              key={p.id}
-              data={p}
-              isAdmin={isAdmin}
-              onEdit={() => {
-                setEditingId(p.id);
-                setFormData(p);
-                setActiveModal("progja");
-              }}
-            />
+            <div key={p.id} className="break-inside-avoid">
+              <ProgramKerjaCard
+                data={p}
+                isAdmin={isAdmin}
+                onEdit={() => {
+                  setEditingId(p.id);
+                  setFormData(p);
+                  setActiveModal("progja");
+                }}
+              />
+            </div>
           ))}
+          {data.progja.length === 0 && (
+            <div className="col-span-full py-8 text-center text-slate-400 italic bg-slate-50 rounded-xl border-dashed border-2 border-slate-200 w-full">
+              Belum ada program kerja.
+            </div>
+          )}
         </div>
       </div>
 

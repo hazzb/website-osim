@@ -13,8 +13,7 @@ import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import BannerForm from "../components/forms/BannerForm.jsx";
 import SambutanForm from "../components/forms/SambutanForm.jsx";
 
-// Styles & Icons
-import styles from "./Beranda.module.css";
+// Icons
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -27,7 +26,6 @@ import {
   FiUsers,
   FiEye,
   FiEyeOff,
-  FiList,
   FiBookOpen,
 } from "react-icons/fi";
 
@@ -117,7 +115,7 @@ function Beranda() {
     const interval = setInterval(
       () =>
         setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1)),
-      5000
+      5000,
     );
     return () => clearInterval(interval);
   }, [slides]);
@@ -165,7 +163,7 @@ function Beranda() {
       {/* 1. HERO CAROUSEL */}
       {showHero && (
         <section
-          className={styles.carouselContainer}
+          className="relative w-full h-[300px] md:h-[500px] rounded-2xl overflow-hidden bg-slate-200 mb-16 shadow-lg shadow-black/15 group"
           style={{
             opacity: settings?.beranda_tampilkan_hero ? 1 : 0.6,
             filter: settings?.beranda_tampilkan_hero
@@ -174,23 +172,19 @@ function Beranda() {
           }}
         >
           {isAdmin && (
-            <div className={styles.bannerAdminControls}>
+            <div className="absolute top-8 right-8 z-30 flex gap-3 pointer-events-auto">
               <button
                 onClick={() =>
                   toggleVisibility(
                     "beranda_tampilkan_hero",
-                    settings?.beranda_tampilkan_hero
+                    settings?.beranda_tampilkan_hero,
                   )
                 }
-                className={styles.adminBtnSmall}
-                style={{
-                  backgroundColor: settings?.beranda_tampilkan_hero
-                    ? "white"
-                    : "#fee2e2",
-                  color: settings?.beranda_tampilkan_hero
-                    ? "#475569"
-                    : "#ef4444",
-                }}
+                className={`w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${
+                  settings?.beranda_tampilkan_hero
+                    ? "text-slate-600"
+                    : "text-red-500 bg-red-50"
+                }`}
               >
                 {settings?.beranda_tampilkan_hero ? (
                   <FiEye size={18} />
@@ -200,7 +194,7 @@ function Beranda() {
               </button>
               <button
                 onClick={() => setActiveModal("banner")}
-                className={styles.adminBtnSmall}
+                className="w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer text-slate-600 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:text-blue-600"
                 title="Kelola Slide"
               >
                 <FiCamera size={18} />
@@ -208,20 +202,7 @@ function Beranda() {
             </div>
           )}
           {!settings?.beranda_tampilkan_hero && isAdmin && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                padding: "0.5rem 1rem",
-                background: "#ef4444",
-                color: "white",
-                fontSize: "0.8rem",
-                fontWeight: "bold",
-                zIndex: 50,
-                borderBottomRightRadius: "8px",
-              }}
-            >
+            <div className="absolute top-0 left-0 px-4 py-2 bg-red-500 text-white text-xs font-bold z-50 rounded-br-lg">
               HIDDEN
             </div>
           )}
@@ -231,45 +212,43 @@ function Beranda() {
               {slides.map((slide, index) => (
                 <div
                   key={slide.id}
-                  className={`${styles.slideItem} ${
-                    index === currentSlide ? styles.active : ""
+                  className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out z-1 ${
+                    index === currentSlide ? "opacity-100 z-10" : "opacity-0"
                   }`}
                 >
                   <img
                     src={slide.image_url}
                     alt={slide.judul}
-                    className={styles.slideImage}
+                    className="w-full h-full object-cover"
                   />
-                  <div className={styles.overlay}>
-                    <h2 className={styles.slideTitle}>{slide.judul}</h2>
+                  <div className="absolute bottom-0 inset-x-0 pt-32 pb-12 px-8 md:px-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent text-white z-20 pointer-events-none flex flex-col justify-end">
+                    <h2 className="text-2xl md:text-4xl font-extrabold mb-2 leading-tight drop-shadow-lg tracking-tight">
+                      {slide.judul}
+                    </h2>
                     {slide.deskripsi && (
-                      <p className={styles.slideDesc}>{slide.deskripsi}</p>
+                      <p className="text-base md:text-lg opacity-95 m-0 max-w-3xl leading-relaxed">
+                        {slide.deskripsi}
+                      </p>
                     )}
                   </div>
                 </div>
               ))}
-              <button className={styles.navBtnLeft} onClick={prevSlide}>
+              <button
+                className="absolute top-1/2 -translate-y-1/2 left-8 z-20 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center hover:bg-white hover:text-slate-900 hover:scale-110 transition-all duration-300 hidden md:flex"
+                onClick={prevSlide}
+              >
                 <FiChevronLeft size={24} />
               </button>
-              <button className={styles.navBtnRight} onClick={nextSlide}>
+              <button
+                className="absolute top-1/2 -translate-y-1/2 right-8 z-20 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center hover:bg-white hover:text-slate-900 hover:scale-110 transition-all duration-300 hidden md:flex"
+                onClick={nextSlide}
+              >
                 <FiChevronRight size={24} />
               </button>
             </>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                color: "#94a3b8",
-                flexDirection: "column",
-              }}
-            >
-              <FiCamera
-                size={48}
-                style={{ marginBottom: "1rem", opacity: 0.3 }}
-              />
+            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+              <FiCamera size={48} className="mb-4 opacity-30" />
               <p>Belum ada slide.</p>
             </div>
           )}
@@ -279,82 +258,73 @@ function Beranda() {
       {/* 2. SAMBUTAN KETUA */}
       {showSambutan && settings && (
         <section
-          className={styles.sambutanSection}
+          className="relative mb-16 p-8 md:p-14 rounded-3xl bg-gradient-to-br from-white to-sky-50 border border-sky-100 shadow-xl shadow-sky-500/5 group"
           style={{
             opacity: settings.tampilkan_sambutan ? 1 : 0.6,
-            border: settings.tampilkan_sambutan
-              ? "1px solid #e0f2fe"
-              : "2px dashed #94a3b8",
+            borderStyle: settings.tampilkan_sambutan ? "solid" : "dashed",
+            borderColor: settings.tampilkan_sambutan ? "#e0f2fe" : "#94a3b8",
           }}
         >
           {isAdmin && (
-            <div className={styles.sambutanControls}>
+            <div className="absolute top-8 right-8 z-10 flex gap-3 items-center">
               <button
                 onClick={() =>
                   toggleVisibility(
                     "tampilkan_sambutan",
-                    settings.tampilkan_sambutan
+                    settings.tampilkan_sambutan,
                   )
                 }
-                className={styles.adminBtnSmall}
-                style={{
-                  backgroundColor: settings.tampilkan_sambutan
-                    ? "white"
-                    : "#fee2e2",
-                  color: settings.tampilkan_sambutan ? "#475569" : "#ef4444",
-                }}
+                className={`w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${
+                  settings.tampilkan_sambutan
+                    ? "text-slate-600"
+                    : "text-red-500 bg-red-50"
+                }`}
               >
                 {settings.tampilkan_sambutan ? (
-                  <FiEye size={16} />
+                  <FiEye size={18} />
                 ) : (
-                  <FiEyeOff size={16} />
+                  <FiEyeOff size={18} />
                 )}
               </button>
               <button
                 onClick={() => setActiveModal("sambutan")}
-                className={styles.editSambutanBtn}
+                className="h-10 px-4 bg-white border border-slate-200 rounded-lg flex items-center gap-2 font-semibold text-slate-600 shadow-sm hover:border-blue-500 hover:text-blue-500 transition-colors"
               >
                 <FiEdit size={14} /> Edit Konten
               </button>
             </div>
           )}
           {!settings.tampilkan_sambutan && isAdmin && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                padding: "0.25rem 0.75rem",
-                background: "#94a3b8",
-                color: "white",
-                fontSize: "0.7rem",
-                fontWeight: "bold",
-                borderBottomRightRadius: "8px",
-              }}
-            >
+            <div className="absolute top-0 left-0 px-3 py-1 bg-slate-400 text-white text-xs font-bold rounded-br-lg">
               HIDDEN
             </div>
           )}
 
-          <div className={styles.splitLayout}>
-            <div className={styles.imageContainer}>
+          <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-12 items-center text-center md:text-left">
+            <div className="relative group-hover:scale-[1.02] transition-transform duration-300">
+              <div className="absolute inset-0 bg-blue-600 rounded-2xl rotate-3 opacity-20 blur-lg"></div>
               <img
                 src={
                   settings.sambutan_foto_url ||
                   "https://via.placeholder.com/400x500?text=Foto+Ketua"
                 }
                 alt="Ketua"
-                className={styles.sambutanImage}
+                className="relative w-full aspect-[3/4] object-cover rounded-2xl border-[6px] border-white shadow-2xl -rotate-2 group-hover:rotate-0 transition-transform duration-500 max-w-[280px] md:max-w-full mx-auto"
               />
             </div>
-            <div className={styles.sambutanContent}>
-              <h2>{settings.sambutan_judul || "Sambutan Ketua"}</h2>
-              <p className={styles.sambutanText}>
+            <div className="flex flex-col items-center md:items-start">
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-br from-slate-800 to-slate-600">
+                {settings.sambutan_judul || "Sambutan Ketua"}
+              </h2>
+              <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-lg mb-8 max-w-2xl">
                 {settings.sambutan_isi || "Belum ada isi sambutan."}
               </p>
 
               {/* TOMBOL ACTION PROFIL */}
-              <Link to="/visi-misi" className={styles.btnPrimary}>
+              <Link
+                to="/visi-misi"
+                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all duration-300 no-underline"
+              >
                 <FiUsers size={18} /> Lihat Profil Lengkap
               </Link>
             </div>
@@ -363,79 +333,97 @@ function Beranda() {
       )}
 
       {/* 3. STATISTIK & SHORTCUT (COLORFUL) */}
-      <section className={styles.statsSection}>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-20">
         {/* Card 1: Anggota (BIRU) */}
-        <Link to="/anggota" className={`${styles.statCard} ${styles.cardBlue}`}>
-          <div className={styles.statIconWrapper}>
+        <Link
+          to="/anggota"
+          className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-xl shadow-blue-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 no-underline overflow-hidden"
+        >
+          <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
             <FiUsers />
           </div>
-          <div className={styles.statLabel}>Anggota Aktif</div>
-          <div className={styles.statNumber}>{stats.totalAnggota}</div>
-          <div className={styles.statActionText}>
-            Lihat Anggota <FiArrowRight />
+          <div className="relative z-10">
+            <div className="text-blue-100 font-semibold text-lg mb-1">
+              Anggota Aktif
+            </div>
+            <div className="text-5xl font-extrabold">{stats.totalAnggota}</div>
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-white group-hover:text-slate-800 transition-colors">
+              Lihat Anggota <FiArrowRight />
+            </div>
           </div>
+          {/* Decorative Circle */}
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
         </Link>
 
-        {/* Card 2: Visi Misi (UNGU/VIOLET) - Menggantikan "Total Program" */}
+        {/* Card 2: Visi Misi (UNGU) */}
         <Link
           to="/visi-misi"
-          className={`${styles.statCard} ${styles.cardViolet}`}
+          className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-xl shadow-violet-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 no-underline overflow-hidden"
         >
-          <div className={styles.statIconWrapper}>
+          <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
             <FiBookOpen />
           </div>
-          <div className={styles.statLabel}>Profil Organisasi</div>
-          <div
-            style={{
-              color: "white",
-              fontSize: "1.8rem",
-              fontWeight: 800,
-              margin: "1rem 0 0 0",
-            }}
-          >
-            Visi & Misi
+          <div className="relative z-10">
+            <div className="text-violet-100 font-semibold text-lg mb-1">
+              Profil Organisasi
+            </div>
+            <div className="text-3xl font-extrabold mt-2 mb-2">Visi & Misi</div>
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-white group-hover:text-slate-800 transition-colors">
+              Selengkapnya <FiArrowRight />
+            </div>
           </div>
-          <div className={styles.statActionText}>
-            Selengkapnya <FiArrowRight />
-          </div>
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
         </Link>
 
-        {/* Card 3: Program Terlaksana (HIJAU) - Menjadi Action */}
+        {/* Card 3: Program Terlaksana (HIJAU) */}
         <Link
           to="/program-kerja"
-          className={`${styles.statCard} ${styles.cardGreen}`}
+          className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 no-underline overflow-hidden"
         >
-          <div className={styles.statIconWrapper}>
+          <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
             <FiCheckCircle />
           </div>
-          <div className={styles.statLabel}>Program Terlaksana</div>
-          <div className={styles.statNumber}>{stats.progjaSelesai}</div>
-          <div className={styles.statActionText}>
-            Lihat Arsip <FiArrowRight />
+          <div className="relative z-10">
+            <div className="text-emerald-100 font-semibold text-lg mb-1">
+              Program Terlaksana
+            </div>
+            <div className="text-5xl font-extrabold">{stats.progjaSelesai}</div>
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-white group-hover:text-slate-800 transition-colors">
+              Lihat Arsip <FiArrowRight />
+            </div>
           </div>
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
         </Link>
       </section>
 
       {/* 4. PROGRAM KERJA MENDATANG (MASONRY) */}
-      <section className={styles.sectionWrapper}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>
-            <FiTarget className={styles.iconTitle} /> Agenda Mendatang
+      <section className="mb-20">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pb-4 border-b-2 border-slate-100 gap-4">
+          <h3 className="text-3xl font-extrabold text-slate-800 m-0 flex items-center gap-3">
+            <span className="p-2 bg-blue-50 text-blue-500 rounded-xl">
+              <FiTarget className="text-2xl" />
+            </span>
+            Agenda Mendatang
           </h3>
-          <Link to="/program-kerja" className={styles.linkAll}>
+          <Link
+            to="/program-kerja"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors no-underline"
+          >
             Lihat Semua <FiArrowRight />
           </Link>
         </div>
         {latestProgja.length > 0 ? (
-          <div className={styles.progjaGrid}>
+          <div className="w-full columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
             {latestProgja.map((progja) => (
-              <div key={progja.id} className={styles.masonryItem}>
+              <div key={progja.id} className="break-inside-avoid">
                 <ProgramKerjaCard data={progja} />
               </div>
             ))}
           </div>
         ) : (
-          <div className={styles.emptyState}>Belum ada agenda mendatang.</div>
+          <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl p-20 text-center text-slate-400 italic text-lg">
+            Belum ada agenda mendatang.
+          </div>
         )}
       </section>
 
@@ -446,52 +434,23 @@ function Beranda() {
         title={activeModal === "banner" ? "Kelola Slide" : "Edit Sambutan"}
       >
         {activeModal === "banner" ? (
-          <div style={{ padding: "1rem" }}>
+          <div className="p-4">
             <BannerForm onSuccess={fetchAllData} />
-            <div
-              style={{
-                marginTop: "2rem",
-                borderTop: "1px solid #cbd5e1",
-                paddingTop: "1rem",
-              }}
-            >
-              <h4 style={{ marginBottom: "1rem", color: "#334155" }}>
+            <div className="mt-8 pt-4 border-t border-slate-200">
+              <h4 className="mb-4 text-slate-700 font-bold">
                 Daftar Slide Aktif
               </h4>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-                  gap: "10px",
-                }}
-              >
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {slides.map((s) => (
-                  <div key={s.id} style={{ position: "relative" }}>
+                  <div key={s.id} className="relative group">
                     <img
                       src={s.image_url}
-                      style={{
-                        width: "100%",
-                        aspectRatio: "16/9",
-                        objectFit: "cover",
-                        borderRadius: "8px",
-                        border: "1px solid #cbd5e1",
-                      }}
+                      className="w-full aspect-video object-cover rounded-lg border border-slate-300"
                       alt="thumb"
                     />
                     <button
                       onClick={() => handleDeleteBanner(s.id)}
-                      style={{
-                        position: "absolute",
-                        top: 4,
-                        right: 4,
-                        background: "#ef4444",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        padding: "4px",
-                        display: "flex",
-                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-md hover:bg-red-600 transition-colors shadow-sm"
                     >
                       <FiTrash2 size={12} />
                     </button>

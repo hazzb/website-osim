@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import styles from "./VisiMisi.module.css";
-import formStyles from "../components/admin/AdminForm.module.css";
+// import styles from "./VisiMisi.module.css"; // REMOVED
+// import formStyles from "../components/admin/AdminForm.module.css"; // Keeping for now if needed by Modal content, or replace with inline
 
 // Library Markdown
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 // Utils & Helpers
-import { uploadImage } from "../utils/uploadHelper"; // IMPORT HELPER UPLOAD
+import { uploadImage } from "../utils/uploadHelper";
 
 // Components
 import PageContainer from "../components/ui/PageContainer.jsx";
@@ -229,19 +229,19 @@ function VisiMisi() {
   return (
     <PageContainer breadcrumbText="Visi & Misi">
       {/* HEADER */}
-      <div className={styles.headerSection}>
+      <div className="flex justify-between items-center mb-8">
         <div></div>
         {isAdmin && (
-          <div className={styles.adminControls}>
+          <div className="flex gap-3">
             <button
               onClick={() => setIsReorderOpen(true)}
-              className={styles.settingBtn}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white/50 backdrop-blur-sm border border-slate-200 rounded-xl text-slate-600 font-semibold shadow-sm hover:bg-white hover:text-blue-600 hover:-translate-y-0.5 transition-all"
             >
               <FiLayers /> Atur Urutan
             </button>
             <button
               onClick={() => setIsSettingOpen(true)}
-              className={styles.settingBtn}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white/50 backdrop-blur-sm border border-slate-200 rounded-xl text-slate-600 font-semibold shadow-sm hover:bg-white hover:text-blue-600 hover:-translate-y-0.5 transition-all"
             >
               <FiLayout /> Tampilan
             </button>
@@ -251,25 +251,25 @@ function VisiMisi() {
 
       {/* HERO CONTENT */}
       {showHero && (
-        <div className={styles.heroWrapper}>
+        <div className="relative bg-gradient-to-br from-blue-600/90 to-violet-600/90 rounded-3xl p-8 md:p-16 text-center text-white mb-14 border border-white/30 backdrop-blur-3xl shadow-2xl overflow-hidden">
+          {/* DEKORASI LIGHT ORBS */}
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/20 blur-[60px] rounded-full z-0 pointer-events-none"></div>
+          <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-cyan-400/30 blur-[50px] rounded-full z-0 pointer-events-none"></div>
+
           {heroContent ? (
-            <div className={styles.heroContent}>
-              <h1 className={styles.pageTitle}>{heroContent.judul}</h1>
+            <div className="relative z-10 max-w-4xl mx-auto">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-white tracking-tight drop-shadow-md">
+                {heroContent.judul}
+              </h1>
               {/* Gambar Hero (Jika Ada) */}
               {heroContent.image_url && (
                 <img
                   src={heroContent.image_url}
                   alt={heroContent.judul}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "300px",
-                    borderRadius: "12px",
-                    marginBottom: "1.5rem",
-                    objectFit: "cover",
-                  }}
+                  className="w-full max-h-[400px] object-cover rounded-2xl mb-8 shadow-xl border-4 border-white/20"
                 />
               )}
-              <div className={styles.markdownContent}>
+              <div className="text-white/90 text-lg leading-relaxed max-w-3xl mx-auto prose prose-invert prose-lg">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {heroContent.isi}
                 </ReactMarkdown>
@@ -277,21 +277,24 @@ function VisiMisi() {
               {isAdmin && (
                 <button
                   onClick={() => openModal(heroContent)}
-                  className={styles.editHeroBtn}
+                  className="absolute top-0 right-0 w-10 h-10 bg-white/20 border border-white/40 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-violet-600 hover:rotate-12 transition-all cursor-pointer"
+                  title="Edit Hero"
                 >
                   <FiEdit />
                 </button>
               )}
             </div>
           ) : (
-            <div className={styles.emptyHero}>
-              <h1 className={styles.pageTitle}>Visi & Misi</h1>
+            <div className="flex flex-col items-center gap-6 py-8 text-white/70">
+              <h1 className="text-4xl font-extrabold text-white">
+                Visi & Misi
+              </h1>
               {isAdmin && (
                 <button
                   onClick={() => openModal()}
-                  className="button button-primary"
+                  className="px-6 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-lg hover:bg-blue-50 hover:scale-105 transition-all flex items-center gap-2 cursor-pointer"
                 >
-                  <FiPlus style={{ marginRight: "4px" }} /> Buat Judul Utama
+                  <FiPlus /> Buat Judul Utama
                 </button>
               )}
             </div>
@@ -300,12 +303,19 @@ function VisiMisi() {
       )}
 
       {/* DYNAMIC CONTENT */}
-      <div className={styles.contentWrapper}>
+      <div className="flex flex-col gap-10">
         {renderLayout()}
         {isAdmin && (
-          <div style={{ textAlign: "center", marginTop: "2rem" }}>
-            <button onClick={() => openModal()} className={styles.addBtn}>
-              <FiPlus size={20} /> Tambah Seksi Baru
+          <div className="text-center mt-8">
+            <button
+              onClick={() => openModal()}
+              className="w-full p-6 border-2 border-dashed border-indigo-300 rounded-2xl bg-indigo-50 text-indigo-500 font-bold flex items-center justify-center gap-2 hover:bg-indigo-100 hover:border-indigo-500 transition-all cursor-pointer group"
+            >
+              <FiPlus
+                size={20}
+                className="group-hover:scale-125 transition-transform"
+              />{" "}
+              Tambah Seksi Baru
             </button>
           </div>
         )}
@@ -328,7 +338,7 @@ function VisiMisi() {
         />
       </Modal>
 
-      {/* REORDER & SETTINGS MODALS (SAMA SEPERTI SEBELUMNYA) */}
+      {/* REORDER & SETTINGS MODALS */}
       <Modal
         isOpen={isReorderOpen}
         onClose={() => setIsReorderOpen(false)}
@@ -347,101 +357,57 @@ function VisiMisi() {
         onClose={() => setIsSettingOpen(false)}
         title="Pengaturan Tampilan"
       >
-        {/* ... Isi modal setting sama seperti kode sebelumnya ... */}
-        <div
-          style={{
-            marginBottom: "1.5rem",
-            paddingBottom: "1.5rem",
-            borderBottom: "1px dashed #e2e8f0",
-          }}
-        >
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              cursor: "pointer",
-            }}
-          >
+        <div className="mb-6 pb-6 border-b border-dashed border-slate-200">
+          <label className="flex items-center justify-between cursor-pointer group">
             <div>
-              <span
-                style={{
-                  display: "block",
-                  fontWeight: "700",
-                  color: "#2d3748",
-                }}
-              >
+              <span className="block font-bold text-slate-800">
                 Banner Utama (Hero)
               </span>
-              <span style={{ fontSize: "0.85rem", color: "#718096" }}>
+              <span className="text-sm text-slate-500">
                 Tampilkan judul besar di bagian paling atas.
               </span>
             </div>
             <div
               onClick={handleToggleHero}
-              style={{
-                fontSize: "2rem",
-                color: showHero ? "#3182ce" : "#cbd5e0",
-                display: "flex",
-                alignItems: "center",
-              }}
+              className={`text-3xl flex items-center transition-colors ${showHero ? "text-blue-500" : "text-slate-300"}`}
             >
               {showHero ? <FiToggleRight /> : <FiToggleLeft />}
             </div>
           </label>
         </div>
         <div>
-          <span
-            style={{
-              display: "block",
-              fontWeight: "700",
-              color: "#2d3748",
-              marginBottom: "0.5rem",
-            }}
-          >
+          <span className="block font-bold text-slate-800 mb-2">
             Gaya Tampilan Konten
           </span>
-          <div className={styles.layoutOptionGrid}>
-            <div
-              className={`${styles.layoutOption} ${
-                layoutMode === "modular" ? styles.active : ""
-              }`}
-              onClick={() => handleLayoutChange("modular")}
-            >
-              <div className={styles.layoutIcon}>
-                <FiGrid />
+          <div className="grid grid-cols-3 gap-4 py-2">
+            {[
+              { id: "modular", icon: FiGrid, label: "Modular" },
+              { id: "split", icon: FiColumns, label: "Split" },
+              { id: "zigzag", icon: FiGitMerge, label: "Zig-Zag" },
+            ].map((option) => (
+              <div
+                key={option.id}
+                className={`border-2 p-4 rounded-xl text-center cursor-pointer transition-all ${
+                  layoutMode === option.id
+                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 bg-white hover:border-indigo-300 hover:-translate-y-1"
+                }`}
+                onClick={() => handleLayoutChange(option.id)}
+              >
+                <div
+                  className={`text-4xl mb-3 ${layoutMode === option.id ? "text-indigo-500" : "text-slate-300"}`}
+                >
+                  <option.icon className="mx-auto" />
+                </div>
+                <span className="font-semibold text-sm">{option.label}</span>
               </div>
-              <span>Modular</span>
-            </div>
-            <div
-              className={`${styles.layoutOption} ${
-                layoutMode === "split" ? styles.active : ""
-              }`}
-              onClick={() => handleLayoutChange("split")}
-            >
-              <div className={styles.layoutIcon}>
-                <FiColumns />
-              </div>
-              <span>Split</span>
-            </div>
-            <div
-              className={`${styles.layoutOption} ${
-                layoutMode === "zigzag" ? styles.active : ""
-              }`}
-              onClick={() => handleLayoutChange("zigzag")}
-            >
-              <div className={styles.layoutIcon}>
-                <FiGitMerge />
-              </div>
-              <span>Zig-Zag</span>
-            </div>
+            ))}
           </div>
         </div>
-        <div className={formStyles.formFooter} style={{ marginTop: "2rem" }}>
+        <div className="mt-8 pt-4 border-t border-slate-100">
           <button
             onClick={() => setIsSettingOpen(false)}
-            className="button button-primary"
-            style={{ width: "100%" }}
+            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all"
           >
             Selesai
           </button>

@@ -1,7 +1,4 @@
 import React, { useEffect } from "react";
-import styles from "./Modal.module.css";
-// Jika Anda menggunakan react-icons, ganti &times; dengan icon agar lebih rapi
-// import { FiX } from "react-icons/fi";
 
 function Modal({
   isOpen,
@@ -36,27 +33,26 @@ function Modal({
 
   return (
     <div
-      className={styles.overlay}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[1000] animate-fadeIn"
       onClick={handleOverlayClick}
-      style={{ zIndex: 1000 }} // Pastikan di atas elemen lain
     >
       {/* 3. STOP PROPAGATION AGAR KLIK DI DALAM TIDAK TEMBUS KELUAR */}
       <div
-        className={styles.modal}
+        className="bg-white rounded-xl shadow-2xl w-full overflow-hidden animate-scaleIn"
         style={{ maxWidth: maxWidth }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={styles.header}>
-          <h3 className={styles.title}>{title}</h3>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 bg-slate-50">
+          <h3 className="text-lg font-bold text-slate-800 m-0">{title}</h3>
           <button
             type="button"
-            className={styles.closeButton}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-all text-2xl leading-none border-0 bg-transparent cursor-pointer"
             onClick={onClose}
           >
-            &times; {/* Atau gunakan <FiX /> jika pakai react-icons */}
+            &times;
           </button>
         </div>
-        <div className={styles.body}>{children}</div>
+        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   );

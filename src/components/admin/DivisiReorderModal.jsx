@@ -10,7 +10,7 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
   useEffect(() => {
     if (isOpen && divisiList) {
       const sorted = [...divisiList].sort(
-        (a, b) => (a.urutan || 99) - (b.urutan || 99)
+        (a, b) => (a.urutan || 99) - (b.urutan || 99),
       );
       setItems(sorted);
     }
@@ -68,76 +68,31 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
       title="Atur Urutan Divisi"
       maxWidth="450px"
     >
-      {/* Padding Modal Body dikurangi */}
-      <div style={{ padding: "0.5rem" }}>
-        <p
-          style={{
-            fontSize: "0.8rem",
-            color: "#64748b",
-            marginBottom: "0.5rem",
-            marginTop: 0,
-          }}
-        >
+      <div className="p-2">
+        <p className="text-sm text-slate-500 mb-2">
           Gunakan tombol panah untuk mengatur urutan.
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.3rem", // Jarak antar item dirapatkan
-            maxHeight: "60vh",
-            overflowY: "auto",
-            paddingRight: "2px",
-          }}
-        >
+        <div className="flex flex-col gap-1 max-h-[60vh] overflow-y-auto pr-1">
           {items.map((item, index) => (
             <div
               key={item.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.4rem 0.8rem", // Padding item dikecilkan
-                backgroundColor: "white",
-                border: "1px solid #e2e8f0",
-                borderRadius: "6px",
-                fontSize: "0.9rem",
-              }}
+              className="flex items-center justify-between p-2 px-3 bg-white border border-slate-200 rounded-md text-sm"
             >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}
-              >
-                <span
-                  style={{
-                    fontWeight: "700",
-                    color: "#cbd5e1",
-                    width: "16px",
-                    textAlign: "center",
-                    fontSize: "0.8rem",
-                  }}
-                >
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-slate-300 text-xs w-4 text-center">
                   {index + 1}
                 </span>
-                <span style={{ fontWeight: "600", color: "#1e293b" }}>
+                <span className="font-semibold text-slate-800">
                   {item.nama_divisi}
                 </span>
               </div>
 
-              <div style={{ display: "flex", gap: "2px" }}>
+              <div className="flex gap-1">
                 <button
                   onClick={() => moveUp(index)}
                   disabled={index === 0}
-                  className="button button-secondary"
-                  style={{
-                    padding: "4px",
-                    width: "28px",
-                    height: "28px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "4px",
-                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   title="Naik"
                 >
                   <FiChevronUp size={14} />
@@ -145,16 +100,7 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
                 <button
                   onClick={() => moveDown(index)}
                   disabled={index === items.length - 1}
-                  className="button button-secondary"
-                  style={{
-                    padding: "4px",
-                    width: "28px",
-                    height: "28px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "4px",
-                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   title="Turun"
                 >
                   <FiChevronDown size={14} />
@@ -165,35 +111,18 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
         </div>
 
         {/* Footer Actions */}
-        <div
-          style={{
-            marginTop: "1rem",
-            paddingTop: "0.75rem",
-            borderTop: "1px solid #f1f5f9",
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "0.5rem",
-          }}
-        >
+        <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="button button-secondary"
             disabled={loading}
-            style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem" }}
+            className="px-3 py-1.5 bg-white border border-slate-300 rounded text-slate-700 hover:bg-slate-50 text-sm font-medium transition-colors"
           >
             Batal
           </button>
           <button
             onClick={handleSave}
-            className="button button-primary"
             disabled={loading}
-            style={{
-              padding: "0.4rem 0.8rem",
-              fontSize: "0.85rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
+            className="px-3 py-1.5 bg-blue-600 rounded text-white hover:bg-blue-700 text-sm font-medium flex items-center gap-1.5 transition-colors disabled:opacity-70"
           >
             {loading ? (
               "Menyimpan..."
