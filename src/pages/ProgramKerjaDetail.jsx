@@ -158,7 +158,7 @@ function ProgramKerjaDetail() {
         month: "long",
         year: "numeric",
       })
-    : "Belum ditentukan";
+    : "Tidak Ditentukan";
 
   // Helper Warna Gender
   const getGenderColor = (g) => {
@@ -172,38 +172,36 @@ function ProgramKerjaDetail() {
       <PageHeader
         title="Detail Program Kerja"
         subtitle="Informasi lengkap kegiatan."
-        // CUSTOM TOOLBAR (Slot SearchBar)
-        searchBar={
-          <div className="flex items-center justify-between w-full gap-2.5 mt-1 sm:mt-0">
+        actions={
+          <div className="flex items-center gap-2">
             <button
-              className="flex items-center justify-center gap-2 px-4 h-10 bg-white border border-slate-200 rounded-lg text-slate-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-slate-50 hover:text-slate-800 transition-all sm:w-auto w-10 p-0 sm:px-4"
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 font-semibold text-xs cursor-pointer hover:bg-slate-50 hover:text-slate-800 transition-all"
               onClick={() => navigate(-1)}
               title="Kembali"
             >
-              <FiArrowLeft /> <span className="hidden sm:inline">Kembali</span>
+              <FiArrowLeft /> <span>Kembali</span>
             </button>
 
             {isAdmin && (
-              <div className="flex items-center gap-2">
+              <>
                 <button
-                  className="flex items-center justify-center gap-2 px-4 h-10 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-blue-100 hover:border-blue-400 transition-all sm:w-auto w-10 p-0 sm:px-4"
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-xs cursor-pointer hover:bg-blue-100 hover:border-blue-400 transition-all"
                   onClick={handleEdit}
                   title="Edit"
                 >
-                  <FiEdit /> <span className="hidden sm:inline">Edit</span>
+                  <FiEdit /> <span>Edit</span>
                 </button>
                 <button
-                  className="flex items-center justify-center gap-2 px-4 h-10 bg-red-50 border border-red-200 rounded-lg text-red-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-red-100 hover:border-red-400 transition-all sm:w-auto w-10 p-0 sm:px-4"
+                  className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-600 font-semibold text-xs cursor-pointer hover:bg-red-100 hover:border-red-400 transition-all"
                   onClick={handleDelete}
                   title="Hapus"
                 >
-                  <FiTrash2 /> <span className="hidden sm:inline">Hapus</span>
+                  <FiTrash2 /> <span>Hapus</span>
                 </button>
-              </div>
+              </>
             )}
           </div>
         }
-        actions={null}
       />
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mt-4">

@@ -13,6 +13,9 @@ import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import BannerForm from "../components/forms/BannerForm.jsx";
 import SambutanForm from "../components/forms/SambutanForm.jsx";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 // Icons
 import {
   FiChevronLeft,
@@ -163,7 +166,7 @@ function Beranda() {
       {/* 1. HERO CAROUSEL */}
       {showHero && (
         <section
-          className="relative w-full h-[300px] md:h-[500px] rounded-2xl overflow-hidden bg-slate-200 mb-16 shadow-lg shadow-black/15 group"
+          className="relative w-full h-[300px] md:h-[500px] rounded-2xl overflow-hidden bg-slate-200 mb-16 group"
           style={{
             opacity: settings?.beranda_tampilkan_hero ? 1 : 0.6,
             filter: settings?.beranda_tampilkan_hero
@@ -258,11 +261,10 @@ function Beranda() {
       {/* 2. SAMBUTAN KETUA */}
       {showSambutan && settings && (
         <section
-          className="relative mb-16 p-8 md:p-14 rounded-3xl bg-gradient-to-br from-white to-sky-50 border border-sky-100 shadow-xl shadow-sky-500/5 group"
+          className="relative mb-16 p-8 md:p-12 rounded-2xl bg-white border border-slate-200 group"
           style={{
             opacity: settings.tampilkan_sambutan ? 1 : 0.6,
             borderStyle: settings.tampilkan_sambutan ? "solid" : "dashed",
-            borderColor: settings.tampilkan_sambutan ? "#e0f2fe" : "#94a3b8",
           }}
         >
           {isAdmin && (
@@ -274,7 +276,7 @@ function Beranda() {
                     settings.tampilkan_sambutan,
                   )
                 }
-                className={`w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${
+                className={`w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:bg-slate-50 ${
                   settings.tampilkan_sambutan
                     ? "text-slate-600"
                     : "text-red-500 bg-red-50"
@@ -288,7 +290,7 @@ function Beranda() {
               </button>
               <button
                 onClick={() => setActiveModal("sambutan")}
-                className="h-10 px-4 bg-white border border-slate-200 rounded-lg flex items-center gap-2 font-semibold text-slate-600 shadow-sm hover:border-blue-500 hover:text-blue-500 transition-colors"
+                className="h-10 px-4 bg-white border border-slate-200 rounded-lg flex items-center gap-2 font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
               >
                 <FiEdit size={14} /> Edit Konten
               </button>
@@ -300,30 +302,39 @@ function Beranda() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-12 items-center text-center md:text-left">
-            <div className="relative group-hover:scale-[1.02] transition-transform duration-300">
-              <div className="absolute inset-0 bg-blue-600 rounded-2xl rotate-3 opacity-20 blur-lg"></div>
+          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-12 items-center text-center md:text-left">
+            <div className="relative">
               <img
                 src={
                   settings.sambutan_foto_url ||
                   "https://via.placeholder.com/400x500?text=Foto+Ketua"
                 }
                 alt="Ketua"
-                className="relative w-full aspect-[3/4] object-cover rounded-2xl border-[6px] border-white shadow-2xl -rotate-2 group-hover:rotate-0 transition-transform duration-500 max-w-[280px] md:max-w-full mx-auto"
+                className="w-full aspect-[3/4] object-cover rounded-2xl max-w-[280px] md:max-w-full mx-auto"
               />
             </div>
             <div className="flex flex-col items-center md:items-start">
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight bg-clip-text text-transparent bg-gradient-to-br from-slate-800 to-slate-600">
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight text-slate-800">
                 {settings.sambutan_judul || "Sambutan Ketua"}
               </h2>
-              <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-lg mb-8 max-w-2xl">
-                {settings.sambutan_isi || "Belum ada isi sambutan."}
-              </p>
+              <div
+                className="text-slate-600 leading-relaxed text-lg mb-8 max-w-2xl prose prose-lg prose-blue
+                prose-p:text-slate-600 prose-p:leading-relaxed prose-p:mb-4
+                prose-headings:font-bold prose-headings:text-slate-800
+                prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+                prose-strong:font-bold prose-strong:text-slate-800
+                prose-ul:list-disc prose-ul:ml-4
+                prose-ol:list-decimal prose-ol:ml-4"
+              >
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {settings.sambutan_isi || "Belum ada isi sambutan."}
+                </ReactMarkdown>
+              </div>
 
               {/* TOMBOL ACTION PROFIL */}
               <Link
-                to="/visi-misi"
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-600/30 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all duration-300 no-underline"
+                to="/profile"
+                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 no-underline"
               >
                 <FiUsers size={18} /> Lihat Profil Lengkap
               </Link>
@@ -357,7 +368,7 @@ function Beranda() {
 
         {/* Card 2: Visi Misi (UNGU) */}
         <Link
-          to="/visi-misi"
+          to="/profile"
           className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-xl shadow-violet-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 no-underline overflow-hidden"
         >
           <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">

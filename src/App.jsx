@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useState, useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LightboxProvider } from "./context/LightboxContext";
+import { supabase } from "./supabaseClient";
 
 // KOMPONEN GLOBAL
 import Navbar from "./components/Navbar.jsx";
@@ -19,7 +20,7 @@ import NotFound from "./pages/NotFound.jsx";
 
 // HALAMAN PUBLIK (Lazy Load)
 const Beranda = React.lazy(() => import("./pages/Beranda.jsx"));
-const VisiMisi = React.lazy(() => import("./pages/VisiMisi.jsx"));
+const Profile = React.lazy(() => import("./pages/Profile.jsx"));
 const DaftarAnggota = React.lazy(() => import("./pages/DaftarAnggota.jsx"));
 const ProgramKerja = React.lazy(() => import("./pages/ProgramKerja.jsx"));
 const ProgramKerjaDetail = React.lazy(
@@ -82,6 +83,7 @@ const MainLayout = () => {
         flexDirection: "column",
         minHeight: "100vh",
         backgroundColor: "#f8fafc", // Background global
+        position: "relative",
       }}
     >
       {!shouldHideNavbar && <Navbar />}
@@ -98,7 +100,12 @@ const MainLayout = () => {
             {/* --- RUTE PUBLIK --- */}
             <Route path="/" element={<Beranda />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/visi-misi" element={<VisiMisi />} />
+            <Route path="/profile" element={<Profile />} />
+            {/* Redirect old URL for backward compatibility */}
+            <Route
+              path="/visi-misi"
+              element={<Navigate to="/profile" replace />}
+            />
 
             {/* Anggota & Divisi */}
             <Route path="/anggota" element={<DaftarAnggota />} />
@@ -187,6 +194,39 @@ const MainLayout = () => {
 };
 
 function App() {
+  useEffect(() => {
+    const updateIdentity = async () => {
+      try {
+        const { data } = await supabase
+          .from("pengaturan")
+          .select("nama_organisasi, nama_sekolah, logo_osis_url")
+          .eq("id", 1)
+          .single();
+
+        if (data) {
+          // Update Title
+          const title = `${data.nama_organisasi} - ${data.nama_sekolah}`;
+          document.title = title;
+
+          // Update Favicon
+          if (data.logo_osis_url) {
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+              link = document.createElement("link");
+              link.rel = "icon";
+              document.getElementsByTagName("head")[0].appendChild(link);
+            }
+            link.href = data.logo_osis_url;
+          }
+        }
+      } catch (error) {
+        console.error("Error updating site identity:", error);
+      }
+    };
+
+    updateIdentity();
+  }, []);
+
   return (
     <AuthProvider>
       <LightboxProvider>

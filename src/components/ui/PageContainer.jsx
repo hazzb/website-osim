@@ -16,13 +16,15 @@ const PageContainer = ({ children, breadcrumbText, className = "" }) => {
         boxSizing: "border-box",
       }}
     >
-      {/* Area Breadcrumb Otomatis */}
-      <div style={{ marginTop: "2rem", marginBottom: "1.5rem" }}>
-        <Breadcrumbs overrideLastText={breadcrumbText} />
-      </div>
-
       {/* Area Konten Halaman (Hero, Grid, dll) */}
-      <div style={{ paddingBottom: "3rem" }}>{children}</div>
+      <div
+        style={{
+          paddingTop: breadcrumbText ? "0" : "1rem",
+          paddingBottom: "3rem",
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 };

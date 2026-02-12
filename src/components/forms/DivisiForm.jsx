@@ -14,9 +14,8 @@ const DivisiForm = ({
   periodeList = [],
 }) => {
   return (
-    <form onSubmit={onSubmit} className={formStyles.form}>
+    <form onSubmit={onSubmit}>
       <div className={formStyles.formGrid}>
-        
         {/* BARIS 1: Periode (Lebar 8) & Urutan (Lebar 4) */}
         <FormInput
           label="Periode Kabinet"
@@ -27,7 +26,9 @@ const DivisiForm = ({
           required
           span={8} // Gunakan prop span langsung
         >
-          <option value="" disabled>-- Pilih --</option>
+          <option value="" disabled>
+            -- Pilih --
+          </option>
           {periodeList.map((p) => (
             <option key={p.id} value={p.id}>
               {p.nama_kabinet} ({p.tahun_mulai})
@@ -74,34 +75,89 @@ const DivisiForm = ({
         {/* BARIS 3: Logo (Custom Component - Full Width) */}
         {/* Kita beri style gridColumn: "span 12" agar dia memanjang penuh */}
         <div style={{ gridColumn: "span 12" }}>
-          <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "600", fontSize: "0.9rem", color: "#334155" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "0.5rem",
+              fontWeight: "600",
+              fontSize: "0.9rem",
+              color: "#334155",
+            }}
+          >
             Logo Divisi
           </label>
 
-          <div style={{ 
-            display: "flex", alignItems: "center", gap: "1rem", 
-            padding: "0.6rem", border: "1px solid #e2e8f0", 
-            borderRadius: "6px", background: "#f8fafc" 
-          }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1rem",
+              padding: "0.6rem",
+              border: "1px solid #e2e8f0",
+              borderRadius: "6px",
+              background: "#f8fafc",
+            }}
+          >
             {/* Preview Image */}
-            <div style={{ 
-              width: "45px", height: "45px", borderRadius: "6px", 
-              overflow: "hidden", background: "#fff", border: "1px solid #cbd5e0", 
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 
-            }}>
+            <div
+              style={{
+                width: "45px",
+                height: "45px",
+                borderRadius: "6px",
+                overflow: "hidden",
+                background: "#fff",
+                border: "1px solid #cbd5e0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
               {preview ? (
-                <img src={preview} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img
+                  src={preview}
+                  alt="Preview"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               ) : (
                 <FiImage size={20} color="#94a3b8" />
               )}
             </div>
 
             {/* Upload Button */}
-            <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Max 1MB</span>
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                Max 1MB
+              </span>
               <div>
-                <input type="file" id="small_file_logo" name="file_logo" accept="image/*" onChange={onFileChange} style={{ display: "none" }} />
-                <label htmlFor="small_file_logo" className="button button-secondary" style={{ padding: "0.3rem 0.8rem", fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer", height: "auto" }}>
+                <input
+                  type="file"
+                  id="small_file_logo"
+                  name="file_logo"
+                  accept="image/*"
+                  onChange={onFileChange}
+                  style={{ display: "none" }}
+                />
+                <label
+                  htmlFor="small_file_logo"
+                  className="button button-secondary"
+                  style={{
+                    padding: "0.3rem 0.8rem",
+                    fontSize: "0.75rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    cursor: "pointer",
+                    height: "auto",
+                  }}
+                >
                   <FiUpload size={12} /> {preview ? "Ganti" : "Upload"}
                 </label>
               </div>
@@ -124,10 +180,18 @@ const DivisiForm = ({
 
       {/* FOOTER */}
       <div className={formStyles.formFooter} style={{ marginTop: "1rem" }}>
-        <button type="button" onClick={onCancel} className="button button-secondary">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="button button-secondary"
+        >
           Batal
         </button>
-        <button type="submit" className="button button-primary" disabled={loading}>
+        <button
+          type="submit"
+          className="button button-primary"
+          disabled={loading}
+        >
           {loading ? "Simpan..." : "Simpan"}
         </button>
       </div>

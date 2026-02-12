@@ -58,7 +58,7 @@ const Navbar = () => {
   }, [location]);
 
   return (
-    <nav className="sticky top-0 z-[1000] bg-white/85 backdrop-blur-lg border-b border-primary-border/50 shadow-sm transition-all w-full">
+    <nav className="sticky top-0 z-[1000] bg-blue-50/95 sm:bg-blue-50/90 backdrop-blur-sm sm:backdrop-blur-lg border-b border-primary-border/50 shadow-sm transition-all w-full leading-relaxed">
       <div className="max-w-6xl mx-auto px-4 h-14 flex justify-between items-center">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-8">
@@ -72,7 +72,7 @@ const Navbar = () => {
             ) : (
               <div className="w-[34px] h-[34px] bg-slate-200 rounded-full" />
             )}
-            <span className="font-extrabold text-lg tracking-tight bg-gradient-to-br from-secondary to-indigo-600 bg-clip-text text-transparent">
+            <span className="font-extrabold text-sm sm:text-lg tracking-tight bg-gradient-to-br from-secondary to-indigo-600 bg-clip-text text-transparent line-clamp-1">
               {orgName}
             </span>
           </Link>
@@ -92,7 +92,7 @@ const Navbar = () => {
               <FiHome size={18} /> Beranda
             </NavLink>
             <NavLink
-              to="/visi-misi"
+              to="/profile"
               className={({ isActive }) =>
                 `flex items-center gap-1.5 no-underline font-semibold text-xs px-4 py-1.5 rounded-full transition-all ${
                   isActive
@@ -136,7 +136,7 @@ const Navbar = () => {
             <>
               <Link
                 to="/dashboard"
-                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-border bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
+                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
               >
                 <FiLayout /> Dashboard
               </Link>
@@ -150,7 +150,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/login"
-              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-border bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
+              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
             >
               <FiLogIn /> Login
             </Link>
@@ -184,7 +184,7 @@ const Navbar = () => {
           <FiHome /> Beranda
         </NavLink>
         <NavLink
-          to="/visi-misi"
+          to="/profile"
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm transition-all ${
               isActive

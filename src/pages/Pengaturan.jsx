@@ -110,17 +110,18 @@ function Pengaturan() {
       <PageHeader
         title="Pengaturan Website"
         subtitle="Kelola informasi umum, kontak, dan tampilan sesuai database."
-        actions={
+        primaryAction={
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="button button-primary min-w-[120px]"
+            className="button button-primary min-w-[100px] !py-2 !px-4 !text-xs"
+            title="Simpan Perubahan"
           >
             {saving ? (
-              "Menyimpan..."
+              "..."
             ) : (
               <>
-                <FiSave /> Simpan
+                <FiSave /> <span>Simpan</span>
               </>
             )}
           </button>
@@ -412,6 +413,7 @@ function Pengaturan() {
                     <option value="modular">Modular Grid (Modern)</option>
                     <option value="split">Split Card (Klasik)</option>
                     <option value="zigzag">Zig-Zag Story</option>
+                    <option value="simple">Simple Centered (Vertical)</option>
                   </FormInput>
                 </div>
 

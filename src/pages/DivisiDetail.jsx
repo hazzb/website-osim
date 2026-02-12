@@ -11,6 +11,7 @@ import LoadingState from "../components/ui/LoadingState.jsx";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import ProgramKerjaCard from "../components/cards/ProgramKerjaCard.jsx";
 import Modal from "../components/Modal.jsx";
+import { FilterSearch } from "../components/ui/FilterBar.jsx";
 
 // Forms
 import DivisiForm from "../components/forms/DivisiForm.jsx";
@@ -194,71 +195,56 @@ function DivisiDetail() {
       <PageHeader
         title={data.divisi.nama_divisi}
         subtitle={data.divisi.deskripsi || "Informasi detail divisi."}
-        // --- HEADER BARU (Layout mirip Daftar Anggota) ---
-        searchBar={
-          <div className="flex items-center gap-3 w-full">
-            {/* 1. Tombol Kembali (Kiri) */}
+        onBack={() => navigate(-1)}
+        actions={
+          isAdmin && (
             <button
-              className="flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 transition-all shrink-0 cursor-pointer"
-              onClick={() => navigate(-1)}
-              title="Kembali"
+              className="button button-primary"
+              onClick={() => {
+                setFormData(data.divisi);
+                setFormPreview(data.divisi.logo_url);
+                setActiveModal("divisi");
+              }}
+              title="Edit Divisi"
             >
-              <FiArrowLeft size={18} />
+              <FiEdit />
+              <span>Edit</span>
             </button>
-
-            {/* 2. Search Bar (Tengah & Flexible) */}
-            <div className="flex-1 relative min-w-[100px]">
-              <FiSearch
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                size={16}
-              />
-              <input
-                placeholder="Cari anggota divisi..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-10 pl-10 pr-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 transition-all focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
-              />
-            </div>
-
-            {/* 3. Actions Kanan (Edit & Toggle) */}
-            <div className="flex items-center gap-2 shrink-0">
-              {isAdmin && (
-                <button
-                  className="flex items-center gap-2 px-4 h-10 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-sm cursor-pointer whitespace-nowrap hover:bg-blue-100 hover:border-blue-300 transition-all w-10 p-0 sm:w-auto sm:px-4 justify-center"
-                  onClick={() => {
-                    setFormData(data.divisi);
-                    setFormPreview(data.divisi.logo_url);
-                    setActiveModal("divisi");
-                  }}
-                  title="Edit Divisi"
-                >
-                  <FiEdit />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-              )}
-
-              <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 h-10 box-border gap-0.5">
-                <button
-                  className={`border-none bg-transparent px-2.5 h-full rounded-md cursor-pointer flex items-center justify-center transition-all ${viewMode === "aesthetic" ? "bg-white text-blue-600 shadow-sm font-bold" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
-                  onClick={() => setViewMode("aesthetic")}
-                  title="Grid View"
-                >
-                  <FiGrid />
-                </button>
-                <button
-                  className={`border-none bg-transparent px-2.5 h-full rounded-md cursor-pointer flex items-center justify-center transition-all ${viewMode === "compact" ? "bg-white text-blue-600 shadow-sm font-bold" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
-                  onClick={() => setViewMode("compact")}
-                  title="List View"
-                >
-                  <FiLayout />
-                </button>
-              </div>
-            </div>
+          )
+        }
+        searchBar={
+          <FilterSearch
+            placeholder="Cari anggota divisi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        }
+        extraActions={
+          <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200 gap-0.5">
+            <button
+              className={`border-none rounded-md px-2 py-1 cursor-pointer flex items-center justify-center transition-all ${
+                viewMode === "aesthetic"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"
+              }`}
+              onClick={() => setViewMode("aesthetic")}
+              title="Grid View"
+            >
+              <FiGrid size={16} />
+            </button>
+            <button
+              className={`border-none rounded-md px-2 py-1 cursor-pointer flex items-center justify-center transition-all ${
+                viewMode === "compact"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"
+              }`}
+              onClick={() => setViewMode("compact")}
+              title="List View"
+            >
+              <FiLayout size={16} />
+            </button>
           </div>
         }
-        // Kosongkan slot lain agar tidak ada burger menu
-        actions={null}
-        filters={null}
       />
 
       {/* Info Card */}
@@ -290,10 +276,23 @@ function DivisiDetail() {
         </h2>
 
         {filteredAnggota.length === 0 ? (
-          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-12 text-center text-slate-400 italic">
-            {searchTerm
-              ? "Tidak ada anggota yang cocok dengan pencarian."
-              : "Belum ada anggota."}
+          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-16 text-center animate-fadeIn">
+            <div className="text-5xl mb-4 grayscale opacity-30 text-slate-400">
+              🔍
+            </div>
+            <p className="text-slate-500 font-medium">
+              {searchTerm
+                ? `Tidak ada anggota yang cocok dengan kata kunci "${searchTerm}".`
+                : "Belum ada anggota dalam divisi ini."}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="mt-4 text-sm text-blue-600 font-semibold hover:underline bg-transparent border-none cursor-pointer"
+              >
+                Hapus Pencarian
+              </button>
+            )}
           </div>
         ) : (
           <div

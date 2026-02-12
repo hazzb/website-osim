@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import PageContainer from "../components/ui/PageContainer.jsx";
+import PageHeader from "../components/ui/PageHeader.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 
 // Icons
@@ -100,23 +101,16 @@ function DashboardAdmin() {
 
   return (
     <PageContainer breadcrumbText="Dashboard">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-2 -tracking-tight">
-            {greeting}, Admin! 👋
-          </h1>
-          <p className="text-slate-500 text-base m-0">
-            Ringkasan data organisasi hari ini.
-          </p>
-        </div>
-        <div>
+      <PageHeader
+        title={`${greeting}, Admin! 👋`}
+        subtitle="Ringkasan data organisasi hari ini."
+        extraActions={
           <div className="bg-white px-4 py-2.5 rounded-xl font-semibold text-slate-600 text-sm flex items-center gap-2 shadow-sm border border-slate-200">
             <FiClock className="text-blue-500" />{" "}
             {new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* --- BAGIAN 1: STATISTIK UTAMA --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
@@ -229,8 +223,8 @@ function DashboardAdmin() {
               desc="Banner & info utama."
             />
             <NavCard
-              to="/visi-misi"
-              label="Edit Visi Misi"
+              to="/profile"
+              label="Edit Profile"
               icon={<FiTarget />}
               color="purple"
               desc="Profil organisasi."

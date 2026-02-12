@@ -8,6 +8,7 @@ import PageHeader from "../components/ui/PageHeader.jsx"; // <--- IMPORT
 import Modal from "../components/Modal.jsx";
 import FormInput from "../components/admin/FormInput.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
+import { FilterSearch } from "../components/ui/FilterBar.jsx";
 
 // Styles
 import tableStyles from "../components/admin/AdminTable.module.css";
@@ -37,7 +38,10 @@ function KelolaJabatan() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ nama_jabatan: "", tipe_jabatan: "Divisi" });
+  const [formData, setFormData] = useState({
+    nama_jabatan: "",
+    tipe_jabatan: "Divisi",
+  });
 
   // --- HANDLERS ---
   const openModal = (item = null) => {
@@ -59,9 +63,13 @@ function KelolaJabatan() {
     e.preventDefault();
     setModalLoading(true);
     try {
-      if (editingId) await supabase.from("master_jabatan").update(formData).eq("id", editingId);
+      if (editingId)
+        await supabase
+          .from("master_jabatan")
+          .update(formData)
+          .eq("id", editingId);
       else await supabase.from("master_jabatan").insert(formData);
-      
+
       setIsModalOpen(false);
       refreshData();
       alert("Berhasil disimpan!");
@@ -75,33 +83,25 @@ function KelolaJabatan() {
   // --- RENDER ---
   return (
     <PageContainer breadcrumbText="Kelola Jabatan">
-      
       {/* HEADER STANDAR */}
       <PageHeader
         title="Kelola Jabatan"
         subtitle="Master data jabatan (Struktural & Inti)."
-        
         actions={
           <button
             onClick={() => openModal()}
             className="button button-primary"
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+            title="Tambah Jabatan"
           >
-            <FiPlus /> Tambah Jabatan
+            <FiPlus /> <span>Tambah Jabatan</span>
           </button>
         }
-
         searchBar={
-          <div style={{ position: "relative", width: "100%" }}>
-            <FiSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
-            <input
-              type="text"
-              placeholder="Cari jabatan..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ width: "100%", padding: "0.6rem 1rem 0.6rem 2.5rem", border: "1px solid #cbd5e0", borderRadius: "8px", fontSize: "0.9rem", height: "38px" }}
-            />
-          </div>
+          <FilterSearch
+            placeholder="Cari jabatan..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         }
       />
 
@@ -119,31 +119,92 @@ function KelolaJabatan() {
               </tr>
             </thead>
             <tbody>
-              {jabatanList.map((item) => (
-                <tr key={item.id}>
-                  <td><strong>{item.nama_jabatan}</strong></td>
-                  <td>
-                    {item.tipe_jabatan === "Inti" ? (
-                      <span className={`${tableStyles.badge} ${tableStyles.badgeSuccess}`}>Inti (BPH)</span>
-                    ) : (
-                      <span className={`${tableStyles.badge} ${tableStyles.badgeGray}`}>Divisi</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className={tableStyles.actionCell}>
-                      <button onClick={() => openModal(item)} className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}><FiEdit /></button>
-                      <button onClick={() => handleDelete(item.id)} className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}><FiTrash2 /></button>
+              {jabatanList.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="3"
+                    style={{ textAlign: "center", padding: "4rem 2rem" }}
+                  >
+                    <div style={{ color: "#94a3b8", fontSize: "0.9rem" }}>
+                      <FiSearch
+                        size={24}
+                        style={{ marginBottom: "0.5rem", opacity: 0.5 }}
+                      />
+                      <p>
+                        {searchTerm ? (
+                          <>
+                            Tidak ada jabatan yang cocok dengan "
+                            <strong>{searchTerm}</strong>"
+                          </>
+                        ) : (
+                          "Belum ada data jabatan."
+                        )}
+                      </p>
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm("")}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#3b82f6",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            marginTop: "0.5rem",
+                          }}
+                        >
+                          Reset Pencarian
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                jabatanList.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <strong>{item.nama_jabatan}</strong>
+                    </td>
+                    <td>
+                      {item.tipe_jabatan === "Inti" ? (
+                        <span
+                          className={`${tableStyles.badge} ${tableStyles.badgeSuccess}`}
+                        >
+                          Inti (BPH)
+                        </span>
+                      ) : (
+                        <span
+                          className={`${tableStyles.badge} ${tableStyles.badgeGray}`}
+                        >
+                          Divisi
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <div className={tableStyles.actionCell}>
+                        <button
+                          onClick={() => openModal(item)}
+                          className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
+                        >
+                          <FiEdit />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       )}
 
       {/* PAGINATION (Jika ada) */}
-      
+
       {/* MODAL FORM */}
       <Modal
         isOpen={isModalOpen}
@@ -173,8 +234,20 @@ function KelolaJabatan() {
             </FormInput>
           </div>
           <div className={formStyles.formFooter}>
-            <button type="button" onClick={() => setIsModalOpen(false)} className="button button-secondary">Batal</button>
-            <button type="submit" className="button button-primary" disabled={modalLoading}>Simpan</button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="button button-secondary"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={modalLoading}
+            >
+              Simpan
+            </button>
           </div>
         </form>
       </Modal>

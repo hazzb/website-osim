@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,7 +7,12 @@ import { Link, useNavigate } from "react-router-dom";
 import PageContainer from "../components/ui/PageContainer.jsx";
 import PageHeader from "../components/ui/PageHeader.jsx";
 import { AnggotaSkeletonGrid } from "../components/ui/Skeletons.jsx";
-import { FilterSelect } from "../components/ui/FilterBar.jsx";
+import {
+  FilterSelect,
+  FilterSearch,
+  FilterToggle,
+  FilterIconButton,
+} from "../components/ui/FilterBar.jsx";
 import AnggotaCard from "../components/cards/AnggotaCard.jsx";
 import Modal from "../components/Modal.jsx";
 
@@ -51,6 +56,7 @@ function DaftarAnggota() {
   const [selectedGender, setSelectedGender] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(12);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,9 +67,8 @@ function DaftarAnggota() {
   const [formData, setFormData] = useState({});
   const [formFile, setFormFile] = useState(null);
   const [formPreview, setFormPreview] = useState(null);
+  const observerTarget = useRef(null);
 
-  // ... (activePeriodeData, fetchInitialData, fetchAnggota, useEffects tetap sama) ...
-  // [JANGAN DIHAPUS BAGIAN FETCH DATA YANG SUDAH ADA]
   const activePeriodeData = periodeList.find(
     (p) => String(p.id) === String(activeTab),
   );
@@ -99,7 +104,7 @@ function DaftarAnggota() {
 
   useEffect(() => {
     fetchInitialData();
-  }, []);
+  }, [fetchInitialData]);
 
   const fetchAnggota = useCallback(
     async (periodeId) => {
@@ -133,10 +138,32 @@ function DaftarAnggota() {
   );
 
   useEffect(() => {
-    if (activeTab) fetchAnggota(activeTab);
+    if (activeTab) {
+      fetchAnggota(activeTab);
+      setVisibleCount(12);
+    }
   }, [activeTab, fetchAnggota]);
 
-  // ... (Sort Logic helper functions tetap sama) ...
+  // Infinite Scroll Intersection Observer
+  useEffect(() => {
+    const target = observerTarget.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading) {
+          setVisibleCount((prev) => prev + 12);
+        }
+      },
+      { threshold: 1.0 },
+    );
+
+    observer.observe(target);
+    return () => {
+      if (target) observer.unobserve(target);
+    };
+  }, [loading]);
+
   const getJobRank = (jabatan) => {
     const j = jabatan?.toLowerCase() || "";
     if (j.includes("ketua") && !j.includes("wakil")) return 1;
@@ -155,31 +182,11 @@ function DaftarAnggota() {
       return a.nama.localeCompare(b.nama);
     });
   };
-  const getModalTitle = () => {
-    if (activeModal === "jabatan") return "Kelola Jabatan";
-    const action = editingId ? "Edit" : "Tambah";
-    return `${action} ${
-      activeModal?.charAt(0).toUpperCase() + activeModal?.slice(1) || ""
-    }`;
-  };
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormFile(file);
-      setFormPreview(URL.createObjectURL(file));
-    }
-  };
-  const handleFormChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
 
-  // --- MODAL MANAGEMENT (PERBAIKAN UTAMA) ---
   const openModal = (type, item = null) => {
     setActiveModal(type);
     setFormFile(null);
     setFormPreview(null);
-
-    // 1. Reorder & Jabatan
     if (type === "reorder_divisi") {
       setIsModalOpen(false);
       return;
@@ -188,20 +195,16 @@ function DaftarAnggota() {
       setIsModalOpen(true);
       return;
     }
-
-    // 2. Anggota/Divisi (Generic)
     if (item) {
       setEditingId(item.id);
-
-      // PERBAIKAN: Handle null value agar input form tidak warning
       if (type === "anggota") {
         setFormData({
           ...item,
           divisi_id: item.divisi_id || "",
           jabatan_id: item.jabatan_id || "",
-          instagram_username: item.instagram_username || "", // Handle null
-          motto: item.motto || "", // Handle null
-          alamat: item.alamat || "", // Handle null
+          instagram_username: item.instagram_username || "",
+          motto: item.motto || "",
+          alamat: item.alamat || "",
         });
         setFormPreview(item.foto_url);
       } else if (type === "divisi") {
@@ -211,7 +214,6 @@ function DaftarAnggota() {
     } else {
       setEditingId(null);
       const targetPeriode = activeTab === "semua" ? "" : activeTab;
-
       if (type === "anggota") {
         setFormData({
           nama: "",
@@ -236,13 +238,12 @@ function DaftarAnggota() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setActiveModal(null);
     setFormData({});
-  };
+  }, []);
 
-  // --- CRUD ACTIONS (Tetap sama) ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
@@ -251,7 +252,6 @@ function DaftarAnggota() {
       let table = "";
       if (!formData.periode_id)
         throw new Error("Periode Jabatan harus dipilih!");
-
       if (activeModal === "divisi") {
         table = "divisi";
         let logoUrl = formData.logo_url;
@@ -282,7 +282,6 @@ function DaftarAnggota() {
             : null,
         };
       }
-
       if (editingId) {
         const { error } = await supabase
           .from(table)
@@ -319,7 +318,21 @@ function DaftarAnggota() {
     }
   };
 
-  // --- FILTERING (Tetap sama) ---
+  // --- HANDLERS ---
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleFileChange = useCallback((e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setFormFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setFormPreview(objectUrl);
+    }
+  }, []);
+
   const filteredAnggota = anggotaList.filter((anggota) => {
     const matchDivisi =
       selectedDivisi === "semua" ||
@@ -343,82 +356,118 @@ function DaftarAnggota() {
     (a, b) => (a.urutan || 99) - (b.urutan || 99),
   );
 
+  const getModalTitle = () => {
+    if (activeModal === "jabatan") return "Kelola Jabatan";
+    const action = editingId ? "Edit" : "Tambah";
+    return `${action} ${
+      activeModal?.charAt(0).toUpperCase() + activeModal?.slice(1) || ""
+    }`;
+  };
+
   return (
     <PageContainer breadcrumbText="Daftar Anggota">
       <PageHeader
-        title={
-          <div className="flex items-center flex-wrap gap-2">
-            <span>Daftar Anggota</span>
-            {activeTab === "semua" ? (
-              <span className="text-[0.6em] text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-                Semua Periode
-              </span>
-            ) : (
-              activePeriodeData && (
-                <span className="text-[0.6em] text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                  {activePeriodeData.nama_kabinet}
-                </span>
-              )
-            )}
-          </div>
+        title="Daftar Anggota"
+        subtitle={
+          activeTab === "semua"
+            ? "Menampilkan anggota dari semua periode"
+            : activePeriodeData
+              ? `Periode: ${activePeriodeData.nama_kabinet}`
+              : "Manajemen personil, struktur divisi, dan jabatan"
         }
-        subtitle="Manajemen personil, struktur divisi, dan jabatan."
         actions={
           isAdmin && (
             <>
               <button
                 onClick={() => navigate("/kelola-anggota")}
-                className="button button-secondary" // Reusing global utility class but keeping logic
-                title="Database"
+                className="button button-secondary"
               >
-                <FiDatabase />{" "}
-                <span className="hidden sm:inline">Database</span>
+                <FiDatabase /> <span>Database</span>
               </button>
               <button
                 onClick={() => openModal("anggota")}
                 className="button button-primary"
-                title="Tambah Anggota"
               >
-                <FiPlus /> Anggota
+                <FiPlus /> <span>Anggota</span>
               </button>
               <button
                 onClick={() => openModal("divisi")}
                 className="button button-secondary"
-                title="Tambah Divisi"
               >
-                <FiPlus /> Divisi
+                <FiPlus /> <span>Divisi</span>
               </button>
               <button
                 onClick={() => openModal("reorder_divisi")}
                 className="button button-secondary"
-                title="Atur Urutan"
               >
-                <FiList /> Urutan
+                <FiList /> <span>Urutan</span>
               </button>
               <button
                 onClick={() => setIsWizardOpen(true)}
                 className="button button-secondary"
-                title="Wizard Kabinet"
               >
-                <FiZap /> Kabinet
+                <FiZap /> <span>Kabinet</span>
               </button>
               <button
                 onClick={() => openModal("jabatan")}
                 className="button button-secondary"
-                title="Master Jabatan"
               >
-                <FiBriefcase /> Jabatan
+                <FiBriefcase /> <span>Jabatan</span>
               </button>
             </>
           )
         }
         searchBar={
-          <div className="flex gap-2 w-full items-center">
-            <div className="flex-1 min-w-[130px]">
-              <select
+          <FilterSearch
+            placeholder="Cari anggota..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        }
+        genderFilter={
+          <FilterToggle
+            value={selectedGender}
+            onChange={setSelectedGender}
+            options={[
+              { value: "all", label: "All" },
+              { value: "Ikhwan", label: "L" },
+              { value: "Akhwat", label: "P" },
+            ]}
+          />
+        }
+        extraActions={
+          <div className="flex bg-slate-100 p-1 rounded-lg shrink-0 gap-0.5 border border-slate-200">
+            <button
+              onClick={() => setViewMode("compact")}
+              className={`border-none rounded-md px-2 py-1 cursor-pointer flex items-center justify-center transition-all ${
+                viewMode === "compact"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"
+              }`}
+              title="List View"
+            >
+              <FiLayout size={16} />
+            </button>
+            <button
+              onClick={() => setViewMode("aesthetic")}
+              className={`border-none rounded-md px-2 py-1 cursor-pointer flex items-center justify-center transition-all ${
+                viewMode === "aesthetic"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"
+              }`}
+              title="Grid View"
+            >
+              <FiGrid size={16} />
+            </button>
+          </div>
+        }
+        filters={
+          <div className="flex flex-wrap gap-4 w-full">
+            <div className="flex-1 min-w-[200px]">
+              <FilterSelect
+                label="Periode Jabatan"
                 value={activeTab}
                 onChange={(e) => setActiveTab(e.target.value)}
-                className="w-full h-10 px-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-600 focus:outline-none focus:border-blue-500 cursor-pointer"
               >
                 <option value="semua">Semua Periode</option>
                 {periodeList.map((p) => (
@@ -426,36 +475,7 @@ function DaftarAnggota() {
                     {p.nama_kabinet} {p.is_active ? "(Aktif)" : ""}
                   </option>
                 ))}
-              </select>
-            </div>
-            <div className="flex bg-slate-100 p-1 rounded-lg h-10 shrink-0 gap-0.5 border border-slate-200">
-              <button
-                onClick={() => setViewMode("compact")}
-                className={`border-none rounded-md px-2 cursor-pointer flex items-center justify-center transition-all ${viewMode === "compact" ? "bg-white text-blue-600 shadow-sm" : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"}`}
-              >
-                <FiLayout size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode("aesthetic")}
-                className={`border-none rounded-md px-2 cursor-pointer flex items-center justify-center transition-all ${viewMode === "aesthetic" ? "bg-white text-blue-600 shadow-sm" : "bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-200/50"}`}
-              >
-                <FiGrid size={16} />
-              </button>
-            </div>
-          </div>
-        }
-        filters={
-          <>
-            <div className="w-full mb-2 pb-2 border-b border-dashed border-slate-200 relative">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Ketik nama anggota..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-10 pl-10 pr-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
-                autoFocus
-              />
+              </FilterSelect>
             </div>
             <div className="flex-1 min-w-[150px]">
               <FilterSelect
@@ -471,18 +491,7 @@ function DaftarAnggota() {
                 ))}
               </FilterSelect>
             </div>
-            <div className="flex-1 min-w-[120px]">
-              <FilterSelect
-                label="Filter Gender"
-                value={selectedGender}
-                onChange={(e) => setSelectedGender(e.target.value)}
-              >
-                <option value="all">Semua</option>
-                <option value="Ikhwan">Ikhwan</option>
-                <option value="Akhwat">Akhwat</option>
-              </FilterSelect>
-            </div>
-          </>
+          </div>
         }
       />
 
@@ -495,102 +504,180 @@ function DaftarAnggota() {
         </div>
       ) : (
         <div className="flex flex-col gap-8 pt-6 pb-20">
-          {sortedDivisiList.map((divisi) => {
-            const rawMembers = memberMap[divisi.id] || [];
-            const members = sortMembers([...rawMembers]);
-            if (members.length === 0) return null;
+          {(() => {
+            let renderedCount = 0;
+            const limit = visibleCount;
             return (
-              <section
-                key={divisi.id}
-                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"
-              >
-                <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    {divisi.logo_url ? (
-                      <img
-                        src={divisi.logo_url}
-                        alt="logo"
-                        className="w-12 h-12 object-cover rounded-xl bg-slate-50 border border-slate-100"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center font-bold text-slate-400 text-xl border border-slate-200">
-                        {divisi.nama_divisi.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-800 m-0 leading-tight">
-                        {divisi.nama_divisi}
-                      </h3>
-                      {divisi.tipe === "Inti" && (
-                        <span className="bg-red-50 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 inline-block border border-red-100">
-                          BPH / INTI
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      to={`/divisi/${divisi.id}`}
-                      className="inline-flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline"
+              <>
+                {filteredAnggota.length === 0 ? (
+                  <div className="text-center py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl animate-fadeIn">
+                    <div className="text-6xl mb-4 grayscale opacity-30">🔍</div>
+                    <h3 className="text-xl font-bold text-slate-700 m-0">
+                      Pencarian tidak ditemukan
+                    </h3>
+                    <p className="text-slate-500 mt-2 max-w-xs mx-auto">
+                      Tidak ada anggota yang cocok dengan filter atau kata kunci
+                      "
+                      <span className="font-semibold text-blue-600">
+                        {searchTerm}
+                      </span>
+                      ".
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedGender("all");
+                        setSelectedDivisi("semua");
+                      }}
+                      className="mt-6 text-blue-600 font-semibold hover:underline bg-transparent border-none cursor-pointer"
                     >
-                      Detail <FiArrowRight />
-                    </Link>
-                    {isAdmin && (
-                      <button
-                        onClick={() => openModal("divisi", divisi)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
-                        title="Edit Divisi"
-                      >
-                        <FiEdit size={16} />
-                      </button>
-                    )}
+                      Reset Filter
+                    </button>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {members.map((anggota) => (
-                    <AnggotaCard
-                      key={anggota.id}
-                      data={anggota}
-                      isAdmin={isAdmin}
-                      onEdit={(item) => openModal("anggota", item)}
-                      onDelete={(id) => handleDelete("anggota", id)}
-                      layout={viewMode}
-                    />
-                  ))}
-                </div>
-              </section>
+                ) : (
+                  <>
+                    {sortedDivisiList.map((divisi) => {
+                      if (renderedCount >= limit) return null;
+                      const rawMembers = memberMap[divisi.id] || [];
+                      const members = sortMembers([...rawMembers]);
+                      if (members.length === 0) return null;
+                      const remainingQuota = limit - renderedCount;
+                      if (remainingQuota <= 0) return null;
+                      const membersToShow = members.slice(0, remainingQuota);
+                      renderedCount += membersToShow.length;
+                      return (
+                        <section
+                          key={divisi.id}
+                          className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                            <div className="flex items-center gap-3">
+                              {divisi.logo_url ? (
+                                <img
+                                  src={divisi.logo_url}
+                                  alt="logo"
+                                  className="w-12 h-12 object-cover rounded-xl bg-slate-50 border border-slate-100"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center font-bold text-slate-400 text-xl border border-slate-200">
+                                  {divisi.nama_divisi.charAt(0)}
+                                </div>
+                              )}
+                              <div>
+                                <h3 className="text-lg font-bold text-slate-800 m-0 leading-tight">
+                                  {divisi.nama_divisi}
+                                </h3>
+                                {divisi.tipe === "Inti" && (
+                                  <span className="bg-red-50 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 inline-block border border-red-100">
+                                    BPH / INTI
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                to={`/divisi/${divisi.id}`}
+                                className="inline-flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline"
+                              >
+                                Detail <FiArrowRight />
+                              </Link>
+                              {isAdmin && (
+                                <button
+                                  onClick={() => openModal("divisi", divisi)}
+                                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                                  title="Edit Divisi"
+                                >
+                                  <FiEdit size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {membersToShow.map((anggota) => (
+                              <AnggotaCard
+                                key={anggota.id}
+                                data={anggota}
+                                isAdmin={isAdmin}
+                                onEdit={(item) => openModal("anggota", item)}
+                                onDelete={(id) => handleDelete("anggota", id)}
+                                layout={viewMode}
+                              />
+                            ))}
+                          </div>
+                          {members.length > membersToShow.length && (
+                            <div className="text-center text-xs text-slate-400 mt-4 italic">
+                              +{members.length - membersToShow.length} anggota
+                              lainnya (Load More untuk melihat)
+                            </div>
+                          )}
+                        </section>
+                      );
+                    })}
+
+                    {memberMap["others"]?.length > 0 &&
+                      renderedCount < limit && (
+                        <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                          <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                            <h3 className="text-lg font-bold text-slate-800 m-0">
+                              Lainnya / Tanpa Divisi
+                            </h3>
+                          </div>
+                          {(() => {
+                            const others = sortMembers([
+                              ...memberMap["others"],
+                            ]);
+                            const remainingQuota = limit - renderedCount;
+                            const othersToShow = others.slice(
+                              0,
+                              remainingQuota,
+                            );
+                            renderedCount += othersToShow.length;
+                            return (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {othersToShow.map((m) => (
+                                  <AnggotaCard
+                                    key={m.id}
+                                    data={m}
+                                    isAdmin={isAdmin}
+                                    onDelete={(id) =>
+                                      handleDelete("anggota", id)
+                                    }
+                                    onEdit={(item) =>
+                                      openModal("anggota", item)
+                                    }
+                                    layout={viewMode}
+                                  />
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </section>
+                      )}
+                  </>
+                )}
+
+                {renderedCount < filteredAnggota.length && (
+                  <div
+                    ref={observerTarget}
+                    className="flex flex-col items-center justify-center py-10 gap-3"
+                  >
+                    <div className="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+                    <span className="text-slate-400 text-sm font-medium">
+                      Memuat lebih banyak...
+                    </span>
+                  </div>
+                )}
+              </>
             );
-          })}
-          {memberMap["others"]?.length > 0 && (
-            <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
-                <h3 className="text-lg font-bold text-slate-800 m-0">
-                  Lainnya / Tanpa Divisi
-                </h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sortMembers([...memberMap["others"]]).map((m) => (
-                  <AnggotaCard
-                    key={m.id}
-                    data={m}
-                    isAdmin={isAdmin}
-                    onDelete={(id) => handleDelete("anggota", id)}
-                    onEdit={(item) => openModal("anggota", item)}
-                    layout={viewMode}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+          })()}
         </div>
       )}
 
-      {/* MODALS */}
       <Modal isOpen={isModalOpen} onClose={closeModal} title={getModalTitle()}>
         {activeModal === "anggota" && (
           <AnggotaForm
             formData={formData}
-            onChange={handleFormChange}
+            onChange={handleChange}
             onFileChange={handleFileChange}
             onSubmit={handleSubmit}
             onCancel={closeModal}
@@ -604,7 +691,7 @@ function DaftarAnggota() {
         {activeModal === "divisi" && (
           <DivisiForm
             formData={formData}
-            onChange={handleFormChange}
+            onChange={handleChange}
             onFileChange={handleFileChange}
             onSubmit={handleSubmit}
             onCancel={closeModal}

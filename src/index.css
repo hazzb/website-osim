@@ -19,12 +19,15 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html,
   body {
     margin: 0;
     padding: 0;
     min-width: 320px;
     min-height: 100vh;
     font-family: "Vend Sans", sans-serif !important;
+    position: relative;
+    width: 100%;
   }
 }
 
@@ -53,7 +56,7 @@
   }
 
   .button-secondary {
-    @apply bg-white border-border text-text-body shadow-sm;
+    @apply bg-white border-borderDim text-text-body shadow-sm;
   }
 
   .button-secondary:hover:not(:disabled) {
@@ -75,19 +78,19 @@
 
   /* Card */
   .card {
-    @apply bg-bg-card border border-border rounded-xl p-6 shadow-sm-custom;
+    @apply bg-bg-card border border-borderDim rounded-xl p-6 shadow-sm-custom;
   }
 
   /* Card Divider */
   .card-divider {
-    @apply border-t border-border my-2 w-full;
+    @apply border-t border-borderDim my-2 w-full;
   }
 
   /* Form Inputs */
   input,
   select,
   textarea {
-    @apply border border-border rounded-lg px-4 py-2.5 text-sm text-text-main bg-white transition-all outline-none;
+    @apply border border-borderDim rounded-lg px-4 py-2.5 text-sm text-text-main bg-white transition-all outline-none;
   }
 
   input:focus,

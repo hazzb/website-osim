@@ -19,13 +19,14 @@ const AnggotaForm = ({
   const filteredDivisiList = useMemo(() => {
     if (!formData.periode_id) return [];
     return divisiList.filter(
-      (d) => String(d.periode_id) === String(formData.periode_id)
+      (d) => String(d.periode_id) === String(formData.periode_id),
     );
   }, [formData.periode_id, divisiList]);
 
   useEffect(() => {
+    if (!formData.divisi_id) return;
     const isDivisiValid = filteredDivisiList.some(
-      (d) => String(d.id) === String(formData.divisi_id)
+      (d) => String(d.id) === String(formData.divisi_id),
     );
     if (formData.divisi_id && !isDivisiValid) {
       onChange({ target: { name: "divisi_id", value: "" } });

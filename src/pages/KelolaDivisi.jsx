@@ -25,7 +25,7 @@ import {
   FiFilter,
   FiList,
 } from "react-icons/fi";
-import { FilterSelect } from "../components/ui/FilterBar.jsx";
+import { FilterSelect, FilterSearch } from "../components/ui/FilterBar.jsx";
 
 function KelolaDivisi() {
   const { session } = useAuth();
@@ -35,6 +35,7 @@ function KelolaDivisi() {
   const [periodes, setPeriodes] = useState([]);
   const [activeTab, setActiveTab] = useState("");
   const [divisions, setDivisions] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -200,7 +201,8 @@ function KelolaDivisi() {
         .select("nama_divisi, deskripsi, logo_url, urutan, tipe")
         .eq("periode_id", lastPeriode.id);
 
-      if (!oldDivisions?.length) throw new Error("Periode lalu tidak punya divisi.");
+      if (!oldDivisions?.length)
+        throw new Error("Periode lalu tidak punya divisi.");
 
       const newDivisions = oldDivisions.map((div) => ({
         ...div,
@@ -231,34 +233,40 @@ function KelolaDivisi() {
 
   return (
     <PageContainer breadcrumbText="Kelola Divisi">
-      
       {/* HEADER BARU */}
       <PageHeader
         title="Kelola Divisi"
         subtitle="Atur daftar divisi untuk periode ini."
         actions={
-          <div style={{display:'flex', gap:'8px'}}>
-             <button 
-                onClick={() => setShowReorderModal(true)} 
-                disabled={loading || divisions.length === 0}
-                className="button"
-                style={{display:'flex', alignItems:'center', gap:'0.5rem', backgroundColor:'#319795', color:'white', border:'none'}}
-             >
-                <FiList /> Urutkan
-             </button>
-             
-             <button 
-                onClick={() => openModal()} 
-                disabled={loading}
-                className="button button-primary"
-                style={{display:'flex', alignItems:'center', gap:'0.5rem'}}
-             >
-                <FiPlus /> Tambah Divisi
-             </button>
-          </div>
+          <>
+            <button
+              onClick={() => setShowReorderModal(true)}
+              disabled={loading || divisions.length === 0}
+              className="button button-secondary"
+              title="Urutkan Divisi"
+            >
+              <FiList /> <span>Urutkan</span>
+            </button>
+
+            <button
+              onClick={() => openModal()}
+              disabled={loading}
+              className="button button-primary"
+              title="Tambah Divisi"
+            >
+              <FiPlus /> <span>Tambah Divisi</span>
+            </button>
+          </>
+        }
+        searchBar={
+          <FilterSearch
+            placeholder="Cari divisi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         }
         filters={
-          <div style={{ minWidth: '250px' }}>
+          <div className="flex-1 min-w-[250px]">
             <FilterSelect
               label="Periode Kabinet"
               value={activeTab}
@@ -296,14 +304,22 @@ function KelolaDivisi() {
                 marginBottom: "2rem",
               }}
             >
-              <FiInfo size={32} color="#94a3b8" style={{ marginBottom: "1rem" }} />
+              <FiInfo
+                size={32}
+                color="#94a3b8"
+                style={{ marginBottom: "1rem" }}
+              />
               <p style={{ color: "#64748b", marginBottom: "1.5rem" }}>
                 Belum ada divisi di periode ini.
               </p>
               <button
                 onClick={handleImportDivisi}
                 className="button button-secondary"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
               >
                 <FiCopy /> Salin Divisi dari Periode Lalu
               </button>
@@ -321,114 +337,167 @@ function KelolaDivisi() {
                   </tr>
                 </thead>
                 <tbody>
-                  {divisions.map((div) => (
-                    <tr key={div.id}>
-                      <td>
-                        {div.logo_url ? (
-                          <img
-                            src={div.logo_url}
-                            alt="logo"
+                  {(() => {
+                    const filtered = divisions.filter((d) =>
+                      d.nama_divisi
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()),
+                    );
+                    if (filtered.length === 0) {
+                      return (
+                        <tr>
+                          <td
+                            colSpan="5"
                             style={{
-                              width: "40px",
-                              height: "40px",
-                              objectFit: "cover",
-                              borderRadius: "8px",
-                              border: "1px solid #e2e8f0",
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              background: "#f1f5f9",
-                              borderRadius: "8px",
-                              border: "1px solid #e2e8f0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
+                              padding: "4rem 2rem",
+                              textAlign: "center",
                             }}
                           >
-                            <FiImage color="#cbd5e0" />
+                            <div
+                              style={{ color: "#94a3b8", fontSize: "0.9rem" }}
+                            >
+                              <FiSearch
+                                size={24}
+                                style={{ marginBottom: "0.5rem", opacity: 0.5 }}
+                              />
+                              <p>
+                                Tidak ada divisi yang cocok dengan pencarian "
+                                <strong>{searchTerm}</strong>"
+                              </p>
+                              <button
+                                onClick={() => setSearchTerm("")}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: "#3b82f6",
+                                  fontWeight: "600",
+                                  cursor: "pointer",
+                                  marginTop: "0.5rem",
+                                }}
+                              >
+                                Reset Pencarian
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+                    return filtered.map((div) => (
+                      <tr key={div.id}>
+                        <td>
+                          {div.logo_url ? (
+                            <img
+                              src={div.logo_url}
+                              alt="logo"
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                objectFit: "cover",
+                                borderRadius: "8px",
+                                border: "1px solid #e2e8f0",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "40px",
+                                height: "40px",
+                                background: "#f1f5f9",
+                                borderRadius: "8px",
+                                border: "1px solid #e2e8f0",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <FiImage color="#cbd5e0" />
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              fontWeight: "600",
+                              color: "var(--text-main)",
+                              display: "block",
+                            }}
+                          >
+                            {div.nama_divisi}
+                          </span>
+                          {div.tipe === "Inti" ? (
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                fontWeight: "bold",
+                                background: "#fee2e2",
+                                color: "#dc2626",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                marginTop: "4px",
+                                display: "inline-block",
+                              }}
+                            >
+                              ⭐ PENGURUS INTI
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                fontWeight: "500",
+                                background: "#f1f5f9",
+                                color: "#64748b",
+                                padding: "2px 6px",
+                                borderRadius: "4px",
+                                marginTop: "4px",
+                                display: "inline-block",
+                              }}
+                            >
+                              DIVISI UMUM
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              color: "var(--text-muted)",
+                              fontSize: "0.9rem",
+                            }}
+                          >
+                            {div.deskripsi
+                              ? div.deskripsi.length > 50
+                                ? div.deskripsi.substring(0, 50) + "..."
+                                : div.deskripsi
+                              : "-"}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`${tableStyles.badge} ${tableStyles.badgeGray}`}
+                          >
+                            #{div.urutan}
+                          </span>
+                        </td>
+                        <td>
+                          <div className={tableStyles.actionCell}>
+                            <button
+                              onClick={() => openModal(div)}
+                              className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
+                              title="Edit"
+                            >
+                              <FiEdit />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(div.id)}
+                              className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
+                              title="Hapus"
+                            >
+                              <FiTrash2 />
+                            </button>
                           </div>
-                        )}
-                      </td>
-                      <td>
-                        <span
-                          style={{
-                            fontWeight: "600",
-                            color: "var(--text-main)",
-                            display: "block",
-                          }}
-                        >
-                          {div.nama_divisi}
-                        </span>
-                        {div.tipe === "Inti" ? (
-                          <span
-                            style={{
-                              fontSize: "0.7rem",
-                              fontWeight: "bold",
-                              background: "#fee2e2",
-                              color: "#dc2626",
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              marginTop: "4px",
-                              display: "inline-block",
-                            }}
-                          >
-                            ⭐ PENGURUS INTI
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: "0.7rem",
-                              fontWeight: "500",
-                              background: "#f1f5f9",
-                              color: "#64748b",
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                              marginTop: "4px",
-                              display: "inline-block",
-                            }}
-                          >
-                            DIVISI UMUM
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                          {div.deskripsi
-                            ? div.deskripsi.length > 50
-                              ? div.deskripsi.substring(0, 50) + "..."
-                              : div.deskripsi
-                            : "-"}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`${tableStyles.badge} ${tableStyles.badgeGray}`}>
-                          #{div.urutan}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={tableStyles.actionCell}>
-                          <button
-                            onClick={() => openModal(div)}
-                            className={`${tableStyles.btnAction} ${tableStyles.btnEdit}`}
-                            title="Edit"
-                          >
-                            <FiEdit />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(div.id)}
-                            className={`${tableStyles.btnAction} ${tableStyles.btnDelete}`}
-                            title="Hapus"
-                          >
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>

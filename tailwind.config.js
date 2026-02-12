@@ -1,7 +1,17 @@
+import typography from "@tailwindcss/typography";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    screens: {
+      xs: "480px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
+    },
     extend: {
       colors: {
         // Primary: Biru Muda Terang
@@ -28,7 +38,7 @@ export default {
         // Backgrounds & Text
         "bg-page": "#f8fafc",
         "bg-card": "#ffffff",
-        border: "#e2e8f0",
+        borderDim: "#e2e8f0",
         "text-main": "#0c4a6e", // Sky-900
         "text-body": "#334155", // Slate-700
         "text-muted": "#94a3b8", // Slate-400
@@ -63,13 +73,18 @@ export default {
           "0%": { opacity: "0", transform: "translateY(-10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translate(-50%, 10px)" },
+          "100%": { opacity: "1", transform: "translate(-50%, 0)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out",
         scaleIn: "scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         slideDown: "slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        slideUp: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };

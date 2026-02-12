@@ -32,7 +32,7 @@ const AnggotaCard = ({
       }`}
     >
       {/* ACTION BUTTONS (ADMIN ONLY) */}
-      {isAdmin && (
+      {isAdmin && !isCompact && (
         <div className="absolute top-3 right-3 z-10 flex gap-2">
           <button
             className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-slate-300 text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm"
@@ -54,59 +54,98 @@ const AnggotaCard = ({
         </div>
       )}
 
-      {/* IMAGE SECTION */}
-      <div
-        className={`${
-          isCompact ? "w-20 h-20 shrink-0" : "w-full aspect-square"
-        } overflow-hidden bg-white/50 relative group cursor-pointer`}
-        onClick={() => {
-          if (data.foto_url) {
-            openLightbox(
-              data.foto_url,
-              data.nama,
-              `${jabatanLabel}: ${data.nama}`,
-            );
-          }
-        }}
-        title="Klik untuk memperbesar"
-      >
-        {data.foto_url ? (
-          <img
-            src={data.foto_url}
-            alt={data.nama}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-slate-200">
-            <span className="text-4xl font-bold text-slate-400">
-              {data.nama ? data.nama.charAt(0).toUpperCase() : "?"}
-            </span>
+      {/* IMAGE & ACTIONS COLUMN (Compact) */}
+      <div className={`${isCompact ? "flex flex-col gap-2 shrink-0" : ""}`}>
+        {/* IMAGE SECTION */}
+        <div
+          className={`${
+            isCompact
+              ? "w-20 h-20 sm:w-24 sm:h-24 rounded-lg"
+              : "w-full aspect-square"
+          } overflow-hidden bg-white/50 relative group cursor-pointer border border-black/5`}
+          onClick={() => {
+            if (data.foto_url) {
+              openLightbox(
+                data.foto_url,
+                data.nama,
+                `${jabatanLabel}: ${data.nama}`,
+              );
+            }
+          }}
+          title="Klik untuk memperbesar"
+        >
+          {data.foto_url ? (
+            <img
+              src={data.foto_url}
+              alt={data.nama}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-slate-200">
+              <span className="text-3xl font-bold text-slate-400">
+                {data.nama ? data.nama.charAt(0).toUpperCase() : "?"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* ADMIN ACTIONS (Compact ONLY: Below Photo) */}
+        {isAdmin && isCompact && (
+          <div className="flex gap-1.5 justify-center">
+            <button
+              className="flex-1 h-7 flex items-center justify-center rounded-md bg-white border border-slate-200 text-slate-500 hover:text-blue-600 transition-all shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(data);
+              }}
+              title="Edit"
+            >
+              <FiEdit size={12} />
+            </button>
+            <button
+              className="flex-1 h-7 flex items-center justify-center rounded-md bg-white border border-red-100 text-red-400 hover:text-red-600 transition-all shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(data.id);
+              }}
+              title="Hapus"
+            >
+              <FiTrash2 size={12} />
+            </button>
           </div>
         )}
       </div>
 
       {/* INFO SECTION */}
-      <div className={`${isCompact ? "flex-1" : "p-5"} flex flex-col gap-2`}>
+      <div
+        className={`${isCompact ? "flex-1 min-w-0 flex flex-col justify-center" : "p-5 flex flex-col gap-2"}`}
+      >
         <div>
-          <h3 className="text-lg font-extrabold text-slate-800 m-0 leading-tight mb-1">
-            {data.nama}
-          </h3>
+          {/* Header Row: Name */}
+          <div className="flex gap-2 mb-1">
+            <h3
+              className={`font-extrabold text-slate-800 m-0 leading-tight line-clamp-2 ${isCompact ? "text-sm sm:text-base" : "text-lg"}`}
+            >
+              {data.nama}
+            </h3>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-2 mb-2">
+          <div className="flex flex-wrap items-center gap-1.5 mb-2">
             <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded-md bg-white/70 border ${genderAccent}`}
+              className={`text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded bg-white/70 border border-black/5 ${genderAccent}`}
             >
               {jabatanLabel}
             </span>
             {data.divisi?.nama_divisi && (
-              <span className="text-xs font-medium text-slate-600 px-2 py-0.5 rounded-md bg-white/50">
+              <span className="text-[10px] sm:text-xs font-medium text-slate-500 px-1.5 py-0.5 rounded bg-white/50 border border-black/5">
                 {data.divisi.nama_divisi}
               </span>
             )}
           </div>
 
-          {data.motto && (
+          {data.motto && !isCompact && (
             <p className="text-xs italic text-slate-600 m-0 line-clamp-2">
               &ldquo;{data.motto}&rdquo;
             </p>
@@ -114,7 +153,9 @@ const AnggotaCard = ({
         </div>
 
         {/* META INFO (IG & ALAMAT) */}
-        <div className="flex flex-col gap-1.5 text-xs text-slate-600 mt-auto">
+        <div
+          className={`flex flex-col gap-1 text-[10px] sm:text-xs text-slate-500 ${isCompact ? "mt-1" : "mt-auto"}`}
+        >
           {data.instagram_username && (
             <a
               href={`https://instagram.com/${data.instagram_username.replace(
@@ -123,17 +164,18 @@ const AnggotaCard = ({
               )}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1.5 text-slate-600 hover:text-pink-600 transition-colors no-underline"
+              className="flex items-center gap-1 text-slate-500 hover:text-pink-600 transition-colors no-underline"
               onClick={(e) => e.stopPropagation()}
             >
-              <FiInstagram size={14} /> {data.instagram_username}
+              <FiInstagram size={12} className="shrink-0" />{" "}
+              <span className="truncate">{data.instagram_username}</span>
             </a>
           )}
 
           {data.alamat && (
-            <div className="flex items-center gap-1.5 text-slate-600">
-              <FiMapPin size={14} />{" "}
-              <span className="line-clamp-1">{data.alamat}</span>
+            <div className="flex items-center gap-1 text-slate-500">
+              <FiMapPin size={12} className="shrink-0" />{" "}
+              <span className="truncate">{data.alamat}</span>
             </div>
           )}
         </div>
@@ -142,4 +184,4 @@ const AnggotaCard = ({
   );
 };
 
-export default AnggotaCard;
+export default React.memo(AnggotaCard);

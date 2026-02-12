@@ -20,22 +20,27 @@ const ImageViewer = ({ isOpen, onClose, src, alt, caption }) => {
       onClick={onClose}
     >
       <div
-        className="relative max-w-6xl max-h-[90vh] bg-slate-900 rounded-lg overflow-hidden shadow-2xl animate-scaleIn"
+        className="flex flex-col items-center max-w-6xl max-h-[95vh] animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white transition-all z-10 border-0 cursor-pointer"
-          onClick={onClose}
-        >
-          <FiX size={24} />
-        </button>
-        <img
-          src={src}
-          alt={alt || "Image"}
-          className="max-w-full max-h-[85vh] w-auto h-auto object-contain"
-        />
+        {/* IMAGE WRAPPER */}
+        <div className="relative bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+          <button
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white transition-all z-10 border-0 cursor-pointer"
+            onClick={onClose}
+          >
+            <FiX size={24} />
+          </button>
+          <img
+            src={src}
+            alt={alt || "Image"}
+            className="max-w-full max-h-[80vh] w-auto h-auto object-contain block"
+          />
+        </div>
+
+        {/* CAPTION OUTSIDE */}
         {caption && (
-          <div className="bg-slate-800 text-white px-6 py-3 text-sm text-center">
+          <div className="mt-4 bg-white/10 text-white rounded-2xl px-2 py-2 text-base text-sm border border-white/10 animate-slideUp">
             {caption}
           </div>
         )}

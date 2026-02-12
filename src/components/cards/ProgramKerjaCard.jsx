@@ -79,8 +79,9 @@ const ProgramKerjaCard = ({ data, isAdmin, onEdit, onDelete }) => {
     >
       {/* Embed (Video/IG) */}
       {data.embed_html && (
-        <div className="w-full bg-black/5 border-b border-black/5 overflow-hidden flex justify-center items-center">
+        <div className="w-full bg-black/5 border-b border-black/5 overflow-hidden">
           <div
+            className="w-full overflow-x-auto max-h-[300px] flex justify-center items-center p-2"
             dangerouslySetInnerHTML={{
               __html: DOMPurify.sanitize(data.embed_html, {
                 ADD_TAGS: ["iframe", "blockquote", "script"],

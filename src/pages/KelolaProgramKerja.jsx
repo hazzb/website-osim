@@ -8,7 +8,7 @@ import PageHeader from "../components/ui/PageHeader.jsx";
 import Modal from "../components/Modal.jsx";
 import LoadingState from "../components/ui/LoadingState.jsx";
 import ProgramKerjaForm from "../components/forms/ProgramKerjaForm.jsx";
-import { FilterSelect } from "../components/ui/FilterBar.jsx";
+import { FilterSelect, FilterSearch } from "../components/ui/FilterBar.jsx";
 
 // Icons
 import {
@@ -153,34 +153,24 @@ function KelolaProgramKerja() {
       <PageHeader
         title="Kelola Program Kerja"
         subtitle="Database seluruh kegiatan organisasi."
-        // Actions
         actions={
           <button
             onClick={() => openModal()}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors shadow-sm"
+            className="button button-primary"
+            title="Tambah Program Kerja"
           >
-            <FiPlus /> Tambah Progja
+            <FiPlus /> <span>Tambah Progja</span>
           </button>
         }
-        // Search Bar (Kiri)
         searchBar={
-          <div className="relative w-full">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cari nama acara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 h-[38px] border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
-            />
-          </div>
+          <FilterSearch
+            placeholder="Cari nama acara..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         }
-        // Filters (Dropdown Periode)
         filters={
-          <div className="min-w-[200px]">
-            {/* Note: FilterSelect internally renders a Select, assuming it accepts standard props or className? 
-                 If FilterSelect is custom, we hope it looks good. If not, we might need to check FilterBar.jsx.
-                 But preserving existing functionality is safer. */}
+          <div className="flex-1 min-w-[200px]">
             <FilterSelect
               label="Filter Periode"
               value={selectedPeriodeId}
@@ -234,8 +224,23 @@ function KelolaProgramKerja() {
             <tbody>
               {progjaList.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center p-8 text-slate-400">
-                    Tidak ada data program kerja.
+                  <td colSpan="6" className="text-center p-12 text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <FiSearch size={32} className="opacity-30" />
+                      <div className="text-slate-500 font-medium">
+                        {searchTerm
+                          ? `Tidak ada program kerja yang cocok dengan "${searchTerm}"`
+                          : "Tidak ada data program kerja."}
+                      </div>
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm("")}
+                          className="text-blue-600 font-semibold hover:underline bg-transparent border-none cursor-pointer text-sm"
+                        >
+                          Reset Pencarian
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (

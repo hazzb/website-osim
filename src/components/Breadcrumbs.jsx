@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FiChevronRight, FiHome } from "react-icons/fi";
 
-const Breadcrumbs = ({ overrideLastText }) => {
+const Breadcrumbs = ({ overrideLastText, isCompact = false }) => {
   const location = useLocation();
 
   // Sembunyikan breadcrumb di halaman Home dan Login
@@ -26,7 +26,7 @@ const Breadcrumbs = ({ overrideLastText }) => {
   // ----------------------------------------------------
 
   const routeNameMap = {
-    "visi-misi": "Visi & Misi",
+    profile: "Profile",
     "daftar-anggota": "Daftar Anggota",
     "kelola-anggota": "Kelola Anggota",
     "program-kerja": "Program Kerja",
@@ -38,8 +38,15 @@ const Breadcrumbs = ({ overrideLastText }) => {
   const isId = (str) => !isNaN(str) || str.length > 15;
 
   return (
-    <div className="bg-slate-50 border-b border-slate-200 py-3 mb-6">
-      <nav aria-label="Breadcrumb" className="max-w-7xl mx-auto px-6">
+    <div
+      className={
+        isCompact ? "py-1.5" : "bg-slate-50 border-b border-slate-200 py-3 mb-6"
+      }
+    >
+      <nav
+        aria-label="Breadcrumb"
+        className={isCompact ? "" : "max-w-7xl mx-auto px-6"}
+      >
         <ol className="flex items-center flex-wrap gap-2 text-sm">
           {/* Home */}
           <li className="flex items-center">
