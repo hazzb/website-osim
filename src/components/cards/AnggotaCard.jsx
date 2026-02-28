@@ -78,7 +78,7 @@ const AnggotaCard = ({
             <img
               src={data.foto_url}
               alt={data.nama}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
               decoding="async"
             />
@@ -145,7 +145,7 @@ const AnggotaCard = ({
             )}
           </div>
 
-          {data.motto && !isCompact && (
+          {data.motto && (
             <p className="text-xs italic text-slate-600 m-0 line-clamp-2">
               &ldquo;{data.motto}&rdquo;
             </p>

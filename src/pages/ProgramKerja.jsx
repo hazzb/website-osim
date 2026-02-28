@@ -181,6 +181,34 @@ function ProgramKerja() {
     }
   };
 
+  // Pagination logic: truncated list with ellipsis
+  const getPageNumbers = () => {
+    const pages = [];
+    const showMax = 5; // Max buttons to show on mobile (excluding arrows)
+
+    if (totalPages <= showMax + 2) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage > 3) pages.push("...");
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) pages.push("...");
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
   return (
     <PageContainer>
       <PageHeader
@@ -306,7 +334,7 @@ function ProgramKerja() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-2">
             {currentItems.map((progja) => (
               <ProgramKerjaCard
                 key={progja.id}
@@ -322,31 +350,46 @@ function ProgramKerja() {
             ))}
           </div>
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
+            <div className="flex justify-center items-center gap-1.5 md:gap-2 mt-10 mb-8 overflow-x-auto py-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-md border border-slate-200 bg-white"
+                className="p-1.5 md:p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Halaman Sebelumnya"
               >
-                <FiChevronLeft />
+                <FiChevronLeft size={18} />
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setCurrentPage(p)}
-                  className={`w-9 h-9 rounded-md ${currentPage === p ? "bg-blue-600 text-white" : "bg-white border"}`}
-                >
-                  {p}
-                </button>
+
+              {getPageNumbers().map((p, idx) => (
+                <React.Fragment key={idx}>
+                  {p === "..." ? (
+                    <span className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-slate-400 font-bold select-none">
+                      {p}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-8 h-8 md:w-9 md:h-9 rounded-lg font-bold text-sm transition-all shadow-sm ${
+                        currentPage === p
+                          ? "bg-blue-600 text-white shadow-blue-200"
+                          : "bg-white border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )}
+                </React.Fragment>
               ))}
+
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(p + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-md border border-slate-200 bg-white"
+                className="p-1.5 md:p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Halaman Selanjutnya"
               >
-                <FiChevronRight />
+                <FiChevronRight size={18} />
               </button>
             </div>
           )}

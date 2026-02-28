@@ -20,7 +20,7 @@ const ImageViewer = ({ isOpen, onClose, src, alt, caption }) => {
       onClick={onClose}
     >
       <div
-        className="flex flex-col items-center max-w-6xl max-h-[95vh] animate-scaleIn"
+        className="flex flex-col items-center max-w-6xl max-h-[95vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* IMAGE WRAPPER */}
@@ -40,7 +40,7 @@ const ImageViewer = ({ isOpen, onClose, src, alt, caption }) => {
 
         {/* CAPTION OUTSIDE */}
         {caption && (
-          <div className="mt-4 bg-white/10 text-white rounded-2xl px-2 py-2 text-base text-sm border border-white/10 animate-slideUp">
+          <div className="mt-4 bg-white/10 text-white rounded-2xl px-2 py-2 text-base text-sm text-center border border-white/10">
             {caption}
           </div>
         )}

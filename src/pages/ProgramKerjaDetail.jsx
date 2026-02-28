@@ -172,35 +172,26 @@ function ProgramKerjaDetail() {
       <PageHeader
         title="Detail Program Kerja"
         subtitle="Informasi lengkap kegiatan."
+        onBack={() => navigate(-1)}
         actions={
-          <div className="flex items-center gap-2">
+          isAdmin && [
             <button
-              className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-600 font-semibold text-xs cursor-pointer hover:bg-slate-50 hover:text-slate-800 transition-all"
-              onClick={() => navigate(-1)}
-              title="Kembali"
+              key="edit"
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-xs cursor-pointer hover:bg-blue-100 hover:border-blue-400 transition-all"
+              onClick={handleEdit}
+              title="Edit"
             >
-              <FiArrowLeft /> <span>Kembali</span>
-            </button>
-
-            {isAdmin && (
-              <>
-                <button
-                  className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-xs cursor-pointer hover:bg-blue-100 hover:border-blue-400 transition-all"
-                  onClick={handleEdit}
-                  title="Edit"
-                >
-                  <FiEdit /> <span>Edit</span>
-                </button>
-                <button
-                  className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-600 font-semibold text-xs cursor-pointer hover:bg-red-100 hover:border-red-400 transition-all"
-                  onClick={handleDelete}
-                  title="Hapus"
-                >
-                  <FiTrash2 /> <span>Hapus</span>
-                </button>
-              </>
-            )}
-          </div>
+              <FiEdit /> <span>Edit</span>
+            </button>,
+            <button
+              key="delete"
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-600 font-semibold text-xs cursor-pointer hover:bg-red-100 hover:border-red-400 transition-all"
+              onClick={handleDelete}
+              title="Hapus"
+            >
+              <FiTrash2 /> <span>Hapus</span>
+            </button>,
+          ]
         }
       />
 
