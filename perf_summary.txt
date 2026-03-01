@@ -1,0 +1,33 @@
+
+--- Report: s:/sand/website-osim/localhost_3000-20260301T155726.json
+Performance Score: 48
+first-contentful-paint: 0.9 s (Score: 1)
+largest-contentful-paint: 12.6 s (Score: 0)
+speed-index: 2.4 s (Score: 0.98)
+total-blocking-time: 1,710 ms (Score: 0.11)
+cumulative-layout-shift: 0 (Score: 1)
+Opportunities:
+  - unminified-javascript: Est savings of 388 KiB
+  - unused-javascript: Est savings of 852 KiB
+
+--- Report: s:/sand/website-osim/localhost_3000-20260301T155858.json
+Performance Score: 38
+first-contentful-paint: 1.0 s (Score: 1)
+largest-contentful-paint: 12.9 s (Score: 0)
+speed-index: 3.8 s (Score: 0.83)
+total-blocking-time: 2,750 ms (Score: 0.03)
+cumulative-layout-shift: 0.155 (Score: 0.74)
+Opportunities:
+  - unminified-javascript: Est savings of 328 KiB
+  - unused-javascript: Est savings of 803 KiB
+
+--- Report: s:/sand/website-osim/localhost_3000-20260301T160036.json
+Performance Score: 46
+first-contentful-paint: 1.0 s (Score: 1)
+largest-contentful-paint: 10.3 s (Score: 0)
+speed-index: 2.5 s (Score: 0.98)
+total-blocking-time: 2,580 ms (Score: 0.04)
+cumulative-layout-shift: 0 (Score: 1)
+Opportunities:
+  - unminified-javascript: Est savings of 344 KiB
+  - unused-javascript: Est savings of 804 KiB

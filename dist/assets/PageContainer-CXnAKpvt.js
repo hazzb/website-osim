@@ -1,0 +1,1 @@
+import{j as i}from"./index-C3yfZ9D0.js";const d=({children:t,breadcrumbText:r,className:e=""})=>i.jsx("div",{className:e,style:{maxWidth:"1200px",margin:"0 auto",padding:"0 1.5rem",width:"100%",minHeight:"80vh",boxSizing:"border-box"},children:i.jsx("div",{style:{paddingTop:r?"0":"1rem",paddingBottom:"3rem"},children:t})});export{d as P};

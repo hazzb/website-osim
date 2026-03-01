@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /profile
+Allow: /anggota
+Allow: /program-kerja
+Allow: /divisi
+Disallow: /admin
+Disallow: /login
+
+Sitemap: https://osim.example.com/sitemap.xml
