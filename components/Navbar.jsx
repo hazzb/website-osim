@@ -18,6 +18,7 @@ import {
   FiLogOut,
   FiLayout,
   FiHome,
+  FiFileText,
 } from "react-icons/fi";
 
 const Navbar = () => {
@@ -122,6 +123,9 @@ const Navbar = () => {
             >
               <FiCalendar size={18} /> Program
             </Link>
+            <Link href="/berita" className={navLinkClass("/berita")}>
+              <FiFileText size={18} /> Berita
+            </Link>
           </div>
         </div>
 
@@ -180,6 +184,9 @@ const Navbar = () => {
           className={mobileNavLinkClass("/program-kerja")}
         >
           <FiCalendar /> Program Kerja
+        </Link>
+        <Link href="/berita" className={mobileNavLinkClass("/berita")}>
+          <FiFileText /> Berita & Reportase
         </Link>
 
         <div className="border-t border-slate-100 my-2"></div>

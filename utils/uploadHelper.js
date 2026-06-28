@@ -8,10 +8,21 @@ const supabase = createClient();
  * @param {number} maxSizeMB - Target size (Default 1MB)
  * @returns {Promise<string>} - Public URL
  */
-export const uploadImage = async (file, folder, maxSizeMB = 1) => {
+export const uploadImage = async (file, folder, maxSizeMB = 1, bucketName = null) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!file) return reject("Tidak ada file yang dipilih.");
+
+      // Otomatis menentukan bucket berdasarkan folder jika tidak ditentukan secara eksplisit
+      if (!bucketName) {
+        if (folder === "anggota") {
+          bucketName = "avatars";
+        } else if (folder === "banners" || folder === "berita" || folder === "konten") {
+          bucketName = "banners";
+        } else {
+          bucketName = "logos"; // Default untuk logo sekolah, logo osis, divisi, dll.
+        }
+      }
 
       // Validasi tipe file awal
       const allowedTypes = [
@@ -89,7 +100,7 @@ export const uploadImage = async (file, folder, maxSizeMB = 1) => {
       const filePath = `${folder}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("logos") // Pastikan nama bucket Anda benar
+        .from(bucketName)
         .upload(filePath, fileToUpload, {
           contentType: "image/webp", // Pastikan metadata benar
           cacheControl: "3600",
@@ -98,7 +109,7 @@ export const uploadImage = async (file, folder, maxSizeMB = 1) => {
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from("logos").getPublicUrl(filePath);
+      const { data } = supabase.storage.from(bucketName).getPublicUrl(filePath);
 
       resolve(data.publicUrl);
     } catch (error) {

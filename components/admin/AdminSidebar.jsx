@@ -15,6 +15,7 @@ import {
   FiSettings,
   FiLogOut,
   FiExternalLink,
+  FiFileText,
 } from "react-icons/fi";
 
 function AdminSidebar() {
@@ -65,6 +66,11 @@ function AdminSidebar() {
       href: "/admin/program-kerja",
       label: "Program Kerja",
       icon: <FiActivity size={18} />,
+    },
+    {
+      href: "/admin/berita",
+      label: "Berita & Reportase",
+      icon: <FiFileText size={18} />,
     },
     { type: "divider", label: "Sistem" },
     {
@@ -176,6 +182,20 @@ function AdminSidebar() {
               className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
             >
               <div className="flex items-center gap-2">Katalog Program</div>
+              <FiExternalLink
+                className="opacity-50 group-hover:opacity-100 transition-opacity"
+                size={14}
+              />
+            </a>
+          </li>
+          <li>
+            <a
+              href="/berita"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
+            >
+              <div className="flex items-center gap-2">Berita & Reportase</div>
               <FiExternalLink
                 className="opacity-50 group-hover:opacity-100 transition-opacity"
                 size={14}

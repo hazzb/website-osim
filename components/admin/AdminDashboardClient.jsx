@@ -16,6 +16,7 @@ import {
   FiArrowRight,
   FiAward,
   FiActivity,
+  FiFileText,
 } from "react-icons/fi";
 
 export default function AdminDashboardClient({ stats }) {
@@ -130,6 +131,13 @@ export default function AdminDashboardClient({ stats }) {
               icon={<FiCalendar />}
               color="green"
               desc="Update status & laporan."
+            />
+            <NavCard
+              href="/admin/berita"
+              label="Kelola Berita & Reportase"
+              icon={<FiFileText />}
+              color="blue"
+              desc="Tulis & kelola artikel kegiatan."
             />
             <NavCard
               href="/"
