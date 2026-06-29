@@ -93,9 +93,9 @@ function AdminSidebar() {
       {/* Header */}
       <div className="p-6 border-b border-white/10 relative z-10 flex flex-col justify-center min-h-[100px]">
         <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <span className="text-blue-500">ADMIN</span> OSIM
+          <span className="text-primary">ADMIN</span> OSIM
         </h2>
-        <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">
+        <p className="text-[10px] font-bold text-text-muted mt-1 uppercase tracking-widest">
           Control Panel v3.0
         </p>
       </div>
@@ -107,7 +107,7 @@ function AdminSidebar() {
             if (item.type === "divider") {
               return (
                 <li key={index} className="px-3 mt-6 mb-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">
                     {item.label}
                   </span>
                 </li>
@@ -123,8 +123,8 @@ function AdminSidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
                     isActive
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5 active:bg-white/10"
+                      ? "bg-primary text-white shadow-lg shadow-blue-900/50"
+                      : "text-text-muted hover:text-slate-200 hover:bg-bg-card/5 active:bg-bg-card/10"
                   }`}
                 >
                   <span
@@ -141,7 +141,7 @@ function AdminSidebar() {
 
         {/* Grup "Lihat Halaman Publik" */}
         <div className="px-3 mt-10 mb-2">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">
             Public Pages
           </p>
         </div>
@@ -151,7 +151,7 @@ function AdminSidebar() {
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
+              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
             >
               <div className="flex items-center gap-2">Halaman Utama</div>
               <FiExternalLink
@@ -165,7 +165,7 @@ function AdminSidebar() {
               href="/anggota"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
+              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
             >
               <div className="flex items-center gap-2">Direktori Anggota</div>
               <FiExternalLink
@@ -179,7 +179,7 @@ function AdminSidebar() {
               href="/program-kerja"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
+              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
             >
               <div className="flex items-center gap-2">Katalog Program</div>
               <FiExternalLink
@@ -193,7 +193,7 @@ function AdminSidebar() {
               href="/berita"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
+              className="flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl text-text-muted hover:text-blue-400 hover:bg-blue-500/10 transition-all border border-transparent hover:border-blue-500/20 group"
             >
               <div className="flex items-center gap-2">Berita & Reportase</div>
               <FiExternalLink

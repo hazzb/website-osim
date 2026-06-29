@@ -22,19 +22,19 @@ function Sidebar() {
   const linkBaseClass =
     "flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200";
   const linkInactiveClass =
-    "text-slate-500 hover:text-slate-900 hover:bg-slate-100";
-  const linkActiveClass = "text-blue-600 bg-blue-50 border-r-2 border-blue-600";
+    "text-text-muted hover:text-text-main hover:bg-border-dim";
+  const linkActiveClass = "text-primary bg-primary-light border-r-2 border-blue-600";
 
   const getNavLinkClass = ({ isActive }) => {
     return `${linkBaseClass} ${isActive ? linkActiveClass : linkInactiveClass}`;
   };
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col fixed left-0 top-0 z-40 overflow-y-auto">
+    <div className="w-64 h-screen bg-bg-card border-r border-border-dim flex flex-col fixed left-0 top-0 z-40 overflow-y-auto">
       {/* Header */}
-      <div className="p-6 border-b border-slate-100">
-        <h2 className="text-xl font-bold text-slate-800">Admin OSIM</h2>
-        <p className="text-xs text-slate-500 mt-1">Panel Kontrol</p>
+      <div className="p-6 border-b border-border-dim">
+        <h2 className="text-xl font-bold text-text-main">Admin OSIM</h2>
+        <p className="text-xs text-text-muted mt-1">Panel Kontrol</p>
       </div>
 
       {/* Navigasi Utama */}
@@ -46,7 +46,7 @@ function Sidebar() {
 
         {/* Grup "Kelola Konten" */}
         <div className="px-4 mt-6 mb-2">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">
             Kelola Konten
           </p>
         </div>
@@ -75,7 +75,7 @@ function Sidebar() {
 
         {/* Grup "Lihat Halaman Publik" */}
         <div className="px-4 mt-6 mb-2">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wider">
             Lihat Halaman Publik
           </p>
         </div>
@@ -99,7 +99,7 @@ function Sidebar() {
       </nav>
 
       {/* Footer (Tombol Logout) */}
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-border-dim">
         <button
           onClick={handleLogout}
           className="w-full py-2 px-4 bg-red-50 text-red-600 text-sm font-medium rounded-md hover:bg-red-100 transition-colors"

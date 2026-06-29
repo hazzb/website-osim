@@ -37,7 +37,7 @@ const Breadcrumbs = ({ overrideLastText, isCompact = false }) => {
   return (
     <div
       className={
-        isCompact ? "py-1.5" : "bg-slate-50 border-b border-slate-200 py-3 mb-6"
+        isCompact ? "py-1.5" : "bg-bg-page border-b border-border-dim py-3 mb-6"
       }
     >
       <nav
@@ -48,7 +48,7 @@ const Breadcrumbs = ({ overrideLastText, isCompact = false }) => {
           <li className="flex items-center">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-slate-500 hover:text-primary transition-colors no-underline font-medium"
+              className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors no-underline font-medium"
             >
               <FiHome size={16} /> Beranda
             </Link>
@@ -78,7 +78,7 @@ const Breadcrumbs = ({ overrideLastText, isCompact = false }) => {
 
                 {isLast ? (
                   <span
-                    className="text-slate-800 font-semibold"
+                    className="text-text-main font-semibold"
                     aria-current="page"
                   >
                     {displayName}
@@ -86,7 +86,7 @@ const Breadcrumbs = ({ overrideLastText, isCompact = false }) => {
                 ) : (
                   <Link
                     href={href}
-                    className="text-slate-500 hover:text-primary transition-colors no-underline font-medium"
+                    className="text-text-muted hover:text-primary transition-colors no-underline font-medium"
                   >
                     {displayName}
                   </Link>

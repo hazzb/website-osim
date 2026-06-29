@@ -9,7 +9,7 @@ export const Skeleton = ({
 }) => {
   return (
     <div
-      className={`animate-pulse bg-slate-200 ${className}`}
+      className={`animate-pulse bg-border-dim ${className}`}
       style={{
         width,
         height,
@@ -22,7 +22,7 @@ export const Skeleton = ({
 // 2. PROGJA SKELETON CARD
 export const ProgjaSkeletonCard = () => {
   return (
-    <div className="bg-white rounded-xl border border-border-dim h-[200px] p-6 flex flex-col gap-4">
+    <div className="bg-bg-card rounded-xl border border-border-dim h-[200px] p-6 flex flex-col gap-4">
       <Skeleton width="70%" height="24px" />
       <Skeleton width="40%" height="16px" />
       <div className="mt-auto">
@@ -68,7 +68,7 @@ export const ProgjaSkeletonGrid = () => {
 // 4. ANGGOTA SKELETON CARD
 export const AnggotaSkeletonCard = () => {
   return (
-    <div className="bg-white rounded-2xl border border-border-dim p-6 flex flex-col items-center gap-4 h-[280px]">
+    <div className="bg-bg-card rounded-2xl border border-border-dim p-6 flex flex-col items-center gap-4 h-[280px]">
       <Skeleton width="100px" height="100px" borderRadius="50%" />
       <div className="w-full flex flex-col items-center gap-2">
         <Skeleton width="80%" height="24px" />
@@ -87,7 +87,7 @@ export const AnggotaSkeletonGrid = () => {
     <div className="mt-8 flex flex-col gap-16">
       {[1, 2].map((i) => (
         <div key={i}>
-          <div className="flex items-center gap-4 mb-6 pb-2 border-b-2 border-slate-100">
+          <div className="flex items-center gap-4 mb-6 pb-2 border-b-2 border-border-dim">
             <Skeleton width="40px" height="40px" borderRadius="8px" />
             <Skeleton width="200px" height="32px" />
           </div>
@@ -127,7 +127,7 @@ export const VisiMisiSkeleton = () => {
         {[1, 2, 3].map((item) => (
           <div
             key={item}
-            className="p-8 border border-border-dim rounded-2xl bg-white"
+            className="p-8 border border-border-dim rounded-2xl bg-bg-card"
           >
             <Skeleton width="40%" height="30px" className="mb-6" />
             <div className="flex flex-col gap-3">

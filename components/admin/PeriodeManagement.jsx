@@ -130,7 +130,7 @@ export default function PeriodeManagement() {
             </button>
             <button
               onClick={() => openModal()}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+              className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-blue-100 active:scale-95"
             >
               <FiPlus /> <span>Tambah</span>
             </button>
@@ -175,15 +175,15 @@ export default function PeriodeManagement() {
                   periodeList.map((item) => (
                     <tr key={item.id}>
                       <td>
-                        <div className="font-bold text-slate-800">
+                        <div className="font-bold text-text-main">
                           {item.nama_kabinet}
                         </div>
-                        <p className="text-[10px] text-slate-500 font-medium italic mt-1 leading-relaxed max-w-xs">
+                        <p className="text-[10px] text-text-muted font-medium italic mt-1 leading-relaxed max-w-xs">
                           {item.motto_kabinet || "Tanpa motto kabinet"}
                         </p>
                       </td>
                       <td>
-                        <span className="text-xs font-bold text-slate-600">
+                        <span className="text-xs font-bold text-text-body">
                           {item.tahun_mulai} — {item.tahun_selesai}
                         </span>
                       </td>
@@ -193,7 +193,7 @@ export default function PeriodeManagement() {
                             <FiCheckCircle size={10} /> Aktif
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-200/50">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-border-dim text-text-muted rounded-full text-[10px] font-black uppercase tracking-widest border border-border-dim/50">
                             <FiArchive size={10} /> Arsip
                           </span>
                         )}

@@ -67,14 +67,14 @@ export default function KontenReorderModal({
 
   return (
     <div>
-      <p className="text-sm text-slate-500 mb-4 bg-yellow-50 p-2 border border-yellow-100 rounded">
+      <p className="text-sm text-text-muted mb-4 bg-yellow-50 p-2 border border-yellow-100 rounded">
         <strong>Catatan Penting:</strong> Item urutan <strong>No. 1</strong>{" "}
         akan otomatis menjadi <strong>Judul Utama (Hero)</strong> halaman (jika
         fitur Hero diaktifkan).
       </p>
 
       {reorderList.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 italic bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+        <div className="text-center py-8 text-text-muted italic bg-bg-page border border-dashed border-border-dim rounded-lg">
           Tidak ada konten.
         </div>
       ) : (
@@ -82,16 +82,16 @@ export default function KontenReorderModal({
           {reorderList.map((item, index) => (
             <div
               key={item.id}
-              className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-md shadow-sm transition-all hover:border-blue-400 hover:shadow-md"
+              className="flex items-center justify-between p-3 bg-bg-card border border-border-dim rounded-md shadow-sm transition-all hover:border-blue-400 hover:shadow-md"
             >
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 font-bold text-xs flex items-center justify-center border border-slate-200">
+                <div className="w-6 h-6 rounded-full bg-border-dim text-text-muted font-bold text-xs flex items-center justify-center border border-border-dim">
                   {index + 1}
                 </div>
-                <span className="font-medium text-slate-700 text-sm flex items-center gap-2">
+                <span className="font-medium text-text-main text-sm flex items-center gap-2">
                   {item.judul}
                   {index === 0 && (
-                    <span className="text-[10px] uppercase font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 mt-[1px]">
+                    <span className="text-[10px] uppercase font-bold text-primary bg-primary-light px-1.5 py-0.5 rounded border border-primary-border mt-[1px]">
                       (HEADER UTAMA)
                     </span>
                   )}
@@ -101,7 +101,7 @@ export default function KontenReorderModal({
               <div className="flex gap-1">
                 <button
                   type="button"
-                  className="w-8 h-8 flex items-center justify-center rounded bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-slate-50 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded bg-bg-page text-text-muted hover:bg-border-dim hover:text-text-main disabled:opacity-30 disabled:hover:bg-bg-page transition-colors"
                   onClick={() => moveItem(index, "up")}
                   disabled={index === 0}
                   title="Naikkan"
@@ -110,7 +110,7 @@ export default function KontenReorderModal({
                 </button>
                 <button
                   type="button"
-                  className="w-8 h-8 flex items-center justify-center rounded bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-slate-50 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded bg-bg-page text-text-muted hover:bg-border-dim hover:text-text-main disabled:opacity-30 disabled:hover:bg-bg-page transition-colors"
                   onClick={() => moveItem(index, "down")}
                   disabled={index === reorderList.length - 1}
                   title="Turunkan"
@@ -124,18 +124,18 @@ export default function KontenReorderModal({
       )}
 
       {/* FOOTER */}
-      <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end gap-3">
+      <div className="mt-4 pt-4 border-t border-border-dim flex justify-end gap-3">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-bg-card border border-slate-300 rounded-md text-text-main hover:bg-bg-page text-sm font-medium transition-colors"
         >
           Batal
         </button>
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-white hover:bg-blue-700 text-sm font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-primary border border-transparent rounded-md text-white hover:bg-primary-hover text-sm font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
           disabled={loading}
         >
           {loading ? "Menyimpan..." : "Simpan Urutan"}

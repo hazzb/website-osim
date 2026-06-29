@@ -167,7 +167,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
 
       {step === 1 && (
         <div className="animate-fadeIn space-y-4">
-          <div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+          <div className="mb-8 p-4 bg-primary-light border border-primary-border rounded-2xl">
             <h3 className="text-sm font-black text-blue-900 uppercase tracking-tight">
               Langkah 1: Identitas Kabinet
             </h3>
@@ -249,8 +249,8 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
             </div>
 
             <div>
-              <div className="flex items-center gap-2 mb-4 text-blue-600 px-1">
-                <FiGrid className="text-blue-500" />
+              <div className="flex items-center gap-2 mb-4 text-primary px-1">
+                <FiGrid className="text-primary" />
                 <span className="font-black text-[10px] uppercase tracking-widest">
                   DIVISI / SEKBID (PILIH)
                 </span>
@@ -266,21 +266,21 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
                       onClick={() => toggleDivision(template)}
                       className={`p-4 border-2 rounded-2xl cursor-pointer transition-all flex flex-col gap-2 relative group ${
                         isSelected
-                          ? "border-blue-500 bg-blue-50/30"
-                          : "border-slate-100 bg-slate-50 hover:border-slate-300 hover:bg-white"
+                          ? "border-blue-500 bg-primary-light/30"
+                          : "border-border-dim bg-bg-page hover:border-slate-300 hover:bg-bg-card"
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <span
-                          className={`text-[13px] font-bold ${isSelected ? "text-blue-900" : "text-slate-700"}`}
+                          className={`text-[13px] font-bold ${isSelected ? "text-blue-900" : "text-text-main"}`}
                         >
                           {template.nama_divisi}
                         </span>
                         {isSelected && (
-                          <FiCheck className="text-blue-500" size={18} />
+                          <FiCheck className="text-primary" size={18} />
                         )}
                       </div>
-                      <span className="text-[10px] text-slate-500 leading-relaxed font-medium">
+                      <span className="text-[10px] text-text-muted leading-relaxed font-medium">
                         {template.deskripsi}
                       </span>
                     </div>
@@ -295,8 +295,8 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
                     (c) => c.nama_divisi === d.nama_divisi,
                   ),
               ).length > 0 && (
-                <div className="mt-8 border-t border-slate-100 pt-6">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <div className="mt-8 border-t border-border-dim pt-6">
+                  <span className="text-[10px] font-black text-text-muted uppercase tracking-widest px-1">
                     Divisi Tambahan Manual:
                   </span>
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -311,7 +311,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
                       .map((custom, idx) => (
                         <div
                           key={idx}
-                          className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs flex items-center gap-3 text-slate-700 font-bold shadow-sm transition-all hover:border-red-200 hover:text-red-500 group animate-scaleIn"
+                          className="bg-bg-card border border-border-dim rounded-xl px-4 py-2 text-xs flex items-center gap-3 text-text-main font-bold shadow-sm transition-all hover:border-red-200 hover:text-red-500 group animate-scaleIn"
                         >
                           {custom.nama_divisi}
                           <button
@@ -335,7 +335,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
 
               <button
                 onClick={addCustomDivision}
-                className="w-full mt-6 p-4 border-2 border-dashed border-slate-200 text-slate-400 bg-slate-50 rounded-2xl hover:bg-white hover:border-blue-300 hover:text-blue-500 transition-all font-black uppercase tracking-tighter flex items-center justify-center gap-2 text-xs"
+                className="w-full mt-6 p-4 border-2 border-dashed border-border-dim text-text-muted bg-bg-page rounded-2xl hover:bg-bg-card hover:border-blue-300 hover:text-primary transition-all font-black uppercase tracking-tighter flex items-center justify-center gap-2 text-xs"
               >
                 <FiPlus size={16} /> Buat Divisi Lain Manual
               </button>
@@ -349,10 +349,10 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
           <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-emerald-100 ring-2 ring-emerald-500/10">
             <FiLayers size={36} className="text-emerald-500" />
           </div>
-          <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">
+          <h3 className="text-xl font-black text-text-main mb-2 uppercase tracking-tight">
             Konfirmasi Pembuatan
           </h3>
-          <p className="text-slate-500 text-sm mb-10 max-w-sm mx-auto font-medium">
+          <p className="text-text-muted text-sm mb-10 max-w-sm mx-auto font-medium">
             Sistem akan membuat <strong>{periodeData.nama_kabinet}</strong> dan
             mengatur struktur organisasi secara otomatis.
           </p>
@@ -362,7 +362,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
               <FiLayers size={100} className="text-white" />
             </div>
             <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4 relative z-10">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+              <span className="text-text-muted text-xs font-bold uppercase tracking-widest">
                 Total Unit Kerja
               </span>
               <span className="font-black text-white text-lg">
@@ -370,7 +370,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
               </span>
             </div>
             <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4 relative z-10">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+              <span className="text-text-muted text-xs font-bold uppercase tracking-widest">
                 Status
               </span>
               <span className="font-black text-emerald-400 text-xs uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
@@ -378,14 +378,14 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
               </span>
             </div>
             <div className="relative z-10">
-              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest block mb-4">
+              <span className="text-text-muted text-[10px] font-black uppercase tracking-widest block mb-4">
                 Struktur Organisasi:
               </span>
               <div className="flex flex-wrap gap-2">
                 {selectedDivisions.map((d, i) => (
                   <span
                     key={i}
-                    className={`text-[10px] px-3 py-1.5 rounded-xl font-black uppercase tracking-tighter transition-all ${d.tipe === "Inti" ? "bg-amber-400 text-amber-950 shadow-md shadow-amber-400/20 hover:scale-105" : "bg-white/5 text-slate-300 border border-white/5 hover:bg-white/10"}`}
+                    className={`text-[10px] px-3 py-1.5 rounded-xl font-black uppercase tracking-tighter transition-all ${d.tipe === "Inti" ? "bg-amber-400 text-amber-950 shadow-md shadow-amber-400/20 hover:scale-105" : "bg-bg-card/5 text-slate-300 border border-white/5 hover:bg-bg-card/10"}`}
                   >
                     {d.nama_divisi}
                   </span>
@@ -396,11 +396,11 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
         </div>
       )}
 
-      <div className="mt-12 flex justify-between border-t border-slate-100 pt-8 px-2">
+      <div className="mt-12 flex justify-between border-t border-border-dim pt-8 px-2">
         {step > 1 ? (
           <button
             onClick={() => setStep(step - 1)}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all text-xs font-black uppercase active:scale-95"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-bg-card border border-border-dim text-text-body hover:bg-bg-page transition-all text-xs font-black uppercase active:scale-95"
           >
             <FiArrowLeft /> Kembali
           </button>
@@ -415,7 +415,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
                 return alert("Nama kabinet wajib diisi!");
               setStep(step + 1);
             }}
-            className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition-all text-xs font-black uppercase shadow-lg shadow-blue-200 active:scale-95"
+            className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-primary text-white hover:bg-primary-hover transition-all text-xs font-black uppercase shadow-lg shadow-blue-200 active:scale-95"
           >
             Lanjut <FiArrowRight />
           </button>
@@ -444,7 +444,7 @@ export default function KabinetWizard({ isOpen, onClose, onSuccess }) {
 
 const StepIndicator = ({ num, active }) => (
   <div
-    className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm transition-all z-10 border-2 ${active ? "bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-200 scale-110" : "bg-white text-slate-300 border-slate-100"}`}
+    className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm transition-all z-10 border-2 ${active ? "bg-primary text-white border-blue-600 shadow-xl shadow-blue-200 scale-110" : "bg-bg-card text-slate-300 border-border-dim"}`}
   >
     {num}
   </div>
@@ -452,6 +452,6 @@ const StepIndicator = ({ num, active }) => (
 
 const StepLine = ({ active }) => (
   <div
-    className={`w-16 h-1.5 mx-1 rounded-full transition-all duration-500 ${active ? "bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.4)]" : "bg-slate-100"}`}
+    className={`w-16 h-1.5 mx-1 rounded-full transition-all duration-500 ${active ? "bg-primary shadow-[0_0_10px_rgba(37,99,235,0.4)]" : "bg-border-dim"}`}
   />
 );

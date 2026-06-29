@@ -14,6 +14,19 @@ import {
 import ProgramKerjaCard from "@/components/cards/ProgramKerjaCard";
 import { FiPlus, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
+// Sort: pinned first, then dated (asc), then undated
+const sortProgja = (list) =>
+  [...list].sort((a, b) => {
+    // Pinned items always first
+    if (b.is_pinned !== a.is_pinned) return b.is_pinned ? 1 : -1;
+    // Then items with a date before those without
+    if (!a.tanggal && b.tanggal) return 1;
+    if (a.tanggal && !b.tanggal) return -1;
+    if (!a.tanggal && !b.tanggal) return 0;
+    // Among dated items: descending order (newest first)
+    return new Date(b.tanggal) - new Date(a.tanggal);
+  });
+
 export default function ProgramKerjaClient({
   initialDivisions,
   initialMembers,
@@ -59,7 +72,7 @@ export default function ProgramKerjaClient({
 
         const { data, error } = await query;
         if (error) throw error;
-        setProgjaList(data || []);
+        setProgjaList(sortProgja(data || []));
       } catch (err) {
         console.error("Fetch Proker Error:", err);
       } finally {
@@ -68,6 +81,27 @@ export default function ProgramKerjaClient({
     },
     [supabase],
   );
+
+  const handlePin = async (item) => {
+    const newPinned = !item.is_pinned;
+    // Optimistic update
+    setProgjaList((prev) =>
+      sortProgja(prev.map((p) => (p.id === item.id ? { ...p, is_pinned: newPinned } : p)))
+    );
+    try {
+      const { error } = await supabase
+        .from("program_kerja")
+        .update({ is_pinned: newPinned })
+        .eq("id", item.id);
+      if (error) throw error;
+    } catch (err) {
+      // Revert on failure
+      setProgjaList((prev) =>
+        sortProgja(prev.map((p) => (p.id === item.id ? { ...p, is_pinned: !newPinned } : p)))
+      );
+      alert("Gagal mengubah status pin.");
+    }
+  };
 
   useEffect(() => {
     if (filterPeriode !== initialPeriodeId) {
@@ -99,7 +133,8 @@ export default function ProgramKerjaClient({
     if (filterGender) {
       result = result.filter((item) => item.target_gender === filterGender);
     }
-    setFilteredProgja(result);
+    // Apply smart sort: pinned first, then dated, then undated
+    setFilteredProgja(sortProgja(result));
     setCurrentPage(1);
   }, [
     progjaList,
@@ -174,7 +209,7 @@ export default function ProgramKerjaClient({
               </FilterSelect>
             </div>
             <div className="flex flex-col gap-1 flex-[2] min-w-[250px]">
-              <label className="text-xs font-semibold text-slate-500">
+              <label className="text-xs font-semibold text-text-muted">
                 Rentang Tanggal
               </label>
               <div className="flex gap-2">
@@ -182,13 +217,13 @@ export default function ProgramKerjaClient({
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white"
+                  className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-bg-card"
                 />
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-white"
+                  className="w-full h-[38px] px-2.5 rounded-md border border-slate-300 bg-bg-card"
                 />
               </div>
             </div>
@@ -222,7 +257,7 @@ export default function ProgramKerjaClient({
         actions={
           isAdmin && (
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-2"
               onClick={() => alert("Add Proker placeholder")}
             >
               <FiPlus /> Tambah
@@ -234,9 +269,9 @@ export default function ProgramKerjaClient({
       {loading ? (
         <ProgjaSkeletonGrid />
       ) : filteredProgja.length === 0 ? (
-        <div className="text-center py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl animate-fadeIn">
+        <div className="text-center py-20 bg-bg-page border-2 border-dashed border-border-dim rounded-3xl animate-fadeIn">
           <div className="text-6xl mb-4 grayscale opacity-30">📅</div>
-          <h3 className="text-xl font-bold text-slate-700 m-0">
+          <h3 className="text-xl font-bold text-text-main m-0">
             Program tidak ditemukan
           </h3>
           <button
@@ -248,7 +283,7 @@ export default function ProgramKerjaClient({
               setStartDate("");
               setEndDate("");
             }}
-            className="mt-6 text-blue-600 font-semibold hover:underline bg-transparent border-none cursor-pointer"
+            className="mt-6 text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer"
           >
             Bersihkan Filter
           </button>
@@ -263,6 +298,7 @@ export default function ProgramKerjaClient({
                 isAdmin={isAdmin}
                 onEdit={() => alert("Edit Proker placeholder")}
                 onDelete={() => alert("Delete Proker placeholder")}
+                onPin={() => handlePin(progja)}
               />
             ))}
           </div>
@@ -271,7 +307,7 @@ export default function ProgramKerjaClient({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-lg border border-border-dim bg-bg-card hover:bg-bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Halaman Sebelumnya"
               >
                 <FiChevronLeft size={18} />
@@ -280,7 +316,7 @@ export default function ProgramKerjaClient({
               {getPageNumbers().map((p, idx) => (
                 <React.Fragment key={idx}>
                   {p === "..." ? (
-                    <span className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-slate-400 font-bold select-none">
+                    <span className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center text-text-muted font-bold select-none">
                       {p}
                     </span>
                   ) : (
@@ -288,8 +324,8 @@ export default function ProgramKerjaClient({
                       onClick={() => setCurrentPage(p)}
                       className={`w-8 h-8 md:w-9 md:h-9 rounded-lg font-bold text-sm transition-all shadow-sm ${
                         currentPage === p
-                          ? "bg-blue-600 text-white shadow-blue-200"
-                          : "bg-white border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"
+                          ? "bg-primary text-white shadow-blue-200"
+                          : "bg-bg-card border border-border-dim text-text-body hover:border-blue-400 hover:text-primary"
                       }`}
                     >
                       {p}
@@ -303,7 +339,7 @@ export default function ProgramKerjaClient({
                   setCurrentPage((p) => Math.min(p + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-lg border border-border-dim bg-bg-card hover:bg-bg-page disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Halaman Selanjutnya"
               >
                 <FiChevronRight size={18} />

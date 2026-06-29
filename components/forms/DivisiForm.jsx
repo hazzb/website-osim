@@ -73,11 +73,11 @@ const DivisiForm = ({
         />
 
         <div className="col-span-12">
-          <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 px-1">
+          <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-2 px-1">
             Logo Divisi
           </label>
-          <div className="flex items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-2xl ring-1 ring-slate-100">
-            <div className="w-12 h-12 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="flex items-center gap-4 p-3 bg-bg-page border border-border-dim rounded-2xl ring-1 ring-slate-100">
+            <div className="w-12 h-12 rounded-xl border border-border-dim bg-bg-card flex items-center justify-center overflow-hidden flex-shrink-0">
               {preview ? (
                 <img
                   src={preview}
@@ -89,7 +89,7 @@ const DivisiForm = ({
               )}
             </div>
             <div className="flex-1 flex justify-between items-center pr-1">
-              <span className="text-[10px] text-slate-400 font-bold">
+              <span className="text-[10px] text-text-muted font-bold">
                 MAX 1MB (JPG/PNG)
               </span>
               <div>
@@ -124,17 +124,17 @@ const DivisiForm = ({
         />
       </div>
 
-      <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
+      <div className="mt-8 pt-6 border-t border-border-dim flex justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
+          className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page transition-all border border-border-dim"
         >
           Batal
         </button>
         <button
           type="submit"
-          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
+          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-primary hover:bg-primary-hover transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
           disabled={loading}
         >
           {loading ? "Simpan..." : "Simpan"}

@@ -8,47 +8,20 @@ const HomeHero = ({ data, isAdmin, onEdit }) => {
   if (!data) return null;
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "3rem",
-        alignItems: "center",
-        marginBottom: "4rem",
-        position: "relative",
-      }}
-      className="home-hero"
-    >
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16 relative">
       {/* KIRI: TEKS */}
-      <div>
-        <h1
-          style={{
-            fontSize: "3rem",
-            fontWeight: "800",
-            lineHeight: 1.1,
-            color: "#1a202c",
-            marginBottom: "1.5rem",
-          }}
-        >
+      <div className="text-center md:text-left">
+        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight text-text-main mb-6">
           {data.judul}
         </h1>
-        <p
-          style={{
-            fontSize: "1.2rem",
-            lineHeight: 1.6,
-            color: "#4a5568",
-            marginBottom: "2rem",
-            whiteSpace: "pre-line",
-          }}
-        >
+        <p className="text-lg leading-relaxed text-text-body mb-8 whitespace-pre-line">
           {data.isi}
         </p>
 
         {data.button_text && (
           <Link
             href={data.button_link || "#"}
-            className="button button-primary"
-            style={{ padding: "0.8rem 2rem", fontSize: "1rem" }}
+            className="button button-primary !px-8 !py-3.5 !text-base"
           >
             {data.button_text}
           </Link>
@@ -56,7 +29,7 @@ const HomeHero = ({ data, isAdmin, onEdit }) => {
       </div>
 
       {/* KANAN: GAMBAR */}
-      <div style={{ position: "relative" }}>
+      <div className="relative">
         {data.image_url ? (
           <img
             src={data.image_url}
@@ -64,25 +37,10 @@ const HomeHero = ({ data, isAdmin, onEdit }) => {
             width={600}
             height={400}
             fetchPriority="high"
-            style={{
-              width: "100%",
-              borderRadius: "20px",
-              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
-            }}
+            className="w-full rounded-[20px] shadow-lg md:max-w-none max-w-[80%] mx-auto"
           />
         ) : (
-          <div
-            style={{
-              width: "100%",
-              height: "300px",
-              background: "#edf2f7",
-              borderRadius: "20px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#cbd5e0",
-            }}
-          >
+          <div className="w-full h-[300px] bg-border-dim rounded-[20px] flex items-center justify-center text-text-muted md:max-w-none max-w-[80%] mx-auto">
             No Image
           </div>
         )}
@@ -92,28 +50,11 @@ const HomeHero = ({ data, isAdmin, onEdit }) => {
       {isAdmin && (
         <button
           onClick={() => onEdit(data)}
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            background: "white",
-            border: "1px solid #cbd5e0",
-            padding: "0.5rem",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
+          className="absolute top-0 right-0 bg-bg-card border border-border-dim p-2 rounded-lg cursor-pointer flex items-center gap-2 hover:bg-bg-page hover:text-primary transition-all text-sm font-semibold shadow-sm"
         >
           <FiEdit /> Edit Hero
         </button>
       )}
-
-      {/* CSS RESPONSIVE */}
-      <style>{`
-        @media (max-width: 768px) {
-          .home-hero { grid-template-columns: 1fr !important; gap: 2rem !important; text-align: center; }
-          .home-hero img { max-width: 80%; margin: 0 auto; }
-        }
-      `}</style>
     </div>
   );
 };

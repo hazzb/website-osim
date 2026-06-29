@@ -36,8 +36,8 @@ export default function AdminDashboardClient({ stats }) {
         title={`${greeting}, Admin! 👋`}
         subtitle="Ringkasan data organisasi hari ini."
         extraActions={
-          <div className="bg-white px-4 py-2.5 rounded-xl font-semibold text-slate-600 text-sm flex items-center gap-2 shadow-sm border border-slate-200">
-            <FiClock className="text-blue-500" />{" "}
+          <div className="bg-bg-card px-4 py-2.5 rounded-xl font-semibold text-text-body text-sm flex items-center gap-2 shadow-sm border border-border-dim">
+            <FiClock className="text-primary" />{" "}
             {new Date().toLocaleDateString("id-ID", { dateStyle: "long" })}
           </div>
         }
@@ -85,7 +85,7 @@ export default function AdminDashboardClient({ stats }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <div>
-          <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider mb-5 border-b-2 border-slate-200 pb-2 inline-block">
+          <h3 className="text-base font-bold text-text-muted uppercase tracking-wider mb-5 border-b-2 border-border-dim pb-2 inline-block">
             Database Master
           </h3>
           <div className="flex flex-col gap-4">
@@ -121,7 +121,7 @@ export default function AdminDashboardClient({ stats }) {
         </div>
 
         <div>
-          <h3 className="text-base font-bold text-slate-500 uppercase tracking-wider mb-5 border-b-2 border-slate-200 pb-2 inline-block">
+          <h3 className="text-base font-bold text-text-muted uppercase tracking-wider mb-5 border-b-2 border-border-dim pb-2 inline-block">
             Operasional & Web
           </h3>
           <div className="flex flex-col gap-4">
@@ -180,7 +180,7 @@ const BigStatCard = ({
     switch (t) {
       case "blue":
         return {
-          bg: "bg-blue-50",
+          bg: "bg-primary-light",
           text: "text-blue-700",
           iconBg: "bg-blue-100",
           border: "hover:border-blue-300",
@@ -208,9 +208,9 @@ const BigStatCard = ({
         };
       default:
         return {
-          bg: "bg-slate-50",
-          text: "text-slate-700",
-          iconBg: "bg-slate-100",
+          bg: "bg-bg-page",
+          text: "text-text-main",
+          iconBg: "bg-border-dim",
           border: "hover:border-slate-300",
         };
     }
@@ -220,10 +220,10 @@ const BigStatCard = ({
 
   return (
     <div
-      className={`bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-md group ${tc.border}`}
+      className={`bg-bg-card p-6 rounded-2xl border border-border-dim shadow-sm flex flex-col justify-between h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-md group ${tc.border}`}
     >
       <div className="flex justify-between items-start mb-6">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
           {title}
         </span>
         <div
@@ -235,12 +235,12 @@ const BigStatCard = ({
       <div>
         <div className="flex items-baseline gap-2 mb-2">
           <span
-            className={`font-extrabold text-slate-800 leading-none ${isTextValue ? "text-xl md:text-2xl" : "text-3xl md:text-4xl"}`}
+            className={`font-extrabold text-text-main leading-none ${isTextValue ? "text-xl md:text-2xl" : "text-3xl md:text-4xl"}`}
           >
             {value}
           </span>
           {unit && (
-            <span className="text-sm font-semibold text-slate-400">{unit}</span>
+            <span className="text-sm font-semibold text-text-muted">{unit}</span>
           )}
         </div>
         <div
@@ -257,7 +257,7 @@ const NavCard = ({ href, label, icon, color, desc }) => {
   const getColors = (c) => {
     switch (c) {
       case "blue":
-        return "text-blue-500 bg-blue-50 group-hover:bg-blue-100 group-hover:text-blue-600 group-hover:border-blue-200";
+        return "text-primary bg-primary-light group-hover:bg-blue-100 group-hover:text-primary group-hover:border-blue-200";
       case "indigo":
         return "text-indigo-500 bg-indigo-50 group-hover:bg-indigo-100 group-hover:text-indigo-600 group-hover:border-indigo-200";
       case "green":
@@ -271,9 +271,9 @@ const NavCard = ({ href, label, icon, color, desc }) => {
       case "red":
         return "text-red-500 bg-red-50 group-hover:bg-red-100 group-hover:text-red-600 group-hover:border-red-200";
       case "slate":
-        return "text-slate-500 bg-slate-50 group-hover:bg-slate-100 group-hover:text-slate-600 group-hover:border-slate-200";
+        return "text-text-muted bg-bg-page group-hover:bg-border-dim group-hover:text-text-body group-hover:border-border-dim";
       default:
-        return "text-slate-500 bg-slate-50";
+        return "text-text-muted bg-bg-page";
     }
   };
 
@@ -282,7 +282,7 @@ const NavCard = ({ href, label, icon, color, desc }) => {
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200 no-underline transition-all duration-300 hover:translate-x-1 hover:border-blue-400 hover:shadow-lg group relative overflow-hidden"
+      className="flex items-center gap-4 bg-bg-card p-5 rounded-2xl border border-border-dim no-underline transition-all duration-300 hover:translate-x-1 hover:border-blue-400 hover:shadow-lg group relative overflow-hidden"
     >
       <div
         className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 transition-colors ${iconClass}`}
@@ -290,12 +290,12 @@ const NavCard = ({ href, label, icon, color, desc }) => {
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-bold text-slate-800 text-base mb-0.5 group-hover:text-blue-700 transition-colors">
+        <div className="font-bold text-text-main text-base mb-0.5 group-hover:text-blue-700 transition-colors">
           {label}
         </div>
-        <div className="text-sm text-slate-500 truncate">{desc}</div>
+        <div className="text-sm text-text-muted truncate">{desc}</div>
       </div>
-      <div className="text-slate-300 transition-all duration-200 group-hover:text-blue-500 group-hover:translate-x-1">
+      <div className="text-slate-300 transition-all duration-200 group-hover:text-primary group-hover:translate-x-1">
         <FiArrowRight />
       </div>
     </Link>

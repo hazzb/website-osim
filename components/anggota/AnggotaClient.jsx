@@ -191,13 +191,13 @@ export default function AnggotaClient({
             <>
               <button
                 onClick={() => router.push("/admin/kelola-anggota")}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-2"
+                className="px-4 py-2 bg-border-dim text-text-main rounded-lg text-xs font-bold flex items-center gap-2"
               >
                 <FiDatabase /> <span>Database</span>
               </button>
               <button
                 onClick={() => alert("Admin modal to be implemented")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-2"
+                className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-2"
               >
                 <FiPlus /> <span>Anggota</span>
               </button>
@@ -223,13 +223,13 @@ export default function AnggotaClient({
           />
         }
         extraActions={
-          <div className="flex bg-slate-100 p-1 rounded-lg shrink-0 gap-0.5 border border-slate-200">
+          <div className="flex bg-border-dim p-1 rounded-lg shrink-0 gap-0.5 border border-border-dim">
             <button
               onClick={() => setViewMode("compact")}
               className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
                 viewMode === "compact"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "bg-bg-card text-primary shadow-sm"
+                  : "text-text-muted hover:text-text-body"
               }`}
               title="List View"
             >
@@ -239,8 +239,8 @@ export default function AnggotaClient({
               onClick={() => setViewMode("aesthetic")}
               className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
                 viewMode === "aesthetic"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "bg-bg-card text-primary shadow-sm"
+                  : "text-text-muted hover:text-text-body"
               }`}
               title="Grid View"
             >
@@ -285,7 +285,7 @@ export default function AnggotaClient({
       {loading ? (
         <AnggotaSkeletonGrid />
       ) : anggotaList.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-text-muted">
           <div className="text-5xl mb-4 grayscale opacity-50">📂</div>
           <p className="font-medium">Belum ada data anggota di periode ini.</p>
         </div>
@@ -297,9 +297,9 @@ export default function AnggotaClient({
             return (
               <>
                 {filteredAnggota.length === 0 ? (
-                  <div className="text-center py-20 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl animate-fadeIn">
+                  <div className="text-center py-20 bg-bg-page border-2 border-dashed border-border-dim rounded-3xl animate-fadeIn">
                     <FaSearch className="text-6xl mb-4 grayscale opacity-30" />
-                    <h3 className="text-xl font-bold text-slate-700 m-0">
+                    <h3 className="text-xl font-bold text-text-main m-0">
                       Pencarian tidak ditemukan
                     </h3>
                     <button
@@ -308,7 +308,7 @@ export default function AnggotaClient({
                         setSelectedGender("all");
                         setSelectedDivisi("semua");
                       }}
-                      className="mt-6 text-blue-600 font-semibold hover:underline bg-transparent border-none cursor-pointer"
+                      className="mt-6 text-primary font-semibold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       Reset Filter
                     </button>
@@ -330,23 +330,23 @@ export default function AnggotaClient({
                       return (
                         <section
                           key={divisi.id}
-                          className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"
+                          className="bg-bg-card border border-border-dim rounded-2xl p-6 shadow-sm"
                         >
-                          <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                          <div className="flex items-center justify-between mb-6 border-b border-border-dim pb-4">
                             <div className="flex items-center gap-3">
                               {divisi.logo_url ? (
                                 <img
                                   src={divisi.logo_url}
                                   alt="logo"
-                                  className="w-12 h-12 object-cover rounded-xl bg-slate-50 border border-slate-100"
+                                  className="w-12 h-12 object-cover rounded-xl bg-bg-page border border-border-dim"
                                 />
                               ) : (
-                                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center font-bold text-slate-400 text-xl border border-slate-200">
+                                <div className="w-12 h-12 bg-border-dim rounded-xl flex items-center justify-center font-bold text-text-muted text-xl border border-border-dim">
                                   {divisi.nama_divisi.charAt(0)}
                                 </div>
                               )}
                               <div>
-                                <h3 className="text-lg font-bold text-slate-800 m-0 leading-tight">
+                                <h3 className="text-lg font-bold text-text-main m-0 leading-tight">
                                   {divisi.nama_divisi}
                                 </h3>
                                 {divisi.tipe === "Inti" && (
@@ -359,7 +359,7 @@ export default function AnggotaClient({
                             <div className="flex items-center gap-2">
                               <Link
                                 href={`/divisi/${divisi.id}`}
-                                className="inline-flex items-center gap-1 text-blue-600 text-sm font-semibold hover:underline"
+                                className="inline-flex items-center gap-1 text-primary text-sm font-semibold hover:underline"
                               >
                                 Detail <FiArrowRight />
                               </Link>
@@ -382,7 +382,7 @@ export default function AnggotaClient({
                             ))}
                           </div>
                           {members.length > membersToShow.length && (
-                            <div className="text-center text-xs text-slate-400 mt-4 italic">
+                            <div className="text-center text-xs text-text-muted mt-4 italic">
                               +{members.length - membersToShow.length} anggota
                               lainnya (Load More untuk melihat)
                             </div>
@@ -399,7 +399,7 @@ export default function AnggotaClient({
                     className="flex flex-col items-center justify-center py-10 gap-3"
                   >
                     <div className="w-8 h-8 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-                    <span className="text-slate-400 text-sm font-medium">
+                    <span className="text-text-muted text-sm font-medium">
                       Memuat lebih banyak...
                     </span>
                   </div>

@@ -87,7 +87,7 @@ const AnggotaTable = ({
                 {searchTerm && setSearchTerm && (
                   <button
                     onClick={() => setSearchTerm("")}
-                    className="mt-6 px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-blue-600 font-bold text-sm shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+                    className="mt-6 px-5 py-2.5 rounded-xl border border-border-dim bg-bg-card text-primary font-bold text-sm shadow-sm hover:bg-bg-page transition-all cursor-pointer"
                   >
                     Reset Pencarian
                   </button>
@@ -133,7 +133,7 @@ const AnggotaTable = ({
                     {rowNumber}
                   </td>
                   <td style={{ textAlign: "center" }}>
-                    <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 mx-auto flex items-center justify-center border border-slate-200">
+                    <div className="w-9 h-9 rounded-full overflow-hidden bg-border-dim mx-auto flex items-center justify-center border border-border-dim">
                       {item.foto_url ? (
                         <img
                           src={item.foto_url}
@@ -141,35 +141,35 @@ const AnggotaTable = ({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <FiUser className="text-slate-400" />
+                        <FiUser className="text-text-muted" />
                       )}
                     </div>
                   </td>
                   <td>
-                    <div className="font-bold text-slate-800">{item.nama}</div>
+                    <div className="font-bold text-text-main">{item.nama}</div>
                     {item.instagram_username && (
-                      <div className="text-[10px] text-blue-500 flex items-center gap-1 mt-0.5 font-semibold">
+                      <div className="text-[10px] text-primary flex items-center gap-1 mt-0.5 font-semibold">
                         <FiInstagram size={10} /> @
                         {item.instagram_username.replace("@", "")}
                       </div>
                     )}
                     {item.motto && (
-                      <div className="text-[10px] text-slate-500 italic mt-0.5">
+                      <div className="text-[10px] text-text-muted italic mt-0.5">
                         "{item.motto}"
                       </div>
                     )}
                   </td>
                   <td>
-                    <div className="text-xs font-semibold text-slate-800">
+                    <div className="text-xs font-semibold text-text-main">
                       {item.divisi?.nama_divisi || "-"}
                     </div>
-                    <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">
+                    <div className="text-[10px] text-text-muted uppercase tracking-wider font-bold">
                       {item.master_jabatan?.nama_jabatan || "Anggota"}
                       {item.jabatan_di_divisi && ` • ${item.jabatan_di_divisi}`}
                     </div>
                   </td>
                   <td>
-                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-[10px] bg-primary-light text-primary px-2 py-0.5 rounded-full font-bold">
                       {item.periode_jabatan?.nama_kabinet || "-"}
                     </span>
                   </td>
@@ -211,19 +211,19 @@ const AnggotaTable = ({
 
       <div className={tableStyles.paginationContainer}>
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
             <span>Show:</span>
             <select
               value={itemsPerPageVal}
               onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-              className="px-1.5 py-1 rounded bg-slate-50 border border-slate-200 text-slate-700 font-bold outline-none cursor-pointer"
+              className="px-1.5 py-1 rounded bg-bg-page border border-border-dim text-text-main font-bold outline-none cursor-pointer"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
           </div>
-          <span className="text-xs text-slate-400 border-l border-slate-200 pl-6 h-4 flex items-center">
+          <span className="text-xs text-text-muted border-l border-border-dim pl-6 h-4 flex items-center">
             <strong>
               {startItem}-{endItem}
             </strong>{" "}
@@ -236,10 +236,10 @@ const AnggotaTable = ({
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-dim bg-bg-card text-xs font-bold transition-all ${
                 currentPage === 1
                   ? "opacity-30 cursor-not-allowed"
-                  : "hover:bg-slate-50 text-slate-700"
+                  : "hover:bg-bg-page text-text-main"
               }`}
             >
               <FiChevronLeft /> Prev
@@ -247,10 +247,10 @@ const AnggotaTable = ({
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-dim bg-bg-card text-xs font-bold transition-all ${
                 currentPage === totalPages
                   ? "opacity-30 cursor-not-allowed"
-                  : "hover:bg-slate-50 text-slate-700"
+                  : "hover:bg-bg-page text-text-main"
               }`}
             >
               Next <FiChevronRight />

@@ -97,8 +97,8 @@ const JabatanManager = ({ onClose, onSuccess }) => {
   return (
     <div className="px-2 pb-2">
       {/* FORM INPUT */}
-      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-        <h4 className="text-sm font-semibold text-slate-700 mb-3">
+      <div className="bg-bg-page p-4 rounded-lg border border-border-dim mb-6">
+        <h4 className="text-sm font-semibold text-text-main mb-3">
           Tambah Jabatan Master
         </h4>
 
@@ -121,7 +121,7 @@ const JabatanManager = ({ onClose, onSuccess }) => {
           {/* Input Tipe */}
           <div>
             <select
-              className="w-full h-[38px] px-3 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+              className="w-full h-[38px] px-3 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-bg-card"
               value={newTipe}
               onChange={(e) => setNewTipe(e.target.value)}
             >
@@ -135,13 +135,13 @@ const JabatanManager = ({ onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={loading}
-              className="h-full px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center transition-colors"
+              className="h-full px-4 bg-primary text-white rounded-md hover:bg-primary-hover disabled:opacity-50 flex items-center justify-center transition-colors"
             >
               <FiPlus />
             </button>
           </div>
         </form>
-        <div className="mt-2 text-xs text-slate-500 space-y-1">
+        <div className="mt-2 text-xs text-text-muted space-y-1">
           <p>
             * Jabatan <strong>Inti</strong> hanya muncul saat input anggota{" "}
             <strong>BPH</strong>.
@@ -155,19 +155,19 @@ const JabatanManager = ({ onClose, onSuccess }) => {
       {/* LIST JABATAN (SCROLLABLE & GROUPED) */}
       <div className="max-h-[400px] overflow-y-auto pr-1">
         {sortedGroupKeys.length === 0 ? (
-          <p className="text-center py-8 text-sm text-slate-500">
+          <p className="text-center py-8 text-sm text-text-muted">
             Belum ada data jabatan master.
           </p>
         ) : (
           sortedGroupKeys.map((tipe) => (
             <div key={tipe} className="mb-6 last:mb-2">
               {/* Header Group */}
-              <div className="flex items-center gap-2 mb-2 border-b border-slate-100 pb-1">
+              <div className="flex items-center gap-2 mb-2 border-b border-border-dim pb-1">
                 <FiTag
                   size={14}
-                  className={tipe === "Inti" ? "text-red-600" : "text-blue-500"}
+                  className={tipe === "Inti" ? "text-red-600" : "text-primary"}
                 />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                <span className="text-xs font-bold text-text-body uppercase tracking-wide">
                   {getLabelByTipe(tipe)}
                 </span>
               </div>
@@ -177,11 +177,11 @@ const JabatanManager = ({ onClose, onSuccess }) => {
                 {groupedJabatan[tipe].map((j) => (
                   <div
                     key={j.id}
-                    className="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-md hover:border-slate-300 transition-colors"
+                    className="flex justify-between items-center p-3 bg-bg-card border border-border-dim rounded-md hover:border-slate-300 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <FiBriefcase size={14} className="text-slate-400" />
-                      <span className="text-sm font-medium text-slate-700">
+                      <FiBriefcase size={14} className="text-text-muted" />
+                      <span className="text-sm font-medium text-text-main">
                         {j.nama_jabatan}
                       </span>
                     </div>
@@ -202,11 +202,11 @@ const JabatanManager = ({ onClose, onSuccess }) => {
       </div>
 
       {/* FOOTER BUTTON */}
-      <div className="mt-4 pt-4 border-t border-slate-100">
+      <div className="mt-4 pt-4 border-t border-border-dim">
         <button
           type="button"
           onClick={onClose}
-          className="w-full py-2 px-4 bg-slate-100 text-slate-700 font-medium rounded-md hover:bg-slate-200 transition-colors text-sm"
+          className="w-full py-2 px-4 bg-border-dim text-text-main font-medium rounded-md hover:bg-border-dim transition-colors text-sm"
         >
           Selesai & Tutup
         </button>

@@ -65,7 +65,7 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
 
   return (
     <div className="p-2">
-      <p className="text-xs text-slate-500 mb-6 font-medium bg-slate-50 p-3 rounded-lg border border-slate-100">
+      <p className="text-xs text-text-muted mb-6 font-medium bg-bg-page p-3 rounded-lg border border-border-dim">
         Gunakan tombol panah untuk mengatur urutan tampilan divisi di beranda
         dan halaman publik.
       </p>
@@ -74,13 +74,13 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
         {items.map((item, index) => (
           <div
             key={item.id}
-            className="flex items-center justify-between p-3 px-4 bg-white border border-slate-200 rounded-xl text-sm transition-all hover:border-blue-200 hover:shadow-sm"
+            className="flex items-center justify-between p-3 px-4 bg-bg-card border border-border-dim rounded-xl text-sm transition-all hover:border-blue-200 hover:shadow-sm"
           >
             <div className="flex items-center gap-4">
-              <span className="font-black text-slate-300 text-[10px] w-5 h-5 rounded-full border border-slate-200 flex items-center justify-center">
+              <span className="font-black text-slate-300 text-[10px] w-5 h-5 rounded-full border border-border-dim flex items-center justify-center">
                 {index + 1}
               </span>
-              <span className="font-bold text-slate-800">
+              <span className="font-bold text-text-main">
                 {item.nama_divisi}
               </span>
             </div>
@@ -89,14 +89,14 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
               <button
                 onClick={() => moveUp(index)}
                 disabled={index === 0}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-border-dim text-text-body hover:bg-border-dim disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
               >
                 <FiChevronUp size={16} />
               </button>
               <button
                 onClick={() => moveDown(index)}
                 disabled={index === items.length - 1}
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-border-dim text-text-body hover:bg-border-dim disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-90"
               >
                 <FiChevronDown size={16} />
               </button>
@@ -105,18 +105,18 @@ const DivisiReorderModal = ({ isOpen, onClose, divisiList, onSuccess }) => {
         ))}
       </div>
 
-      <div className="mt-8 pt-5 border-t border-slate-100 flex justify-end gap-3">
+      <div className="mt-8 pt-5 border-t border-border-dim flex justify-end gap-3">
         <button
           onClick={onClose}
           disabled={loading}
-          className="px-5 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
+          className="px-5 py-2 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page transition-all border border-border-dim"
         >
           Batal
         </button>
         <button
           onClick={handleSave}
           disabled={loading}
-          className="px-6 py-2 bg-blue-600 rounded-xl text-white hover:bg-blue-700 text-xs font-black uppercase flex items-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95 disabled:opacity-50"
+          className="px-6 py-2 bg-primary rounded-xl text-white hover:bg-primary-hover text-xs font-black uppercase flex items-center gap-2 transition-all shadow-lg shadow-blue-200 active:scale-95 disabled:opacity-50"
         >
           {loading ? (
             "Menyimpan..."

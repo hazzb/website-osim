@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/context/AuthContext";
 import PageContainer from "@/components/ui/PageContainer";
@@ -9,7 +10,7 @@ import BeritaCard from "./BeritaCard";
 import Modal from "@/components/Modal";
 import BeritaForm from "@/components/forms/BeritaForm";
 import { uploadImage } from "@/utils/uploadHelper";
-import { FiSearch, FiRefreshCw, FiPlus, FiAlertCircle } from "react-icons/fi";
+import { FiSearch, FiRefreshCw, FiPlus, FiAlertCircle, FiEdit3, FiEdit2, FiEdit, FiPlusCircle } from "react-icons/fi";
 
 const INITIAL_LIMIT = 6;
 const LOAD_MORE_COUNT = 6;
@@ -29,7 +30,7 @@ export default function BeritaList({ initialBerita }) {
   const supabase = createClient();
   const { session } = useAuth();
   const isAdmin = !!session;
-  
+
   // ---- State Data ----
   const [beritaList, setBeritaList] = useState(initialBerita || []);
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,7 +61,7 @@ export default function BeritaList({ initialBerita }) {
         .from("berita")
         .select("*")
         .order("tanggal", { ascending: false });
-      
+
       if (error) throw error;
       if (data) {
         setBeritaList(data);
@@ -252,21 +253,31 @@ export default function BeritaList({ initialBerita }) {
         subtitle="Kumpulan reportase, artikel, dan dokumentasi kegiatan OSIM."
         primaryAction={
           isAdmin && (
-            <button
-              onClick={() => openModal()}
-              className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
-            >
-              <FiPlus /> <span>Tulis Berita</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin/berita"
+                className="px-3.5 py-2.5 bg-bg-card border border-border-dim hover:bg-bg-page hover:text-primary rounded-xl text-text-body flex items-center justify-center transition-all shadow-sm cursor-pointer"
+                title="Kelola Berita"
+              >
+                <FiEdit3 size={18} />
+              </Link>
+              <button
+                onClick={() => openModal()}
+                className="button button-primary flex items-center justify-center cursor-pointer"
+                title="Tulis Berita"
+              >
+                <FiPlus size={18} strokeWidth={3} />
+              </button>
+            </div>
           )
         }
         searchBar={
           <div className="relative w-full">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Cari berita..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-bg-card border border-border-dim rounded-lg text-sm text-text-main focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary-light transition-all"
               value={searchTerm}
               onChange={handleSearchChange}
             />
@@ -278,11 +289,10 @@ export default function BeritaList({ initialBerita }) {
               <button
                 key={cat}
                 onClick={() => handleKategoriChange(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  selectedKategori === cat
-                    ? "bg-primary text-white shadow-sm"
-                    : "bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary"
-                }`}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border cursor-pointer ${selectedKategori === cat
+                  ? "bg-primary text-white border-primary shadow-md shadow-primary/25"
+                  : "bg-bg-card text-text-body border-border-dim hover:border-primary hover:text-primary"
+                  }`}
               >
                 {cat}
               </button>
@@ -293,11 +303,11 @@ export default function BeritaList({ initialBerita }) {
 
       <div className="py-8">
         {displayedBerita.length === 0 && !loading ? (
-          <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl">
-            <h3 className="text-xl font-bold text-slate-700 mb-2">
+          <div className="text-center py-20 bg-bg-card border border-border-dim rounded-2xl">
+            <h3 className="text-xl font-bold text-text-main mb-2">
               Tidak ada berita ditemukan
             </h3>
-            <p className="text-slate-500 mb-6">
+            <p className="text-text-muted mb-6">
               Coba gunakan kata kunci pencarian yang lain atau reset filter.
             </p>
             <button
@@ -315,8 +325,8 @@ export default function BeritaList({ initialBerita }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
               {displayedBerita.map((berita) => (
                 <div key={berita.id} className="animate-scale-in">
-                  <BeritaCard 
-                    berita={berita} 
+                  <BeritaCard
+                    berita={berita}
                     isAdmin={isAdmin}
                     onEdit={openModal}
                     onDelete={confirmDelete}
@@ -369,16 +379,16 @@ export default function BeritaList({ initialBerita }) {
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiAlertCircle size={32} className="text-red-500" />
           </div>
-          <p className="text-sm font-bold text-slate-700 mb-1">
+          <p className="text-sm font-bold text-text-main mb-1">
             Yakin ingin menghapus berita ini?
           </p>
-          <p className="text-xs text-slate-400 mb-6">
+          <p className="text-xs text-text-muted mb-6">
             Tindakan ini tidak dapat dibatalkan dari database.
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 border border-slate-200 transition-all"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page border border-border-dim transition-all"
             >
               Batal
             </button>

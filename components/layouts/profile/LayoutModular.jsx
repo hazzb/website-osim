@@ -11,7 +11,7 @@ const remarkGfm = dynamic(() => import("remark-gfm"));
 const LayoutModular = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
   if (!contentBlocks || contentBlocks.length === 0) {
     return (
-      <div className="col-span-full py-12 text-center text-slate-400 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+      <div className="col-span-full py-12 text-center text-text-muted bg-bg-page rounded-3xl border-2 border-dashed border-border-dim">
         Belum ada konten untuk ditampilkan.
       </div>
     );
@@ -22,14 +22,14 @@ const LayoutModular = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
       {contentBlocks.map((block) => (
         <div
           key={block.id}
-          className="group p-8 rounded-3xl bg-white border border-slate-200 shadow-xl shadow-slate-200/50 hover:-translate-y-2 hover:border-blue-500 transition-all duration-300 relative"
+          className="group p-8 rounded-3xl bg-bg-card border border-border-dim shadow-xl shadow-slate-200/50 hover:-translate-y-2 hover:border-blue-500 transition-all duration-300 relative"
         >
           {/* Admin Controls */}
           {isAdmin && (
             <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => onEdit(block)}
-                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs"
+                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-primary transition-colors text-xs"
                 title="Edit"
               >
                 <FiEdit size={14} />
@@ -58,7 +58,7 @@ const LayoutModular = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
           )}
 
           {/* Title */}
-          <h3 className="text-2xl font-black text-slate-800 mb-4 tracking-tight">
+          <h3 className="text-2xl font-black text-text-main mb-4 tracking-tight">
             {block.judul}
           </h3>
 
@@ -73,7 +73,7 @@ const LayoutModular = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
           {block.button_text && block.button_link && (
             <a
               href={block.button_link}
-              className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              className="inline-block mt-4 px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary-hover transition-colors text-sm"
             >
               {block.button_text}
             </a>

@@ -203,14 +203,14 @@ export default function DivisiManagement({ initialPeriodes }) {
             <button
               onClick={() => setShowReorderModal(true)}
               disabled={loading || divisions.length === 0}
-              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-slate-200 transition-all"
+              className="px-4 py-2 bg-border-dim text-text-main rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-border-dim transition-all"
             >
               <FiList /> <span>Urutkan</span>
             </button>
             <button
               onClick={() => openModal()}
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+              className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-primary-hover transition-all shadow-md shadow-blue-100"
             >
               <FiPlus /> <span>Tambah</span>
             </button>
@@ -245,14 +245,14 @@ export default function DivisiManagement({ initialPeriodes }) {
       ) : (
         <div className={tableStyles.wrapper}>
           {divisions.length === 0 ? (
-            <div className="text-center py-16 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl mx-2">
+            <div className="text-center py-16 bg-bg-page border-2 border-dashed border-border-dim rounded-3xl mx-2">
               <FiInfo size={48} className="text-slate-200 mx-auto mb-4" />
-              <p className="text-slate-500 font-bold mb-6">
+              <p className="text-text-muted font-bold mb-6">
                 Belum ada divisi di periode ini.
               </p>
               <button
                 onClick={handleImportDivisi}
-                className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-black flex items-center gap-2 mx-auto hover:bg-slate-50 transition-all shadow-sm"
+                className="px-6 py-2.5 bg-bg-card border border-border-dim text-text-main rounded-xl text-xs font-black flex items-center gap-2 mx-auto hover:bg-bg-page transition-all shadow-sm"
               >
                 <FiCopy /> Salin Divisi dari Periode Lalu
               </button>
@@ -273,7 +273,7 @@ export default function DivisiManagement({ initialPeriodes }) {
                   {filteredDivisions.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="py-20 text-center">
-                        <div className="text-slate-400 text-xs font-bold">
+                        <div className="text-text-muted text-xs font-bold">
                           Tidak ada divisi yang cocok.
                         </div>
                       </td>
@@ -282,7 +282,7 @@ export default function DivisiManagement({ initialPeriodes }) {
                     filteredDivisions.map((div) => (
                       <tr key={div.id}>
                         <td>
-                          <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
+                          <div className="w-10 h-10 rounded-xl bg-bg-card border border-border-dim flex items-center justify-center overflow-hidden shadow-sm">
                             {div.logo_url ? (
                               <img
                                 src={div.logo_url}
@@ -295,14 +295,14 @@ export default function DivisiManagement({ initialPeriodes }) {
                           </div>
                         </td>
                         <td>
-                          <div className="font-bold text-slate-800">
+                          <div className="font-bold text-text-main">
                             {div.nama_divisi}
                           </div>
                           <span
                             className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full mt-1 inline-block ${
                               div.tipe === "Inti"
                                 ? "bg-amber-50 text-amber-600 border border-amber-100"
-                                : "bg-slate-100 text-slate-500"
+                                : "bg-border-dim text-text-muted"
                             }`}
                           >
                             {div.tipe === "Inti"
@@ -311,12 +311,12 @@ export default function DivisiManagement({ initialPeriodes }) {
                           </span>
                         </td>
                         <td className="max-w-xs">
-                          <p className="text-xs text-slate-500 truncate">
+                          <p className="text-xs text-text-muted truncate">
                             {div.deskripsi || "-"}
                           </p>
                         </td>
                         <td>
-                          <span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-black bg-border-dim text-text-muted px-2 py-0.5 rounded">
                             #{div.urutan}
                           </span>
                         </td>

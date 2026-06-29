@@ -63,17 +63,17 @@ const ProgramKerjaForm = ({
 
         {/* TARGET GENDER */}
         <div className="col-span-12">
-          <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 px-1">
+          <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-3 px-1">
             Target Peserta
           </label>
-          <div className="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 ring-1 ring-slate-100/50">
+          <div className="flex gap-3 bg-bg-page p-2 rounded-2xl border border-border-dim ring-1 ring-slate-100/50">
             {["Umum", "Ikhwan", "Akhwat"].map((g) => (
               <label
                 key={g}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight cursor-pointer transition-all border-2 ${
                   formData.target_gender === g
-                    ? "bg-white border-blue-500 text-blue-600 shadow-sm"
-                    : "bg-transparent border-transparent text-slate-400 hover:text-slate-600"
+                    ? "bg-bg-card border-blue-500 text-primary shadow-sm"
+                    : "bg-transparent border-transparent text-text-muted hover:text-text-body"
                 }`}
               >
                 <input
@@ -177,18 +177,18 @@ const ProgramKerjaForm = ({
         />
       </div>
 
-      <div className="mt-10 pt-6 border-t border-slate-100 flex justify-end gap-3">
+      <div className="mt-10 pt-6 border-t border-border-dim flex justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
+          className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page transition-all border border-border-dim"
           disabled={loading}
         >
           Batal
         </button>
         <button
           type="submit"
-          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
+          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-primary hover:bg-primary-hover transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
           disabled={loading}
         >
           {loading ? "Menyimpan..." : "Simpan Data"}

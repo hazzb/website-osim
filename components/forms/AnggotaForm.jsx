@@ -38,13 +38,13 @@ const AnggotaForm = ({
   const maxMotto = 250;
 
   const sectionHeaderStyle =
-    "flex items-center gap-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-6 mt-2 border-b border-slate-100 pb-3";
+    "flex items-center gap-2 text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-6 mt-2 border-b border-border-dim pb-3";
 
   return (
     <form onSubmit={onSubmit} className="p-2">
       {/* PHOTO SECTION */}
       <div className="flex flex-col items-center mb-10">
-        <div className="w-28 h-28 rounded-3xl overflow-hidden border-[6px] border-white shadow-xl bg-slate-100 flex items-center justify-center mb-4 ring-1 ring-slate-200">
+        <div className="w-28 h-28 rounded-3xl overflow-hidden border-[6px] border-white shadow-xl bg-border-dim flex items-center justify-center mb-4 ring-1 ring-slate-200">
           {preview ? (
             <img
               src={preview}
@@ -66,7 +66,7 @@ const AnggotaForm = ({
             className="hidden"
           />
         </label>
-        <span className="text-[10px] text-slate-400 mt-2 font-medium">
+        <span className="text-[10px] text-text-muted mt-2 font-medium">
           Maks. 2MB (JPG/PNG)
         </span>
       </div>
@@ -189,7 +189,7 @@ const AnggotaForm = ({
             placeholder="Kutip motto singkat..."
           />
           <div
-            className={`text-[10px] text-right mt-1 font-bold ${mottoLength >= maxMotto ? "text-red-500" : "text-slate-400"}`}
+            className={`text-[10px] text-right mt-1 font-bold ${mottoLength >= maxMotto ? "text-red-500" : "text-text-muted"}`}
           >
             {mottoLength}/{maxMotto} Karakter
           </div>
@@ -197,18 +197,18 @@ const AnggotaForm = ({
       </div>
 
       {/* FOOTER ACTIONS */}
-      <div className="mt-10 pt-6 border-t border-slate-100 flex justify-end gap-3">
+      <div className="mt-10 pt-6 border-t border-border-dim flex justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
+          className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page transition-all border border-border-dim"
           disabled={loading}
         >
           Batal
         </button>
         <button
           type="submit"
-          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:transform-none transform active:scale-95"
+          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-primary hover:bg-primary-hover transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:transform-none transform active:scale-95"
           disabled={loading}
         >
           {loading ? "Menyimpan..." : "Simpan Data"}

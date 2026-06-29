@@ -76,7 +76,7 @@ export default function VisiMisiManagement() {
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95 disabled:opacity-50"
+            className="px-8 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-blue-100 active:scale-95 disabled:opacity-50"
           >
             <FiSave />{" "}
             <span>{saving ? "Menyimpan..." : "Simpan Perubahan"}</span>
@@ -84,20 +84,20 @@ export default function VisiMisiManagement() {
         }
       />
 
-      <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm max-w-4xl">
+      <div className="bg-bg-card border border-border-dim rounded-3xl p-8 shadow-sm max-w-4xl">
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <div>
             <div className="mb-4">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                <FiEdit3 className="text-blue-500" /> Teks Visi
+              <h3 className="text-sm font-black text-text-main uppercase tracking-widest flex items-center gap-2">
+                <FiEdit3 className="text-primary" /> Teks Visi
               </h3>
-              <p className="text-[10px] text-slate-500 mt-1">
+              <p className="text-[10px] text-text-muted mt-1">
                 Cita-cita atau tujuan jangka panjang organisasi.
               </p>
               <div className="h-1 w-12 bg-blue-500 rounded-full mt-2"></div>
             </div>
             <textarea
-              className="w-full min-h-[120px] p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              className="w-full min-h-[120px] p-4 bg-bg-page border border-border-dim rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
               value={visi}
               onChange={(e) => setVisi(e.target.value)}
               placeholder="Tuliskan visi organisasi..."
@@ -106,17 +106,17 @@ export default function VisiMisiManagement() {
 
           <div>
             <div className="mb-4">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-sm font-black text-text-main uppercase tracking-widest flex items-center gap-2">
                 <FiEdit3 className="text-emerald-500" /> Teks Misi
               </h3>
-              <p className="text-[10px] text-slate-500 mt-1">
+              <p className="text-[10px] text-text-muted mt-1">
                 Langkah-langkah untuk mencapai visi. Gunakan penomoran (1. 2.
                 3.) untuk tampilan yang rapi.
               </p>
               <div className="h-1 w-12 bg-emerald-500 rounded-full mt-2"></div>
             </div>
             <textarea
-              className="w-full min-h-[200px] p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+              className="w-full min-h-[200px] p-4 bg-bg-page border border-border-dim rounded-2xl text-sm focus:ring-2 focus:emerald-500/20 focus:border-emerald-500 outline-none transition-all"
               value={misi}
               onChange={(e) => setMisi(e.target.value)}
               placeholder="1. Misi pertama...\n2. Misi kedua..."

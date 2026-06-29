@@ -356,13 +356,13 @@ export default function AnggotaManagement({
           <div className="flex gap-2">
             <button
               onClick={() => setIsBulkModalOpen(true)}
-              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-slate-200 transition-all"
+              className="px-4 py-2 bg-border-dim text-text-main rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-border-dim transition-all"
             >
               <FiUpload /> <span>Import Excel</span>
             </button>
             <button
               onClick={() => openModal()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+              className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-primary-hover transition-all shadow-md shadow-blue-100"
             >
               <FiPlus /> <span>Tambah</span>
             </button>
@@ -471,7 +471,7 @@ export default function AnggotaManagement({
           <FiFileText size={48} className="text-slate-300 mx-auto mb-4" />
           {selectedPeriodeId ? (
             <>
-              <p className="text-slate-600 text-sm mb-6 leading-relaxed">
+              <p className="text-text-body text-sm mb-6 leading-relaxed">
                 Data akan dimasukkan ke Periode:{" "}
                 <strong>
                   {periodeList.find((p) => p.id == selectedPeriodeId)
@@ -484,8 +484,8 @@ export default function AnggotaManagement({
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 text-left">
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <div className="bg-slate-50 px-4 py-2 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                <div className="border border-border-dim rounded-xl overflow-hidden">
+                  <div className="bg-bg-page px-4 py-2 text-[10px] font-bold text-text-muted uppercase border-b border-border-dim">
                     Ref. ID Divisi
                   </div>
                   <div className="max-h-40 overflow-y-auto px-4 py-2">
@@ -496,10 +496,10 @@ export default function AnggotaManagement({
                             key={d.id}
                             className="border-b border-slate-50 last:border-0"
                           >
-                            <td className="py-1 font-bold text-blue-600 w-10">
+                            <td className="py-1 font-bold text-primary w-10">
                               {d.id}
                             </td>
-                            <td className="py-1 text-slate-600">
+                            <td className="py-1 text-text-body">
                               {d.nama_divisi}
                             </td>
                           </tr>
@@ -508,8 +508,8 @@ export default function AnggotaManagement({
                     </table>
                   </div>
                 </div>
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <div className="bg-slate-50 px-4 py-2 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                <div className="border border-border-dim rounded-xl overflow-hidden">
+                  <div className="bg-bg-page px-4 py-2 text-[10px] font-bold text-text-muted uppercase border-b border-border-dim">
                     Ref. ID Jabatan
                   </div>
                   <div className="max-h-40 overflow-y-auto px-4 py-2">
@@ -520,10 +520,10 @@ export default function AnggotaManagement({
                             key={j.id}
                             className="border-b border-slate-50 last:border-0"
                           >
-                            <td className="py-1 font-bold text-blue-600 w-10">
+                            <td className="py-1 font-bold text-primary w-10">
                               {j.id}
                             </td>
-                            <td className="py-1 text-slate-600">
+                            <td className="py-1 text-text-body">
                               {j.nama_jabatan}
                             </td>
                           </tr>
@@ -537,11 +537,11 @@ export default function AnggotaManagement({
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={handleDownloadTemplate}
-                  className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-all"
+                  className="w-full py-3 bg-bg-card border border-border-dim rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-bg-page transition-all"
                 >
                   <FiDownload /> Template
                 </button>
-                <label className="w-full py-3 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-700 cursor-pointer shadow-lg shadow-blue-100">
+                <label className="w-full py-3 bg-primary text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-primary-hover cursor-pointer shadow-lg shadow-blue-100">
                   <FiUpload /> Upload Excel
                   <input
                     type="file"
@@ -568,7 +568,7 @@ export default function AnggotaManagement({
             </div>
           )}
           {modalLoading && (
-            <p className="mt-4 text-blue-600 text-xs font-bold animate-pulse">
+            <p className="mt-4 text-primary text-xs font-bold animate-pulse">
               Memproses data...
             </p>
           )}

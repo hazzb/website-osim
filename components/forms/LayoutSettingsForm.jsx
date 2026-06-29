@@ -59,8 +59,8 @@ const LayoutSettingsForm = ({ currentLayout, onSuccess, onClose }) => {
   return (
     <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-          <FiLayout className="text-blue-600" /> Pilih Layout Tampilan
+        <label className="text-sm font-bold text-text-main flex items-center gap-2">
+          <FiLayout className="text-primary" /> Pilih Layout Tampilan
         </label>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -71,15 +71,15 @@ const LayoutSettingsForm = ({ currentLayout, onSuccess, onClose }) => {
               onClick={() => setSelectedLayout(layout.value)}
               className={`p-4 rounded-xl border-2 text-left transition-all ${
                 selectedLayout === layout.value
-                  ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "bg-white border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-blue-50/50"
+                  ? "bg-primary border-blue-600 text-white shadow-lg shadow-blue-600/30"
+                  : "bg-bg-card border-border-dim text-text-main hover:border-blue-300 hover:bg-primary-light/50"
               }`}
             >
               <div className="font-bold text-sm uppercase tracking-wider mb-1">
                 {layout.label}
               </div>
               <div
-                className={`text-xs ${selectedLayout === layout.value ? "text-blue-100" : "text-slate-500"}`}
+                className={`text-xs ${selectedLayout === layout.value ? "text-blue-100" : "text-text-muted"}`}
               >
                 {layout.description}
               </div>
@@ -89,7 +89,7 @@ const LayoutSettingsForm = ({ currentLayout, onSuccess, onClose }) => {
       </div>
 
       {/* Preview Info */}
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+      <div className="bg-primary-light border border-primary-border rounded-lg p-4">
         <p className="text-sm text-blue-800">
           💡 <strong>Tip:</strong> Perubahan layout akan langsung terlihat
           setelah disimpan. Semua content blocks akan tetap sama, hanya cara
@@ -98,18 +98,18 @@ const LayoutSettingsForm = ({ currentLayout, onSuccess, onClose }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-4 border-t border-slate-100">
+      <div className="flex gap-3 pt-4 border-t border-border-dim">
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
+          className="flex-1 px-6 py-3 bg-border-dim text-text-body rounded-xl font-bold hover:bg-border-dim transition-all"
         >
           Batal
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             "Menyimpan..."

@@ -116,7 +116,7 @@ export default function JabatanManagement() {
         actions={
           <button
             onClick={() => openModal()}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+            className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-blue-100 active:scale-95"
           >
             <FiPlus /> <span>Tambah Jabatan</span>
           </button>
@@ -162,7 +162,7 @@ export default function JabatanManagement() {
                       <td>
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.tipe_jabatan === "Inti" ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-500"}`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.tipe_jabatan === "Inti" ? "bg-amber-100 text-amber-600" : "bg-border-dim text-text-muted"}`}
                           >
                             {item.tipe_jabatan === "Inti" ? (
                               <FiAward />
@@ -170,7 +170,7 @@ export default function JabatanManagement() {
                               <FiUsers />
                             )}
                           </div>
-                          <span className="font-bold text-slate-800">
+                          <span className="font-bold text-text-main">
                             {item.nama_jabatan}
                           </span>
                         </div>
@@ -180,7 +180,7 @@ export default function JabatanManagement() {
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                             item.tipe_jabatan === "Inti"
                               ? "bg-amber-50 text-amber-600 border-amber-100"
-                              : "bg-slate-50 text-slate-500 border-slate-100"
+                              : "bg-bg-page text-text-muted border-border-dim"
                           }`}
                         >
                           {item.tipe_jabatan === "Inti" && <FiStar size={10} />}
@@ -188,7 +188,7 @@ export default function JabatanManagement() {
                         </span>
                       </td>
                       <td>
-                        <p className="text-[10px] text-slate-400 font-medium">
+                        <p className="text-[10px] text-text-muted font-medium">
                           {item.tipe_jabatan === "Inti"
                             ? "Jabatan strategis tingkat pusat (BPH)."
                             : "Jabatan operasional tingkat divisi."}
@@ -239,17 +239,17 @@ export default function JabatanManagement() {
             />
 
             <div className="col-span-12">
-              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 px-1">
+              <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-3 px-1">
                 Tipe Jabatan
               </label>
-              <div className="flex gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+              <div className="flex gap-3 bg-bg-page p-2 rounded-2xl border border-border-dim">
                 {["Inti", "Divisi"].map((t) => (
                   <label
                     key={t}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase transition-all border-2 cursor-pointer ${
                       formData.tipe_jabatan === t
-                        ? "bg-white border-blue-500 text-blue-600 shadow-sm"
-                        : "bg-transparent border-transparent text-slate-400 hover:text-slate-600"
+                        ? "bg-bg-card border-blue-500 text-primary shadow-sm"
+                        : "bg-transparent border-transparent text-text-muted hover:text-text-body"
                     }`}
                   >
                     <input
@@ -265,24 +265,24 @@ export default function JabatanManagement() {
                   </label>
                 ))}
               </div>
-              <p className="mt-3 px-1 text-[9px] text-slate-400 font-medium italic">
+              <p className="mt-3 px-1 text-[9px] text-text-muted font-medium italic">
                 * Tipe 'Inti' biasanya digunakan untuk pengurus harian (BPH)
                 agar urutan tampil lebih atas.
               </p>
             </div>
           </div>
 
-          <div className="mt-10 pt-6 border-t border-slate-100 flex justify-end gap-3">
+          <div className="mt-10 pt-6 border-t border-border-dim flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page transition-all border border-border-dim"
             >
               Batal
             </button>
             <button
               type="submit"
-              className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
+              className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-primary hover:bg-primary-hover transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
               disabled={modalLoading}
             >
               {modalLoading ? "Menyimpan..." : "Simpan Jabatan"}

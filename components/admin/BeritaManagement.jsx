@@ -19,6 +19,7 @@ import {
   FiAlertCircle,
   FiCopy,
   FiCheck,
+  FiEdit3,
 } from "react-icons/fi";
 
 const EMPTY_FORM = {
@@ -33,12 +34,12 @@ const EMPTY_FORM = {
 };
 
 const KATEGORI_WARNA = {
-  Internal: "bg-blue-50 text-blue-600",
+  Internal: "bg-primary-light text-primary",
   Event: "bg-purple-50 text-purple-600",
   Edukasi: "bg-emerald-50 text-emerald-600",
   Sosial: "bg-orange-50 text-orange-600",
   Prestasi: "bg-amber-50 text-amber-600",
-  Lainnya: "bg-slate-100 text-slate-500",
+  Lainnya: "bg-border-dim text-text-muted",
 };
 
 export default function BeritaManagement() {
@@ -97,9 +98,9 @@ export default function BeritaManagement() {
   const openModal = (item = null) => {
     if (item) {
       setEditingId(item.id);
-      setFormData({ 
-        ...item, 
-        tanggal: item.tanggal ? item.tanggal.split("T")[0] : "" 
+      setFormData({
+        ...item,
+        tanggal: item.tanggal ? item.tanggal.split("T")[0] : ""
       });
       setImagePreview(item.image_url || null);
     } else {
@@ -240,9 +241,9 @@ export default function BeritaManagement() {
         primaryAction={
           <button
             onClick={() => openModal()}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+            className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-blue-100 active:scale-95"
           >
-            <FiPlus /> Tulis Berita
+            <FiPlus strokeWidth={3} size={18} />
           </button>
         }
         searchBar={
@@ -254,16 +255,15 @@ export default function BeritaManagement() {
         }
         filters={
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kategori:</span>
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Kategori:</span>
             {["", ...allKategori].map((k) => (
               <button
                 key={k || "all"}
                 onClick={() => setFilterKategori(k)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${
-                  filterKategori === k
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-slate-500 border-slate-200 hover:border-blue-400 hover:text-blue-600"
-                }`}
+                className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${filterKategori === k
+                  ? "bg-primary text-white border-blue-600"
+                  : "bg-bg-card text-text-muted border-border-dim hover:border-blue-400 hover:text-primary"
+                  }`}
               >
                 {k || "Semua"}
               </button>
@@ -307,20 +307,20 @@ export default function BeritaManagement() {
                             <img
                               src={item.image_url}
                               alt={item.judul}
-                              className="w-12 h-12 rounded-lg object-cover border border-slate-100 shrink-0"
+                              className="w-12 h-12 rounded-lg object-cover border border-border-dim shrink-0"
                             />
                           )}
                           <div className="min-w-0 flex-1">
-                            <div className="font-bold text-slate-800 text-sm leading-tight line-clamp-2">
+                            <div className="font-bold text-text-main text-sm leading-tight line-clamp-2">
                               {item.judul}
                             </div>
                             <div className="flex items-center gap-1.5 mt-1">
-                              <span className="text-[10px] font-mono text-slate-400 truncate max-w-[150px]">
+                              <span className="text-[10px] font-mono text-text-muted truncate max-w-[150px]">
                                 /berita/{item.slug}
                               </span>
                               <button
                                 onClick={() => copyToClipboard(item.slug)}
-                                className="text-slate-400 hover:text-blue-600 transition-colors p-0.5"
+                                className="text-text-muted hover:text-primary transition-colors p-0.5"
                                 title="Salin Link Publik"
                               >
                                 {copiedSlug === item.slug ? (
@@ -337,25 +337,24 @@ export default function BeritaManagement() {
                       {/* Kategori */}
                       <td>
                         <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${
-                            KATEGORI_WARNA[item.kategori] ?? "bg-slate-100 text-slate-500"
-                          }`}
+                          className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${KATEGORI_WARNA[item.kategori] ?? "bg-border-dim text-text-muted"
+                            }`}
                         >
                           {item.kategori}
                         </span>
                       </td>
 
                       {/* Penulis */}
-                      <td className="text-xs text-slate-500 font-medium">{item.penulis || "-"}</td>
+                      <td className="text-xs text-text-muted font-medium">{item.penulis || "-"}</td>
 
                       {/* Tanggal */}
-                      <td className="text-xs text-slate-500 font-medium whitespace-nowrap">
+                      <td className="text-xs text-text-muted font-medium whitespace-nowrap">
                         {item.tanggal
                           ? new Date(item.tanggal).toLocaleDateString("id-ID", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
                           : "-"}
                       </td>
 
@@ -395,7 +394,7 @@ export default function BeritaManagement() {
           </div>
 
           <div className={tableStyles.paginationContainer}>
-            <div className="text-xs text-slate-400 font-bold">
+            <div className="text-xs text-text-muted font-bold">
               Menampilkan <strong>{filteredList.length}</strong> dari{" "}
               <strong>{beritaList.length}</strong> berita
             </div>
@@ -434,16 +433,16 @@ export default function BeritaManagement() {
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <FiAlertCircle size={32} className="text-red-500" />
           </div>
-          <p className="text-sm font-bold text-slate-700 mb-1">
+          <p className="text-sm font-bold text-text-main mb-1">
             Yakin ingin menghapus berita ini?
           </p>
-          <p className="text-xs text-slate-400 mb-6">
+          <p className="text-xs text-text-muted mb-6">
             Tindakan ini tidak dapat dibatalkan dari database.
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 border border-slate-200 transition-all"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page border border-border-dim transition-all"
             >
               Batal
             </button>

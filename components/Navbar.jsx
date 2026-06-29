@@ -68,7 +68,7 @@ const Navbar = () => {
     return `flex items-center gap-1.5 no-underline font-semibold text-xs px-4 py-1.5 rounded-full transition-all ${
       isActive
         ? "bg-gradient-to-br from-primary-border to-primary-light text-secondary font-bold shadow-md shadow-primary/15"
-        : "text-slate-500 hover:text-primary hover:bg-white/80 hover:-translate-y-px"
+        : "text-text-muted hover:text-primary hover:bg-bg-card/80 hover:-translate-y-px"
     }`;
   };
 
@@ -77,14 +77,14 @@ const Navbar = () => {
     return `flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm transition-all ${
       isActive
         ? "bg-primary-light text-secondary border-primary-border"
-        : "text-slate-500 hover:bg-slate-50 hover:text-secondary hover:pl-4"
+        : "text-text-muted hover:bg-bg-page hover:text-secondary hover:pl-4"
     }`;
   };
 
   if (pathname === "/login") return null;
 
   return (
-    <nav className="sticky top-0 z-[1000] bg-blue-50/95 sm:bg-blue-50/90 backdrop-blur-sm sm:backdrop-blur-lg border-b border-primary-border/50 shadow-sm transition-all w-full leading-relaxed">
+    <nav className="sticky top-0 z-[1000] bg-primary-light/95 sm:bg-primary-light/90 backdrop-blur-sm sm:backdrop-blur-lg border-b border-primary-border/50 shadow-sm transition-all w-full leading-relaxed">
       <div className="max-w-6xl mx-auto px-4 h-14 flex justify-between items-center">
         {/* LEFT SECTION */}
         <div className="flex items-center gap-8">
@@ -99,7 +99,7 @@ const Navbar = () => {
                 className="w-[30px] h-[30px] object-contain"
               />
             ) : (
-              <div className="w-[34px] h-[34px] bg-slate-200 rounded-full" />
+              <div className="w-[34px] h-[34px] bg-border-dim rounded-full" />
             )}
             <span className="font-extrabold text-sm sm:text-lg tracking-tight bg-gradient-to-br from-secondary to-indigo-600 bg-clip-text text-transparent line-clamp-1">
               {orgName}
@@ -107,7 +107,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex gap-1 bg-slate-100/50 p-0.5 rounded-full border border-white/50">
+          <div className="hidden md:flex gap-1 bg-bg-page/50 p-0.5 rounded-full border border-white/50">
             <Link href="/" className={navLinkClass("/")}>
               <FiHome size={18} /> Beranda
             </Link>
@@ -135,13 +135,13 @@ const Navbar = () => {
             <>
               <Link
                 href="/admin/dashboard"
-                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
+                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-border-dim bg-bg-card text-text-main shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
               >
                 <FiLayout /> Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-white shadow-sm text-danger border-danger-border hover:border-danger hover:-translate-y-px"
+                className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all border bg-bg-card shadow-sm text-danger border-danger-border hover:border-danger hover:-translate-y-px cursor-pointer"
               >
                 <FiLogOut />
               </button>
@@ -149,14 +149,14 @@ const Navbar = () => {
           ) : (
             <Link
               href="/login"
-              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
+              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all border border-border-dim bg-bg-card text-text-main shadow-sm hover:border-primary hover:text-secondary hover:-translate-y-px"
             >
               <FiLogIn /> Login
             </Link>
           )}
 
           <button
-            className="md:hidden bg-slate-100 border-0 cursor-pointer text-slate-700 p-1.5 rounded-md transition-all hover:bg-slate-200 hover:text-slate-900"
+            className="md:hidden bg-bg-page border-0 cursor-pointer text-text-main p-1.5 rounded-md transition-all hover:bg-border-dim"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -168,7 +168,7 @@ const Navbar = () => {
       <div
         className={`${
           isOpen ? "flex" : "hidden"
-        } md:hidden flex-col absolute top-14 left-0 w-full z-[999] bg-white border-b border-slate-200 p-4 shadow-xl animate-slideDown`}
+        } md:hidden flex-col absolute top-14 left-0 w-full z-[999] bg-bg-card border-b border-border-dim p-4 shadow-xl animate-slideDown`}
       >
         <Link href="/" className={mobileNavLinkClass("/")}>
           <FiHome /> Beranda
@@ -189,19 +189,19 @@ const Navbar = () => {
           <FiFileText /> Berita & Reportase
         </Link>
 
-        <div className="border-t border-slate-100 my-2"></div>
+        <div className="border-t border-border-dim my-2"></div>
 
         {isAdmin ? (
           <>
             <Link
               href="/admin/dashboard"
-              className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm text-blue-600 hover:bg-slate-50 transition-all"
+              className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm text-primary hover:bg-bg-page transition-all"
             >
               <FiLayout /> Dashboard Admin
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg font-semibold text-sm text-danger w-full bg-transparent border-0 text-left cursor-pointer hover:bg-slate-50 transition-all"
+              className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg font-semibold text-sm text-danger w-full bg-transparent border-0 text-left cursor-pointer hover:bg-bg-page transition-all"
             >
               <FiLogOut /> Logout
             </button>
@@ -209,7 +209,7 @@ const Navbar = () => {
         ) : (
           <Link
             href="/login"
-            className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm text-slate-600 hover:bg-slate-50 transition-all"
+            className="flex items-center gap-3 px-3 py-3 mb-1 rounded-lg no-underline font-semibold text-sm text-text-body hover:bg-bg-page transition-all"
           >
             <FiLogIn /> Login Admin
           </Link>

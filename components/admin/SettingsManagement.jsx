@@ -116,7 +116,7 @@ export default function SettingsManagement() {
               className={`flex items-center gap-3 px-5 py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all border-2 ${
                 activeTab === tab.id
                   ? "bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-200"
-                  : "bg-white text-slate-400 border-transparent hover:bg-slate-50 hover:text-slate-600"
+                  : "bg-bg-card text-text-muted border-transparent hover:bg-bg-page hover:text-text-body"
               }`}
             >
               <span className="text-lg">{tab.icon}</span>
@@ -126,13 +126,13 @@ export default function SettingsManagement() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+        <div className="flex-1 bg-bg-card border border-border-dim rounded-3xl p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-6">
             {activeTab === "umum" && (
               <>
                 <div className="col-span-12 mb-4">
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                    <FiGlobe className="text-blue-500" /> Identitas Organisasi
+                  <h3 className="text-sm font-black text-text-main uppercase tracking-widest flex items-center gap-2">
+                    <FiGlobe className="text-primary" /> Identitas Organisasi
                   </h3>
                   <div className="h-1 w-12 bg-blue-500 rounded-full mt-2"></div>
                 </div>
@@ -156,11 +156,11 @@ export default function SettingsManagement() {
                 />
 
                 <div className="col-span-12 md:col-span-6">
-                  <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 px-1">
+                  <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-3 px-1">
                     Logo Sekolah
                   </label>
                   <div className="relative group">
-                    <div className="w-full aspect-square md:aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center p-6 transition-all group-hover:border-blue-400 group-hover:bg-blue-50/30 overflow-hidden">
+                    <div className="w-full aspect-square md:aspect-video bg-bg-page border-2 border-dashed border-border-dim rounded-2xl flex items-center justify-center p-6 transition-all group-hover:border-blue-400 group-hover:bg-primary-light/30 overflow-hidden">
                       {previews.logo_sekolah ? (
                         <img
                           src={previews.logo_sekolah}
@@ -181,11 +181,11 @@ export default function SettingsManagement() {
                 </div>
 
                 <div className="col-span-12 md:col-span-6">
-                  <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 px-1">
+                  <label className="block text-[10px] font-extrabold text-text-muted uppercase tracking-widest mb-3 px-1">
                     Logo Organisasi
                   </label>
                   <div className="relative group">
-                    <div className="w-full aspect-square md:aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center p-6 transition-all group-hover:border-blue-400 group-hover:bg-blue-50/30 overflow-hidden">
+                    <div className="w-full aspect-square md:aspect-video bg-bg-page border-2 border-dashed border-border-dim rounded-2xl flex items-center justify-center p-6 transition-all group-hover:border-blue-400 group-hover:bg-primary-light/30 overflow-hidden">
                       {previews.logo_osis ? (
                         <img
                           src={previews.logo_osis}
@@ -220,7 +220,7 @@ export default function SettingsManagement() {
             {activeTab === "kontak" && (
               <>
                 <div className="col-span-12 mb-4">
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                  <h3 className="text-sm font-black text-text-main uppercase tracking-widest flex items-center gap-2">
                     <FiPhone className="text-emerald-500" /> Kontak & Saluran
                     Resmi
                   </h3>
@@ -272,7 +272,7 @@ export default function SettingsManagement() {
             {activeTab === "tentang" && (
               <>
                 <div className="col-span-12 mb-4">
-                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                  <h3 className="text-sm font-black text-text-main uppercase tracking-widest flex items-center gap-2">
                     <FiInfo className="text-indigo-500" /> Konfigurasi Halaman &
                     Footer
                   </h3>
@@ -290,7 +290,7 @@ export default function SettingsManagement() {
                   placeholder="Jelaskan secara singkat mengenai organisasi untuk ditampilkan di footer."
                 />
 
-                <div className="col-span-12 md:col-span-6 bg-slate-50 p-4 rounded-2xl border border-slate-100 ring-1 ring-slate-100/50">
+                <div className="col-span-12 md:col-span-6 bg-bg-page p-4 rounded-2xl border border-border-dim ring-1 ring-slate-100/50">
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <div className="relative">
                       <input
@@ -300,13 +300,13 @@ export default function SettingsManagement() {
                         onChange={handleChange}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-blue-600"></div>
+                      <div className="w-11 h-6 bg-border-dim rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-bg-card after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-blue-600"></div>
                     </div>
                     <div>
-                      <span className="text-xs font-black text-slate-700 uppercase tracking-tight">
+                      <span className="text-xs font-black text-text-main uppercase tracking-tight">
                         Tampilan Hero
                       </span>
-                      <p className="text-[10px] text-slate-500 font-medium">
+                      <p className="text-[10px] text-text-muted font-medium">
                         Tampilkan teks selamat datang di halaman utama.
                       </p>
                     </div>
@@ -344,13 +344,13 @@ export default function SettingsManagement() {
       </div>
 
       {/* Sticky Bottom Save Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 lg:left-64 bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] transition-all duration-300">
+      <div className="fixed bottom-0 left-0 right-0 z-40 lg:left-64 bg-bg-card/80 backdrop-blur-md border-t border-border-dim p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
           <div className="hidden md:block">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">
               Pengaturan Website
             </p>
-            <p className="text-xs font-medium text-slate-600">
+            <p className="text-xs font-medium text-text-body">
               {saving
                 ? "Sedang menyimpan data..."
                 : "Pastikan semua data sudah benar sebelum menyimpan."}
@@ -359,7 +359,7 @@ export default function SettingsManagement() {
           <button
             onClick={handleSubmit}
             disabled={saving}
-            className="w-full md:w-auto px-10 py-3 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-blue-600 active:scale-95 transition-all shadow-2xl shadow-slate-200 disabled:opacity-50"
+            className="w-full md:w-auto px-10 py-3 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-primary active:scale-95 transition-all shadow-2xl shadow-slate-200 disabled:opacity-50"
           >
             <FiSave className="text-lg" />
             <span>{saving ? "Sedang Menyimpan..." : "Simpan Perubahan"}</span>

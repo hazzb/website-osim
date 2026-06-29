@@ -76,8 +76,8 @@ const VisiMisiForm = ({ initialData, onSuccess, onClose }) => {
   return (
     <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-          <FiLayout className="text-blue-600" /> Pilih Layout Tampilan
+        <label className="text-sm font-bold text-text-main flex items-center gap-2">
+          <FiLayout className="text-primary" /> Pilih Layout Tampilan
         </label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {["modular", "split", "zigzag", "simple"].map((l) => (
@@ -87,8 +87,8 @@ const VisiMisiForm = ({ initialData, onSuccess, onClose }) => {
               onClick={() => setFormData({ ...formData, visi_misi_layout: l })}
               className={`py-3 rounded-xl border-2 font-bold text-xs uppercase tracking-wider transition-all ${
                 formData.visi_misi_layout === l
-                  ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/30"
-                  : "bg-white border-slate-200 text-slate-400 hover:border-slate-300"
+                  ? "bg-primary border-blue-600 text-white shadow-lg shadow-blue-600/30"
+                  : "bg-bg-card border-border-dim text-text-muted hover:border-slate-300"
               }`}
             >
               {l}
@@ -98,7 +98,7 @@ const VisiMisiForm = ({ initialData, onSuccess, onClose }) => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700">
+        <label className="text-sm font-bold text-text-main">
           Visi Organisasi
         </label>
         <textarea
@@ -112,7 +112,7 @@ const VisiMisiForm = ({ initialData, onSuccess, onClose }) => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700">
+        <label className="text-sm font-bold text-text-main">
           Misi Organisasi (Pisahkan dengan baris baru)
         </label>
         <textarea
@@ -125,18 +125,18 @@ const VisiMisiForm = ({ initialData, onSuccess, onClose }) => {
         />
       </div>
 
-      <div className="flex gap-3 pt-4 sticky bottom-0 bg-white">
+      <div className="flex gap-3 pt-4 sticky bottom-0 bg-bg-card">
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all font-sans"
+          className="flex-1 px-6 py-3 bg-border-dim text-text-body rounded-xl font-bold hover:bg-border-dim transition-all font-sans"
         >
           Batal
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-sans"
+          className="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-600/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2 font-sans"
         >
           {loading ? (
             "Menyimpan..."

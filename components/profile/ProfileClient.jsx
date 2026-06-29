@@ -124,7 +124,7 @@ export default function ProfileClient({
         extraActions={
           isAdmin && (
             <div
-              className="flex bg-slate-100 p-1 rounded-lg border border-slate-200"
+              className="flex bg-border-dim p-1 rounded-lg border border-border-dim"
               title="Pintasan Layout"
             >
               {[
@@ -142,8 +142,8 @@ export default function ProfileClient({
                   onClick={() => handleUpdateLayout(l.id)}
                   className={`p-1.5 rounded-md transition-all flex items-center justify-center ${
                     (settings?.visi_misi_layout || "modular") === l.id
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-slate-400 hover:text-slate-600"
+                      ? "bg-bg-card text-primary shadow-sm"
+                      : "text-text-muted hover:text-text-body"
                   }`}
                   title={`Ganti ke Layout ${l.label}`}
                 >
@@ -157,7 +157,7 @@ export default function ProfileClient({
           isAdmin && (
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold flex items-center gap-2"
             >
               <FiPlus /> Tambah Konten
             </button>
@@ -168,10 +168,10 @@ export default function ProfileClient({
       <div className="py-12">
         {loading ? (
           <div className="flex flex-col gap-8 animate-pulse">
-            <div className="h-64 bg-slate-200 rounded-2xl w-full"></div>
+            <div className="h-64 bg-border-dim rounded-2xl w-full"></div>
             <div className="grid grid-cols-2 gap-8">
-              <div className="h-40 bg-slate-100 rounded-2xl"></div>
-              <div className="h-40 bg-slate-100 rounded-2xl"></div>
+              <div className="h-40 bg-border-dim rounded-2xl"></div>
+              <div className="h-40 bg-border-dim rounded-2xl"></div>
             </div>
           </div>
         ) : (
@@ -200,7 +200,7 @@ export default function ProfileClient({
                     {heroContent.button_text && heroContent.button_link && (
                       <a
                         href={heroContent.button_link}
-                        className="inline-block mt-8 px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:shadow-2xl transition-all"
+                        className="inline-block mt-8 px-8 py-4 bg-bg-card text-primary font-bold rounded-xl hover:shadow-2xl transition-all"
                       >
                         {heroContent.button_text}
                       </a>
@@ -212,7 +212,7 @@ export default function ProfileClient({
                   <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEditModal(heroContent)}
-                      className="px-4 py-2 bg-white/90 backdrop-blur-sm text-slate-700 rounded-lg shadow-lg hover:bg-white transition-all text-sm font-bold"
+                      className="px-4 py-2 bg-bg-card/90 backdrop-blur-sm text-text-main rounded-lg shadow-lg hover:bg-bg-card transition-all text-sm font-bold"
                     >
                       <FiEdit className="inline mr-1" /> Edit Hero
                     </button>
@@ -226,13 +226,13 @@ export default function ProfileClient({
             {contentBlocks.length === 0 && (
               <div className="text-center py-20">
                 <FiSettings size={64} className="mx-auto text-slate-300 mb-6" />
-                <h3 className="text-2xl font-bold text-slate-400 mb-4">
+                <h3 className="text-2xl font-bold text-text-muted mb-4">
                   Belum Ada Konten
                 </h3>
                 {isAdmin && (
                   <button
                     onClick={() => setIsAddModalOpen(true)}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold"
+                    className="px-6 py-2 bg-primary text-white rounded-lg font-bold"
                   >
                     <FiPlus className="inline mr-2" /> Tambah Konten Pertama
                   </button>

@@ -37,15 +37,15 @@ function Modal({
       onClick={handleOverlayClick}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full overflow-hidden animate-scaleIn"
+        className="bg-bg-card rounded-xl shadow-2xl w-full overflow-hidden animate-scaleIn"
         style={{ maxWidth: maxWidth }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <h3 className="text-lg font-bold text-slate-800 m-0">{title}</h3>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-border-dim bg-bg-page">
+          <h3 className="text-lg font-bold text-text-main m-0">{title}</h3>
           <button
             type="button"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-all text-2xl leading-none border-0 bg-transparent cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-body hover:bg-border-dim transition-all text-2xl leading-none border-0 bg-transparent cursor-pointer"
             onClick={onClose}
           >
             &times;

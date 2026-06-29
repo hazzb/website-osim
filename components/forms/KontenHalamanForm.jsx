@@ -105,7 +105,7 @@ const KontenHalamanForm = ({
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 p-6">
       {/* Judul */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700">
+        <label className="text-sm font-bold text-text-main">
           Judul <span className="text-red-500">*</span>
         </label>
         <input
@@ -121,7 +121,7 @@ const KontenHalamanForm = ({
 
       {/* Isi (Content - Markdown) */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700">
+        <label className="text-sm font-bold text-text-main">
           Isi Konten <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -133,7 +133,7 @@ const KontenHalamanForm = ({
           className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none leading-relaxed font-mono text-sm"
           required
         />
-        <small className="text-slate-500">
+        <small className="text-text-muted">
           💡 Tip: Gunakan Markdown untuk formatting. Contoh: **bold**, *italic*,
           `- item list`
         </small>
@@ -141,7 +141,7 @@ const KontenHalamanForm = ({
 
       {/* Tipe Konten */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700">Tipe Konten</label>
+        <label className="text-sm font-bold text-text-main">Tipe Konten</label>
         <select
           name="tipe"
           value={formData.tipe}
@@ -156,7 +156,7 @@ const KontenHalamanForm = ({
 
       {/* Image Upload */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+        <label className="text-sm font-bold text-text-main flex items-center gap-2">
           <FiImage /> Gambar (Opsional)
         </label>
 
@@ -165,7 +165,7 @@ const KontenHalamanForm = ({
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-full h-48 object-cover rounded-lg border border-slate-200"
+              className="w-full h-48 object-cover rounded-lg border border-border-dim"
             />
             <button
               type="button"
@@ -177,8 +177,8 @@ const KontenHalamanForm = ({
             </button>
           </div>
         ) : (
-          <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all">
-            <div className="flex flex-col items-center gap-2 text-slate-400">
+          <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-primary-light/50 transition-all">
+            <div className="flex flex-col items-center gap-2 text-text-muted">
               <FiImage size={32} />
               <span className="text-sm font-medium">
                 Klik untuk upload gambar
@@ -196,14 +196,14 @@ const KontenHalamanForm = ({
       </div>
 
       {/* Optional Button Config */}
-      <div className="border-t border-slate-200 pt-4">
-        <p className="text-sm font-bold text-slate-700 mb-3">
+      <div className="border-t border-border-dim pt-4">
+        <p className="text-sm font-bold text-text-main mb-3">
           Tombol Call-to-Action (Opsional)
         </p>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-slate-600">Teks Tombol</label>
+            <label className="text-sm text-text-body">Teks Tombol</label>
             <input
               type="text"
               name="button_text"
@@ -215,7 +215,7 @@ const KontenHalamanForm = ({
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-slate-600">Link Tombol</label>
+            <label className="text-sm text-text-body">Link Tombol</label>
             <input
               type="url"
               name="button_link"
@@ -229,11 +229,11 @@ const KontenHalamanForm = ({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 pt-4 sticky bottom-0 bg-white border-t border-slate-100">
+      <div className="flex gap-3 pt-4 sticky bottom-0 bg-bg-card border-t border-border-dim">
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all"
+          className="flex-1 px-6 py-3 bg-border-dim text-text-body rounded-xl font-bold hover:bg-border-dim transition-all"
         >
           <FiX className="inline mr-2" />
           Batal
@@ -241,7 +241,7 @@ const KontenHalamanForm = ({
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-blue-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             "Menyimpan..."

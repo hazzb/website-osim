@@ -8,7 +8,11 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/context/AuthContext";
 import PageContainer from "@/components/ui/PageContainer";
 import ProgramKerjaCard from "@/components/cards/ProgramKerjaCard";
+import BeritaCard from "@/components/berita/BeritaCard";
 import { HeroSkeleton } from "@/components/ui/Skeletons";
+import Modal from "@/components/Modal";
+import SambutanForm from "@/components/forms/SambutanForm";
+import ManageSlidesModal from "@/components/home/ManageSlidesModal";
 
 // Dynamic imports for heavy markdown libraries
 const ReactMarkdown = dynamic(() => import("react-markdown"), {
@@ -40,6 +44,7 @@ export default function HomeClient({
   initialSettings,
   initialSlides,
   initialProgja,
+  initialBerita,
   stats,
 }) {
   const { session } = useAuth();
@@ -52,20 +57,26 @@ export default function HomeClient({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeModal, setActiveModal] = useState(null);
 
+  const fetchSlides = useCallback(async () => {
+    const { data: banners } = await supabase
+      .from("beranda_slides")
+      .select("*")
+      .order("urutan", { ascending: true })
+      .order("created_at", { ascending: false });
+    setSlides(banners || []);
+  }, [supabase]);
+
+  const fetchSettings = useCallback(async () => {
+    const { data } = await supabase.from("pengaturan").select("*").eq("id", 1).single();
+    if (data) setSettings(data);
+  }, [supabase]);
+
   // Re-fetch everything if admin (to see hidden items)
   useEffect(() => {
     if (isAdmin) {
-      const fetchAdminData = async () => {
-        const { data: banners } = await supabase
-          .from("beranda_slides")
-          .select("*")
-          .order("urutan", { ascending: true })
-          .order("created_at", { ascending: false });
-        setSlides(banners || []);
-      };
-      fetchAdminData();
+      fetchSlides();
     }
-  }, [isAdmin, supabase]);
+  }, [isAdmin, fetchSlides]);
 
   // SLIDER LOGIC
   useEffect(() => {
@@ -99,15 +110,14 @@ export default function HomeClient({
   const showSambutan = settings?.tampilkan_sambutan || isAdmin;
 
   return (
-    <PageContainer>
+    <PageContainer className="pt-6">
       {/* 1. HERO CAROUSEL */}
       {showHero && (
         <section
-          className={`relative w-full h-[300px] md:h-[500px] rounded-2xl overflow-hidden bg-slate-200 mb-16 group transition-all duration-500 ${
-            !settings?.beranda_tampilkan_hero
+          className={`relative w-full h-[300px] md:h-[500px] rounded-2xl overflow-hidden bg-border-dim mb-16 group transition-all duration-500 ${!settings?.beranda_tampilkan_hero
               ? "opacity-60 grayscale"
               : "opacity-100"
-          }`}
+            }`}
         >
           {isAdmin && (
             <div className="absolute top-8 right-8 z-30 flex gap-3 pointer-events-auto">
@@ -118,11 +128,10 @@ export default function HomeClient({
                     settings?.beranda_tampilkan_hero,
                   )
                 }
-                className={`w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${
-                  settings?.beranda_tampilkan_hero
-                    ? "text-slate-600"
+                className={`w-11 h-11 bg-bg-card rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${settings?.beranda_tampilkan_hero
+                    ? "text-text-body"
                     : "text-red-500 bg-red-50"
-                }`}
+                  }`}
               >
                 {settings?.beranda_tampilkan_hero ? (
                   <FiEye size={18} />
@@ -131,8 +140,8 @@ export default function HomeClient({
                 )}
               </button>
               <button
-                onClick={() => alert("Admin Modal Logic to be implemented")}
-                className="w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer text-slate-600 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:text-blue-600"
+                onClick={() => setActiveModal("slides")}
+                className="w-11 h-11 bg-bg-card rounded-xl flex items-center justify-center border-0 cursor-pointer text-text-body shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg hover:text-primary"
                 title="Kelola Slide"
               >
                 <FiCamera size={18} />
@@ -150,11 +159,10 @@ export default function HomeClient({
               {slides.map((slide, index) => (
                 <div
                   key={slide.id}
-                  className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
-                    index === currentSlide
+                  className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${index === currentSlide
                       ? "opacity-100 z-10"
                       : "opacity-0 z-0"
-                  }`}
+                    }`}
                 >
                   <Image
                     src={slide.image_url}
@@ -177,20 +185,20 @@ export default function HomeClient({
                 </div>
               ))}
               <button
-                className="absolute top-1/2 -translate-y-1/2 left-8 z-20 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center hover:bg-white hover:text-slate-900 hover:scale-110 transition-all duration-300 hidden md:flex"
+                className="absolute top-1/2 -translate-y-1/2 left-8 z-20 w-12 h-12 rounded-full bg-bg-card/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center hover:bg-bg-card hover:text-text-main hover:scale-110 transition-all duration-300 hidden md:flex"
                 onClick={prevSlide}
               >
                 <FiChevronLeft size={24} />
               </button>
               <button
-                className="absolute top-1/2 -translate-y-1/2 right-8 z-20 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center hover:bg-white hover:text-slate-900 hover:scale-110 transition-all duration-300 hidden md:flex"
+                className="absolute top-1/2 -translate-y-1/2 right-8 z-20 w-12 h-12 rounded-full bg-bg-card/20 backdrop-blur-md border border-white/50 text-white flex items-center justify-center hover:bg-bg-card hover:text-text-main hover:scale-110 transition-all duration-300 hidden md:flex"
                 onClick={nextSlide}
               >
                 <FiChevronRight size={24} />
               </button>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+            <div className="flex flex-col items-center justify-center h-full text-text-muted">
               <FiCamera size={48} className="mb-4 opacity-30" />
               <p>Belum ada slide.</p>
             </div>
@@ -201,11 +209,10 @@ export default function HomeClient({
       {/* 2. SAMBUTAN KETUA */}
       {showSambutan && settings && (
         <section
-          className={`relative mb-16 p-8 md:p-12 rounded-2xl bg-white border border-slate-200 group transition-all duration-500 ${
-            !settings.tampilkan_sambutan
+          className={`relative mb-16 p-8 md:p-12 rounded-2xl bg-bg-card border border-border-dim group transition-all duration-500 ${!settings.tampilkan_sambutan
               ? "opacity-60 border-dashed"
               : "opacity-100 border-solid"
-          }`}
+            }`}
         >
           {isAdmin && (
             <div className="absolute top-8 right-8 z-10 flex gap-3 items-center">
@@ -216,11 +223,10 @@ export default function HomeClient({
                     settings.tampilkan_sambutan,
                   )
                 }
-                className={`w-11 h-11 bg-white rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:bg-slate-50 ${
-                  settings.tampilkan_sambutan
-                    ? "text-slate-600"
+                className={`w-11 h-11 bg-bg-card rounded-xl flex items-center justify-center border-0 cursor-pointer shadow-sm transition-all hover:bg-bg-page ${settings.tampilkan_sambutan
+                    ? "text-text-body"
                     : "text-red-500 bg-red-50"
-                }`}
+                  }`}
               >
                 {settings.tampilkan_sambutan ? (
                   <FiEye size={18} />
@@ -229,8 +235,8 @@ export default function HomeClient({
                 )}
               </button>
               <button
-                onClick={() => alert("Admin Modal Logic to be implemented")}
-                className="h-10 px-4 bg-white border border-slate-200 rounded-lg flex items-center gap-2 font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors"
+                onClick={() => setActiveModal("sambutan")}
+                className="h-10 px-4 bg-bg-card border border-border-dim rounded-lg flex items-center gap-2 font-semibold text-text-body shadow-sm hover:bg-bg-page transition-colors cursor-pointer"
               >
                 <FiEdit size={14} /> Edit Konten
               </button>
@@ -257,10 +263,10 @@ export default function HomeClient({
               />
             </div>
             <div className="flex flex-col items-center md:items-start">
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight text-slate-800">
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight text-text-main">
                 {settings.sambutan_judul || "Sambutan Ketua"}
               </h2>
-              <div className="text-slate-600 leading-relaxed text-lg mb-8 max-w-2xl prose prose-lg prose-blue">
+              <div className="text-text-body leading-relaxed text-lg mb-8 max-w-2xl prose prose-lg prose-blue">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {settings.sambutan_isi || "Belum ada isi sambutan."}
                 </ReactMarkdown>
@@ -268,7 +274,7 @@ export default function HomeClient({
 
               <Link
                 href="/profile"
-                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 no-underline"
+                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-all duration-300 no-underline"
               >
                 <FiUsers size={18} /> Lihat Profil Lengkap
               </Link>
@@ -283,7 +289,7 @@ export default function HomeClient({
           href="/anggota"
           className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-xl shadow-blue-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 no-underline overflow-hidden"
         >
-          <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
+          <div className="relative z-10 w-14 h-14 bg-bg-card/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
             <FiUsers />
           </div>
           <div className="relative z-10">
@@ -291,18 +297,18 @@ export default function HomeClient({
               Anggota Aktif
             </div>
             <div className="text-5xl font-extrabold">{stats.totalAnggota}</div>
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-white group-hover:text-slate-800 transition-colors">
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-bg-card/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-bg-card group-hover:text-text-main transition-colors">
               Lihat Anggota <FiArrowRight />
             </div>
           </div>
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-bg-card/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
         </Link>
 
         <Link
           href="/profile"
           className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-xl shadow-violet-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/30 transition-all duration-300 no-underline overflow-hidden"
         >
-          <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
+          <div className="relative z-10 w-14 h-14 bg-bg-card/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
             <FiBookOpen />
           </div>
           <div className="relative z-10">
@@ -310,18 +316,18 @@ export default function HomeClient({
               Profil Organisasi
             </div>
             <div className="text-3xl font-extrabold mt-2 mb-2">Visi & Misi</div>
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-white group-hover:text-slate-800 transition-colors">
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-bg-card/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-bg-card group-hover:text-text-main transition-colors">
               Selengkapnya <FiArrowRight />
             </div>
           </div>
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-bg-card/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
         </Link>
 
         <Link
           href="/program-kerja"
           className="group relative flex flex-col justify-between min-h-[220px] p-8 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-500/20 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 no-underline overflow-hidden"
         >
-          <div className="relative z-10 w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
+          <div className="relative z-10 w-14 h-14 bg-bg-card/20 backdrop-blur-sm rounded-xl flex items-center justify-center text-3xl mb-auto">
             <FiCheckCircle />
           </div>
           <div className="relative z-10">
@@ -329,26 +335,26 @@ export default function HomeClient({
               Program Terlaksana
             </div>
             <div className="text-5xl font-extrabold">{stats.progjaSelesai}</div>
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-white group-hover:text-slate-800 transition-colors">
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-1.5 bg-bg-card/20 backdrop-blur-sm rounded-full text-sm font-semibold group-hover:bg-bg-card group-hover:text-text-main transition-colors">
               Lihat Arsip <FiArrowRight />
             </div>
           </div>
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-bg-card/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500"></div>
         </Link>
       </section>
 
       {/* 4. PROGRAM KERJA MENDATANG */}
       <section className="mb-20">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pb-4 border-b-2 border-slate-100 gap-4">
-          <h3 className="text-3xl font-extrabold text-slate-800 m-0 flex items-center gap-3">
-            <span className="p-2 bg-blue-50 text-blue-500 rounded-xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pb-4 border-b-2 border-border-dim gap-4">
+          <h3 className="text-3xl font-extrabold text-text-main m-0 flex items-center gap-3">
+            <span className="p-2 bg-primary-light text-primary rounded-xl">
               <FiTarget className="text-2xl" />
             </span>
             Agenda Mendatang
           </h3>
           <Link
             href="/program-kerja"
-            className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 font-semibold rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors no-underline"
+            className="flex items-center gap-2 px-4 py-2 bg-bg-page text-text-body font-semibold rounded-lg hover:bg-primary-light hover:text-primary transition-colors no-underline"
           >
             Lihat Semua <FiArrowRight />
           </Link>
@@ -360,11 +366,74 @@ export default function HomeClient({
             ))}
           </div>
         ) : (
-          <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl p-20 text-center text-slate-400 italic text-lg">
+          <div className="bg-bg-page border-2 border-dashed border-slate-300 rounded-3xl p-20 text-center text-text-muted italic text-lg">
             Belum ada agenda mendatang.
           </div>
         )}
       </section>
+
+      {/* 5. SEKILAS BERITA */}
+      <section className="mb-20">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 pb-4 border-b-2 border-border-dim gap-4">
+          <h3 className="text-3xl font-extrabold text-text-main m-0 flex items-center gap-3">
+            <span className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+              <FiBookOpen className="text-2xl" />
+            </span>
+            Sekilas Berita
+          </h3>
+          <Link
+            href="/berita"
+            className="flex items-center gap-2 px-4 py-2 bg-bg-page text-text-body font-semibold rounded-lg hover:bg-blue-100 hover:text-blue-600 transition-colors no-underline"
+          >
+            Lihat Semua <FiArrowRight />
+          </Link>
+        </div>
+        {initialBerita && initialBerita.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {initialBerita.map((berita) => (
+              <BeritaCard key={berita.id} berita={berita} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-bg-page border-2 border-dashed border-slate-300 rounded-3xl p-20 text-center text-text-muted italic text-lg">
+            Belum ada berita yang diterbitkan.
+          </div>
+        )}
+      </section>
+
+      {/* MODALS */}
+      {isAdmin && (
+        <>
+          <Modal
+            isOpen={activeModal === "sambutan"}
+            onClose={() => setActiveModal(null)}
+            title="Edit Sambutan Ketua"
+            maxWidth="800px"
+          >
+            <SambutanForm
+              initialData={settings}
+              onClose={() => setActiveModal(null)}
+              onSuccess={() => {
+                fetchSettings();
+                setActiveModal(null);
+              }}
+            />
+          </Modal>
+
+          <Modal
+            isOpen={activeModal === "slides"}
+            onClose={() => setActiveModal(null)}
+            title="Kelola Beranda Slides"
+            maxWidth="700px"
+          >
+            <ManageSlidesModal
+              slides={slides}
+              onClose={() => setActiveModal(null)}
+              onSuccess={fetchSlides}
+            />
+          </Modal>
+        </>
+      )}
     </PageContainer>
   );
 }

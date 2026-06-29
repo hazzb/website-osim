@@ -11,7 +11,7 @@ const remarkGfm = dynamic(() => import("remark-gfm"));
 const LayoutSimple = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
   if (!contentBlocks || contentBlocks.length === 0) {
     return (
-      <div className="py-12 text-center text-slate-400">
+      <div className="py-12 text-center text-text-muted">
         Belum ada konten untuk ditampilkan.
       </div>
     );
@@ -22,14 +22,14 @@ const LayoutSimple = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
       {contentBlocks.map((block) => (
         <div
           key={block.id}
-          className="group relative border-b border-slate-100 pb-16 last:border-0"
+          className="group relative border-b border-border-dim pb-16 last:border-0"
         >
           {/* Admin Controls */}
           {isAdmin && (
             <div className="absolute top-0 right-0 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => onEdit(block)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-2 text-primary hover:bg-primary-light rounded-lg transition-colors"
                 title="Edit"
               >
                 <FiEdit size={16} />
@@ -55,7 +55,7 @@ const LayoutSimple = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
               />
             )}
             <div>
-              <h3 className="text-3xl font-extrabold text-slate-800 mb-6 tracking-tight">
+              <h3 className="text-3xl font-extrabold text-text-main mb-6 tracking-tight">
                 {block.judul}
               </h3>
               <div className="prose prose-lg prose-slate max-w-none">

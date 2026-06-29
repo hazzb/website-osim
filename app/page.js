@@ -38,6 +38,13 @@ export default async function Home() {
     .order("tanggal", { ascending: true })
     .limit(6);
 
+  // 4. Fetch Sekilas Berita (Latest 3)
+  const { data: latestBerita } = await supabase
+    .from("berita")
+    .select("id, slug, judul, excerpt, tanggal, image_url, penulis, kategori")
+    .order("tanggal", { ascending: false })
+    .limit(3);
+
   // 4. Statistik counts
   const { count: countAnggota } = await supabase
     .from("anggota")
@@ -63,6 +70,7 @@ export default async function Home() {
       initialSettings={settings}
       initialSlides={slides || []}
       initialProgja={latestProgja || []}
+      initialBerita={latestBerita || []}
       stats={stats}
     />
   );

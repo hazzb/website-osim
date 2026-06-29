@@ -71,7 +71,7 @@ export default function ProgramKerjaDetailClient({ initialData }) {
           isAdmin && (
             <div className="flex gap-2">
               <button
-                className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-600 font-semibold text-xs hover:bg-blue-100 transition-all"
+                className="flex items-center gap-2 px-3 py-2 bg-primary-light border border-blue-200 rounded-lg text-primary font-semibold text-xs hover:bg-blue-100 transition-all"
                 onClick={() => alert("Edit action placeholder")}
               >
                 <FiEdit /> <span>Edit</span>
@@ -87,10 +87,10 @@ export default function ProgramKerjaDetailClient({ initialData }) {
         }
       />
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm mt-4">
+      <div className="bg-bg-card rounded-2xl border border-border-dim overflow-hidden shadow-sm mt-4">
         {progja.embed_html && (
           <div className="bg-black flex justify-center items-center p-4 md:p-8 min-h-[300px]">
-            <div className="bg-white rounded-lg overflow-hidden max-w-[500px] w-full shadow-2xl">
+            <div className="bg-bg-card rounded-lg overflow-hidden max-w-[500px] w-full shadow-2xl">
               <div
                 className="instagram-embed-container"
                 dangerouslySetInnerHTML={{ __html: progja.embed_html }}
@@ -99,60 +99,60 @@ export default function ProgramKerjaDetailClient({ initialData }) {
           </div>
         )}
 
-        <div className="p-6 md:p-10 bg-slate-50 border-b border-slate-200">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-6 leading-tight">
+        <div className="p-6 md:p-10 bg-bg-page border-b border-border-dim">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-text-main mb-6 leading-tight">
             {progja.nama_acara}
           </h1>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
+              <div className="w-11 h-11 rounded-xl bg-bg-card border border-border-dim flex items-center justify-center text-text-muted text-xl shadow-sm">
                 <FiCalendar />
               </div>
               <div>
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <span className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">
                   Waktu Pelaksanaan
                 </span>
-                <span className="block text-sm md:text-base font-semibold text-slate-700">
+                <span className="block text-sm md:text-base font-semibold text-text-main">
                   {formattedDate}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
+              <div className="w-11 h-11 rounded-xl bg-bg-card border border-border-dim flex items-center justify-center text-text-muted text-xl shadow-sm">
                 <FiBriefcase />
               </div>
               <div>
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <span className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">
                   Divisi Pelaksana
                 </span>
-                <span className="block text-sm md:text-base font-semibold text-blue-600 underline">
+                <span className="block text-sm md:text-base font-semibold text-primary underline">
                   {progja.divisi?.nama_divisi || "Umum"}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
+              <div className="w-11 h-11 rounded-xl bg-bg-card border border-border-dim flex items-center justify-center text-text-muted text-xl shadow-sm">
                 <FiUser />
               </div>
               <div>
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <span className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">
                   Penanggung Jawab
                 </span>
-                <span className="block text-sm md:text-base font-semibold text-slate-700">
+                <span className="block text-sm md:text-base font-semibold text-text-main">
                   {progja.pj?.nama || "-"}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 text-xl shadow-sm">
+              <div className="w-11 h-11 rounded-xl bg-bg-card border border-border-dim flex items-center justify-center text-text-muted text-xl shadow-sm">
                 <FiUsers />
               </div>
               <div>
-                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                <span className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">
                   Target Peserta
                 </span>
                 <span
@@ -167,27 +167,27 @@ export default function ProgramKerjaDetailClient({ initialData }) {
         </div>
 
         <div className="p-6 md:p-10">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
+          <h3 className="text-lg font-bold text-text-main mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-primary rounded-full"></span>
             Deskripsi Kegiatan
           </h3>
           {progja.deskripsi ? (
-            <div className="text-base leading-relaxed text-slate-600 space-y-4 max-w-none">
+            <div className="text-base leading-relaxed text-text-body space-y-4 max-w-none">
               {progja.deskripsi.split("\n").map((paragraph, idx) => (
                 <p key={idx}>{paragraph}</p>
               ))}
             </div>
           ) : (
-            <p className="text-slate-400 italic">Tidak ada deskripsi detail.</p>
+            <p className="text-text-muted italic">Tidak ada deskripsi detail.</p>
           )}
 
           {progja.link_dokumentasi && (
-            <div className="mt-10 pt-8 border-t border-slate-100 flex justify-center md:justify-start">
+            <div className="mt-10 pt-8 border-t border-border-dim flex justify-center md:justify-start">
               <a
                 href={progja.link_dokumentasi}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 transition-all no-underline"
+                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover hover:shadow-lg hover:shadow-blue-200 transition-all no-underline"
               >
                 <FiExternalLink /> Lihat Dokumentasi Lengkap
               </a>

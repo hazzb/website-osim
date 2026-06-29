@@ -42,7 +42,7 @@ const ImageViewer = ({ isOpen, onClose, src, alt, caption }) => {
 
         {/* CAPTION OUTSIDE */}
         {caption && (
-          <div className="mt-4 bg-white/10 text-white rounded-2xl px-2 py-2 text-sm text-center border border-white/10">
+          <div className="mt-4 bg-bg-card/10 text-white rounded-2xl px-2 py-2 text-sm text-center border border-white/10">
             {caption}
           </div>
         )}

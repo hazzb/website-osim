@@ -17,10 +17,10 @@ const AnggotaCard = ({
   const genderBgClass =
     data.jenis_kelamin === "Akhwat"
       ? "bg-pink-50 border-pink-400"
-      : "bg-blue-50 border-blue-400";
+      : "bg-primary-light border-blue-400";
 
   const genderAccent =
-    data.jenis_kelamin === "Akhwat" ? "text-pink-600" : "text-blue-600";
+    data.jenis_kelamin === "Akhwat" ? "text-pink-600" : "text-primary";
 
   const isCompact = layout === "compact";
 
@@ -38,7 +38,7 @@ const AnggotaCard = ({
       {isAdmin && !isCompact && (
         <div className="absolute top-3 right-3 z-10 flex gap-2">
           <button
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-slate-300 text-slate-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm"
+            className="w-8 h-8 flex items-center justify-center rounded-md bg-bg-card border border-slate-300 text-text-body hover:text-primary hover:border-blue-300 hover:bg-primary-light transition-all shadow-sm"
             onClick={() => onEdit(data)}
             title="Edit Anggota"
           >
@@ -47,7 +47,7 @@ const AnggotaCard = ({
 
           {onDelete && (
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-red-300 text-danger hover:text-red-600 hover:border-red-400 hover:bg-red-50 transition-all shadow-sm"
+              className="w-8 h-8 flex items-center justify-center rounded-md bg-bg-card border border-red-300 text-danger hover:text-red-600 hover:border-red-400 hover:bg-red-50 transition-all shadow-sm"
               onClick={() => onDelete(data.id)}
               title="Hapus Anggota"
             >
@@ -65,7 +65,7 @@ const AnggotaCard = ({
             isCompact
               ? "w-20 h-20 sm:w-24 sm:h-24 rounded-lg"
               : "w-full aspect-square"
-          } overflow-hidden bg-white/50 relative group cursor-pointer border border-black/5`}
+          } overflow-hidden bg-bg-card/50 relative group cursor-pointer border border-black/5`}
           onClick={() => {
             if (data.foto_url) {
               openLightbox(
@@ -87,8 +87,8 @@ const AnggotaCard = ({
               className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-110"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-slate-200">
-              <span className="text-3xl font-bold text-slate-400">
+            <div className="w-full h-full flex items-center justify-center bg-border-dim">
+              <span className="text-3xl font-bold text-text-muted">
                 {data.nama ? data.nama.charAt(0).toUpperCase() : "?"}
               </span>
             </div>
@@ -99,7 +99,7 @@ const AnggotaCard = ({
         {isAdmin && isCompact && (
           <div className="flex gap-1.5 justify-center">
             <button
-              className="flex-1 h-7 flex items-center justify-center rounded-md bg-white border border-slate-200 text-slate-500 hover:text-blue-600 transition-all shadow-sm"
+              className="flex-1 h-7 flex items-center justify-center rounded-md bg-bg-card border border-border-dim text-text-muted hover:text-primary transition-all shadow-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onEdit(data);
@@ -109,7 +109,7 @@ const AnggotaCard = ({
               <FiEdit size={12} />
             </button>
             <button
-              className="flex-1 h-7 flex items-center justify-center rounded-md bg-white border border-red-100 text-red-400 hover:text-red-600 transition-all shadow-sm"
+              className="flex-1 h-7 flex items-center justify-center rounded-md bg-bg-card border border-red-100 text-red-400 hover:text-red-600 transition-all shadow-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(data.id);
@@ -130,7 +130,7 @@ const AnggotaCard = ({
           {/* Header Row: Name */}
           <div className="flex gap-2 mb-1">
             <h3
-              className={`font-extrabold text-slate-800 m-0 leading-tight line-clamp-2 ${isCompact ? "text-sm sm:text-base" : "text-lg"}`}
+              className={`font-extrabold text-text-main m-0 leading-tight line-clamp-2 ${isCompact ? "text-sm sm:text-base" : "text-lg"}`}
             >
               {data.nama}
             </h3>
@@ -138,19 +138,19 @@ const AnggotaCard = ({
 
           <div className="flex flex-wrap items-center gap-1.5 mb-2">
             <span
-              className={`text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded bg-white/70 border border-black/5 ${genderAccent}`}
+              className={`text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded bg-bg-card/70 border border-black/5 ${genderAccent}`}
             >
               {jabatanLabel}
             </span>
             {data.divisi?.nama_divisi && (
-              <span className="text-[10px] sm:text-xs font-medium text-slate-500 px-1.5 py-0.5 rounded bg-white/50 border border-black/5">
+              <span className="text-[10px] sm:text-xs font-medium text-text-muted px-1.5 py-0.5 rounded bg-bg-card/50 border border-black/5">
                 {data.divisi.nama_divisi}
               </span>
             )}
           </div>
 
           {data.motto && (
-            <p className="text-xs italic text-slate-600 m-0">
+            <p className="text-xs italic text-text-body m-0">
               &ldquo;{data.motto}&rdquo;
             </p>
           )}
@@ -158,7 +158,7 @@ const AnggotaCard = ({
 
         {/* META INFO (IG & ALAMAT) */}
         <div
-          className={`flex flex-col gap-1 text-[10px] sm:text-xs text-slate-500 ${isCompact ? "mt-1" : "mt-auto"}`}
+          className={`flex flex-col gap-1 text-[10px] sm:text-xs text-text-muted ${isCompact ? "mt-1" : "mt-auto"}`}
         >
           {data.instagram_username && (
             <a
@@ -168,7 +168,7 @@ const AnggotaCard = ({
               )}`}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1 text-slate-500 hover:text-pink-600 transition-colors no-underline"
+              className="flex items-center gap-1 text-text-muted hover:text-pink-600 transition-colors no-underline"
               onClick={(e) => e.stopPropagation()}
             >
               <FiInstagram size={12} className="shrink-0" />{" "}
@@ -177,7 +177,7 @@ const AnggotaCard = ({
           )}
 
           {data.alamat && (
-            <div className="flex items-center gap-1 text-slate-500">
+            <div className="flex items-center gap-1 text-text-muted">
               <FiMapPin size={12} className="shrink-0" />{" "}
               <span className="truncate">{data.alamat}</span>
             </div>

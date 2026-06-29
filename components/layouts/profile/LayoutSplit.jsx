@@ -11,7 +11,7 @@ const remarkGfm = dynamic(() => import("remark-gfm"));
 const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
   if (!contentBlocks || contentBlocks.length === 0) {
     return (
-      <div className="p-12 text-center text-slate-400">
+      <div className="p-12 text-center text-text-muted">
         Belum ada konten untuk ditampilkan.
       </div>
     );
@@ -30,7 +30,7 @@ const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
           <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={() => onEdit(mainBlock)}
-              className="p-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-xs"
+              className="p-2 bg-bg-card/20 backdrop-blur-sm text-white rounded-lg hover:bg-bg-card/30 transition-colors text-xs"
               title="Edit"
             >
               <FiEdit size={14} />
@@ -68,7 +68,7 @@ const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
         {mainBlock?.button_text && mainBlock?.button_link && (
           <a
             href={mainBlock.button_link}
-            className="inline-block mt-4 px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors"
+            className="inline-block mt-4 px-6 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-primary transition-colors"
           >
             {mainBlock.button_text}
           </a>
@@ -82,14 +82,14 @@ const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
           otherBlocks.map((block) => (
             <div
               key={block.id}
-              className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-blue-600 transition-all group relative"
+              className="p-6 rounded-2xl bg-bg-card border border-border-dim shadow-sm hover:border-blue-600 transition-all group relative"
             >
               {/* Admin Controls */}
               {isAdmin && (
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => onEdit(block)}
-                    className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-xs"
+                    className="p-2 bg-blue-500 text-white rounded-lg hover:bg-primary transition-colors text-xs"
                     title="Edit"
                   >
                     <FiEdit size={12} />
@@ -115,7 +115,7 @@ const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
                       className="w-full h-32 object-cover rounded-lg mb-4"
                     />
                   )}
-                  <h4 className="text-lg font-bold text-slate-800 mb-2">
+                  <h4 className="text-lg font-bold text-text-main mb-2">
                     {block.judul}
                   </h4>
                   <div className="prose prose-sm prose-slate max-w-none">
@@ -126,7 +126,7 @@ const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
                   {block.button_text && block.button_link && (
                     <a
                       href={block.button_link}
-                      className="inline-block mt-3 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      className="inline-block mt-3 px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors text-sm"
                     >
                       {block.button_text}
                     </a>
@@ -136,7 +136,7 @@ const LayoutSplit = ({ contentBlocks = [], isAdmin, onEdit, onDelete }) => {
             </div>
           ))
         ) : (
-          <div className="p-12 text-center text-slate-400">
+          <div className="p-12 text-center text-text-muted">
             Belum ada konten lainnya.
           </div>
         )}

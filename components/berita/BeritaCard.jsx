@@ -2,6 +2,15 @@ import React from "react";
 import Link from "next/link";
 import { FiCalendar, FiUser, FiEdit2, FiTrash2 } from "react-icons/fi";
 
+const KATEGORI_WARNA = {
+  Internal: "bg-primary-light text-primary border-primary-border",
+  Event: "bg-purple-50 text-purple-600 border-purple-100",
+  Edukasi: "bg-emerald-50 text-emerald-600 border-emerald-100",
+  Sosial: "bg-orange-50 text-orange-600 border-orange-100",
+  Prestasi: "bg-amber-50 text-amber-600 border-amber-100",
+  Lainnya: "bg-bg-page text-text-body border-border-dim",
+};
+
 const BeritaCard = ({ berita, isAdmin, onEdit, onDelete }) => {
   const dateObj = new Date(berita.tanggal);
   const formattedDate = dateObj.toLocaleDateString("id-ID", {
@@ -26,7 +35,7 @@ const BeritaCard = ({ berita, isAdmin, onEdit, onDelete }) => {
     <Link href={`/berita/${berita.slug}`} className="group h-full block relative">
       <div className="card card-hover h-full flex flex-col p-0 overflow-hidden relative">
         {/* Thumbnail Image */}
-        <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
+        <div className="relative h-48 w-full bg-border-dim overflow-hidden">
           {berita.image_url ? (
             <img
               src={berita.image_url}
@@ -41,7 +50,9 @@ const BeritaCard = ({ berita, isAdmin, onEdit, onDelete }) => {
           
           {/* Category Badge */}
           <div className="absolute top-4 left-4">
-            <span className="bg-primary text-white text-[10px] uppercase font-bold px-3 py-1.5 rounded-full shadow-md">
+            <span className={`text-[9px] uppercase font-black tracking-wider px-2.5 py-1 rounded-full border ${
+              KATEGORI_WARNA[berita.kategori] ?? "bg-bg-page text-text-muted border-border-dim"
+            }`}>
               {berita.kategori}
             </span>
           </div>
@@ -51,14 +62,14 @@ const BeritaCard = ({ berita, isAdmin, onEdit, onDelete }) => {
             <div className="absolute top-4 right-4 flex gap-1.5 z-10">
               <button
                 onClick={handleEditClick}
-                className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-slate-700 flex items-center justify-center shadow-md hover:bg-blue-600 hover:text-white transition-all scale-90 hover:scale-100"
+                className="w-8 h-8 rounded-full bg-bg-card/90 backdrop-blur-sm text-text-main flex items-center justify-center shadow-md hover:bg-primary hover:text-white transition-all scale-90 hover:scale-100"
                 title="Edit Berita"
               >
                 <FiEdit2 size={13} />
               </button>
               <button
                 onClick={handleDeleteClick}
-                className="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-red-600 flex items-center justify-center shadow-md hover:bg-red-600 hover:text-white transition-all scale-90 hover:scale-100"
+                className="w-8 h-8 rounded-full bg-bg-card/90 backdrop-blur-sm text-red-600 flex items-center justify-center shadow-md hover:bg-red-600 hover:text-white transition-all scale-90 hover:scale-100"
                 title="Hapus Berita"
               >
                 <FiTrash2 size={13} />

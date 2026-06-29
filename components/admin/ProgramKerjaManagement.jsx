@@ -148,14 +148,14 @@ export default function ProgramKerjaManagement({
   };
 
   const getStatusBadge = (status) => {
-    let classes = "bg-slate-100 text-slate-500 border-slate-200";
+    let classes = "bg-border-dim text-text-muted border-border-dim";
     let icon = <FiClock />;
 
     if (status === "Selesai") {
       classes = "bg-emerald-50 text-emerald-600 border-emerald-100";
       icon = <FiCheckCircle />;
     } else if (status === "Berjalan") {
-      classes = "bg-blue-50 text-blue-600 border-blue-100";
+      classes = "bg-primary-light text-primary border-primary-border";
       icon = <FiActivity />;
     }
 
@@ -176,7 +176,7 @@ export default function ProgramKerjaManagement({
         actions={
           <button
             onClick={() => openModal()}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95"
+            className="px-5 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-tight flex items-center gap-2 hover:bg-primary-hover transition-all shadow-lg shadow-blue-100 active:scale-95"
           >
             <FiPlus /> <span>Tambah Progja</span>
           </button>
@@ -238,7 +238,7 @@ export default function ProgramKerjaManagement({
                   progjaList.map((item) => (
                     <tr key={item.id}>
                       <td>
-                        <div className="font-bold text-slate-800">
+                        <div className="font-bold text-text-main">
                           {item.nama_acara}
                         </div>
                         <span
@@ -246,25 +246,25 @@ export default function ProgramKerjaManagement({
                             item.target_gender === "Akhwat"
                               ? "bg-fuchsia-50 text-fuchsia-500"
                               : item.target_gender === "Ikhwan"
-                                ? "bg-blue-50 text-blue-500"
-                                : "bg-slate-100 text-slate-400"
+                                ? "bg-primary-light text-primary"
+                                : "bg-border-dim text-text-muted"
                           }`}
                         >
                           TARGET: {item.target_gender}
                         </span>
                       </td>
                       <td>
-                        <span className="text-xs font-semibold text-slate-600">
+                        <span className="text-xs font-semibold text-text-body">
                           {item.divisi?.nama_divisi || "-"}
                         </span>
                       </td>
                       <td>
-                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold">
+                        <span className="text-[10px] bg-border-dim text-text-muted px-2 py-0.5 rounded font-bold">
                           {item.periode_jabatan?.nama_kabinet || "-"}
                         </span>
                       </td>
                       <td>{getStatusBadge(item.status)}</td>
-                      <td className="text-xs text-slate-500 font-medium">
+                      <td className="text-xs text-text-muted font-medium">
                         {item.tanggal
                           ? new Date(item.tanggal).toLocaleDateString("id-ID", {
                               day: "numeric",
@@ -300,20 +300,20 @@ export default function ProgramKerjaManagement({
 
           {totalPages > 1 && (
             <div className={tableStyles.paginationContainer}>
-              <div className="text-xs text-slate-400 font-bold">
+              <div className="text-xs text-text-muted font-bold">
                 Hal. <strong>{currentPage}</strong> dari{" "}
                 <strong>{totalPages}</strong>
               </div>
               <div className="flex gap-2">
                 <button
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="px-4 py-2 bg-bg-card border border-border-dim rounded-xl text-xs font-black text-text-muted hover:bg-bg-page disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
                   Prev
                 </button>
                 <button
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  className="px-4 py-2 bg-bg-card border border-border-dim rounded-xl text-xs font-black text-text-muted hover:bg-bg-page disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                   onClick={() =>
                     setCurrentPage((p) => Math.min(totalPages, p + 1))
                   }

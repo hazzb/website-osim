@@ -64,7 +64,7 @@ const Footer = () => {
   if (pathname === "/login" || pathname.startsWith("/admin")) return null;
 
   return (
-    <footer className="bg-blue-50/50 border-t border-blue-100/50 mt-20">
+    <footer className="bg-primary-light/50 border-t border-primary-border/50 mt-20">
       <div className="max-w-6xl mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-12">
           {/* KOLOM 1: IDENTITAS */}
@@ -93,18 +93,18 @@ const Footer = () => {
                 )}
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                <h3 className="text-xl font-bold text-text-main tracking-tight">
                   {info.nama_organisasi}
                 </h3>
                 {info.nama_sekolah && (
-                  <div className="text-xs text-blue-600 font-semibold uppercase tracking-wider">
+                  <div className="text-xs text-primary font-semibold uppercase tracking-wider">
                     {info.nama_sekolah}
                   </div>
                 )}
               </div>
             </div>
 
-            <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
+            <p className="text-text-muted text-sm leading-relaxed max-w-sm">
               {info.deskripsi_singkat ||
                 "Wadah aspirasi dan kreasi siswa untuk mewujudkan madrasah yang unggul dan inovatif."}
             </p>
@@ -115,7 +115,7 @@ const Footer = () => {
                   href={info.instagram_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 bg-white text-slate-400 rounded-full flex items-center justify-center hover:bg-pink-50 hover:text-pink-500 hover:-translate-y-1 transition-all shadow-sm border border-slate-100"
+                  className="w-9 h-9 bg-bg-card text-text-muted rounded-full flex items-center justify-center hover:bg-pink-50 hover:text-pink-500 hover:-translate-y-1 transition-all shadow-sm border border-border-dim"
                   title="Instagram"
                 >
                   <FaInstagram size={18} />
@@ -126,7 +126,7 @@ const Footer = () => {
                   href={info.tiktok_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 bg-white text-slate-400 rounded-full flex items-center justify-center hover:bg-slate-50 hover:text-slate-900 hover:-translate-y-1 transition-all shadow-sm border border-slate-100"
+                  className="w-9 h-9 bg-bg-card text-text-muted rounded-full flex items-center justify-center hover:bg-bg-page hover:text-text-main hover:-translate-y-1 transition-all shadow-sm border border-border-dim"
                   title="TikTok"
                 >
                   <FaTiktok size={16} />
@@ -137,7 +137,7 @@ const Footer = () => {
                   href={info.youtube_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 bg-white text-slate-400 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 hover:-translate-y-1 transition-all shadow-sm border border-slate-100"
+                  className="w-9 h-9 bg-bg-card text-text-muted rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 hover:-translate-y-1 transition-all shadow-sm border border-border-dim"
                   title="YouTube"
                 >
                   <FiYoutube size={18} />
@@ -148,52 +148,52 @@ const Footer = () => {
 
           {/* KOLOM 2: TAUTAN CEPAT */}
           <div>
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">
+            <h4 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-6">
               Jelajahi
             </h4>
             <ul className="space-y-3.5">
               <li>
                 <Link
                   href="/"
-                  className="group flex items-center gap-3 text-sm text-slate-500 hover:text-blue-600 transition-colors no-underline"
+                  className="group flex items-center gap-3 text-sm text-text-muted hover:text-primary transition-colors no-underline"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-blue-600 transition-colors"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-primary transition-colors"></span>
                   Beranda
                 </Link>
               </li>
               <li>
                 <Link
                   href="/profile"
-                  className="group flex items-center gap-3 text-sm text-slate-500 hover:text-blue-600 transition-colors no-underline"
+                  className="group flex items-center gap-3 text-sm text-text-muted hover:text-primary transition-colors no-underline"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-blue-600 transition-colors"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-primary transition-colors"></span>
                   Profile
                 </Link>
               </li>
               <li>
                 <Link
                   href="/anggota"
-                  className="group flex items-center gap-3 text-sm text-slate-500 hover:text-blue-600 transition-colors no-underline"
+                  className="group flex items-center gap-3 text-sm text-text-muted hover:text-primary transition-colors no-underline"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-blue-600 transition-colors"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-primary transition-colors"></span>
                   Anggota
                 </Link>
               </li>
               <li>
                 <Link
                   href="/program-kerja"
-                  className="group flex items-center gap-3 text-sm text-slate-500 hover:text-blue-600 transition-colors no-underline"
+                  className="group flex items-center gap-3 text-sm text-text-muted hover:text-primary transition-colors no-underline"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-blue-600 transition-colors"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-primary transition-colors"></span>
                   Program Kerja
                 </Link>
               </li>
               <li>
                 <Link
                   href={isAdmin ? "/admin/dashboard" : "/login"}
-                  className="group flex items-center gap-3 text-sm text-slate-500 hover:text-blue-600 transition-colors no-underline"
+                  className="group flex items-center gap-3 text-sm text-text-muted hover:text-primary transition-colors no-underline"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-blue-600 transition-colors"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 group-hover:bg-primary transition-colors"></span>
                   {isAdmin ? "Panel Admin" : "Login Admin"}
                 </Link>
               </li>
@@ -202,13 +202,13 @@ const Footer = () => {
 
           {/* KOLOM 3: KONTAK */}
           <div>
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">
+            <h4 className="text-xs font-bold text-text-muted uppercase tracking-widest mb-6">
               Hubungi Kami
             </h4>
             <ul className="space-y-4">
               {info.alamat && (
-                <li className="flex gap-4 text-sm text-slate-500">
-                  <div className="w-8 h-8 shrink-0 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                <li className="flex gap-4 text-sm text-text-muted">
+                  <div className="w-8 h-8 shrink-0 rounded-lg bg-primary-light text-primary flex items-center justify-center">
                     <FiMapPin size={16} />
                   </div>
                   <span className="leading-relaxed text-xs">{info.alamat}</span>
@@ -216,12 +216,12 @@ const Footer = () => {
               )}
               {info.email && (
                 <li className="flex gap-4 text-sm">
-                  <div className="w-8 h-8 shrink-0 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                  <div className="w-8 h-8 shrink-0 rounded-lg bg-primary-light text-primary flex items-center justify-center">
                     <FiMail size={16} />
                   </div>
                   <a
                     href={`mailto:${info.email}`}
-                    className="text-slate-500 hover:text-blue-600 transition-colors leading-relaxed text-xs truncate no-underline"
+                    className="text-text-muted hover:text-primary transition-colors leading-relaxed text-xs truncate no-underline"
                   >
                     {info.email}
                   </a>
@@ -234,7 +234,7 @@ const Footer = () => {
                   </div>
                   <a
                     href={`https://wa.me/${info.no_hp.replace(/\D/g, "")}`}
-                    className="text-slate-500 hover:text-blue-600 transition-colors leading-relaxed text-xs no-underline"
+                    className="text-text-muted hover:text-primary transition-colors leading-relaxed text-xs no-underline"
                   >
                     {info.no_hp}
                   </a>
@@ -246,21 +246,21 @@ const Footer = () => {
       </div>
 
       {/* COPYRIGHT & ATTRIBUTION */}
-      <div className="bg-slate-50/50 border-t border-blue-100/30">
+      <div className="bg-bg-page/50 border-t border-primary-border/30">
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="text-[11px] text-slate-400 font-medium">
+            <div className="text-[11px] text-text-muted font-medium">
               © {currentYear}{" "}
-              <span className="text-slate-600 font-bold">
+              <span className="text-text-body font-bold">
                 {info.nama_organisasi}
               </span>
               . Built with passion.
             </div>
 
-            <div className="flex items-center gap-6 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-6 text-[10px] font-semibold text-text-muted uppercase tracking-widest">
               <div className="flex items-center gap-2">
                 <span>Managed by</span>
-                <span className="text-blue-500">
+                <span className="text-primary">
                   {info.footer_managed_by || "Media Center"}
                 </span>
               </div>
@@ -272,15 +272,15 @@ const Footer = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-3 p-1.5 px-4 bg-white rounded-full border border-blue-100/50 shadow-sm transition-all hover:shadow-md">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+            <div className="flex items-center gap-3 p-1.5 px-4 bg-bg-card rounded-full border border-primary-border/50 shadow-sm transition-all hover:shadow-md">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-tighter">
                 Developed by
               </span>
               <a
                 href="https://api.whatsapp.com/send/?phone=6281772306374&text=Halo%2C+saya+ingin+konsultasi+terkait+pembuatan+aplikasi+sesuai+kebutuhan+saya.&type=phone_number&app_absent=0"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-bold text-slate-700 hover:text-blue-600 transition-colors no-underline"
+                className="text-xs font-bold text-text-main hover:text-primary transition-colors no-underline"
               >
                 <span className="flex flex-row items-center gap-1">
                   <FaWhatsapp className="text-green-600" size={14} />
@@ -292,7 +292,7 @@ const Footer = () => {
                 href="https://www.instagram.com/dan_ilevan/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-bold text-slate-700 hover:text-pink-600 transition-colors no-underline"
+                className="text-xs font-bold text-text-main hover:text-pink-600 transition-colors no-underline"
               >
                 <span className="flex flex-row items-center gap-1">
                   <FaInstagram className="text-pink-600" size={14} />

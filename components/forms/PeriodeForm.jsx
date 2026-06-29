@@ -66,17 +66,17 @@ const PeriodeForm = ({ formData, onChange, onSubmit, onCancel, loading }) => {
         />
       </div>
 
-      <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-3">
+      <div className="mt-8 pt-6 border-t border-border-dim flex justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all border border-slate-200"
+          className="px-6 py-2.5 rounded-xl text-xs font-bold text-text-muted hover:bg-bg-page transition-all border border-border-dim"
         >
           Batal
         </button>
         <button
           type="submit"
-          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
+          className="px-8 py-2.5 rounded-xl text-xs font-extrabold text-white bg-primary hover:bg-primary-hover transition-all shadow-lg shadow-blue-200 disabled:opacity-50 transform active:scale-95"
           disabled={loading}
         >
           {loading ? "Menyimpan..." : "Simpan Periode"}

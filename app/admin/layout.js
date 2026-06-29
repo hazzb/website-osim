@@ -8,7 +8,7 @@ export const metadata = {
 export default function AdminLayout({ children }) {
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-200">
+      <div className="min-h-screen bg-bg-page font-sans text-text-main selection:bg-blue-200">
         <main className="p-4 md:p-6 lg:p-8">{children}</main>
       </div>
     </AdminGuard>
